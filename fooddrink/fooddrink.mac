@@ -1,0 +1,143 @@
+| ------------------------------------------------------------------------------------- |
+| 	File:		fooddrink.mac
+|	Author(s):	Xeniaz, Booges
+|	Updated:	11-2016
+|	Version:	1.0
+|	Plugins:	MQ2Cast
+|
+|	Purpose:	Use summon spells or clickies to summon food and drink up to n stacks
+|
+| ------------------------------------------------------------------------------------- |
+|	Usage:
+|			/macro fooddrink			# By default creates 1 stack of each food/drink
+|			/macro fooddrink 4			# Summon 4 stacks of each food/drink
+|
+|
+|
+| ------------------------------------------------------------------------------------- |
+#include spell_routines.inc
+
+Sub Main(szStacks)
+	/declare DEBUG string outer false
+	
+	/declare OldSpell1 string outer
+	/varset OldSpell1 ${Me.Gem[1]}
+	/declare OldSpell2 string outer
+	/varset OldSpell2 ${Me.Gem[2]}
+	| DrinkSource = item|gem
+	/declare DrinkSource string outer gem
+	/declare DrinkSpell string outer Summon Drink
+	| FoodSource = item|gem
+	/declare FoodSource string outer gem
+	|/declare DrinkSpell2 string outer Abundant Food
+	/declare FoodSpell string outer Summon Food
+	|/declare FoodSpell2 string outer Abundant Food
+	/declare DrinkItem string outer Summoned: Globe of Water
+	/declare FoodItem string outer Summoned: Black Bread
+	| Number of stacks to summon?
+	/declare nStacks int outer 0
+	| Do once? Leave this alone to summon 1 stack (1 cycle)
+	/declare Once int outer 0
+    /if (${Defined[szStacks]}) /varset nStacks ${szStacks}
+    /if (${nStacks}<1) /varset Once 1
+    /if (${nStacks}<1 || ${nStacks}>20) /varset nStacks 1
+	
+	/declare foodneeded int outer
+	/declare drinkneeded int outer
+	
+	| Determine our starting food and drink quantities
+	/echo Current Food: ${FindItemCount[=${FoodItem}]}
+	/echo Current Drinks: ${FindItemCount[=${DrinkItem}]}
+	
+	/varcalc foodneeded ( ${Math.Calc[20*${nStacks}]} - ${FindItemCount[=${FoodItem}]} )
+	/varcalc drinkneeded ( ${Math.Calc[20*${nStacks}]} - ${FindItemCount[=${DrinkItem}]} )
+	/echo Need: ${foodneeded} Food and ${drinkneeded} Drink
+	
+    /if (${Once}) /echo Summoning up to 1 stack of food and drink, then ending macro.
+    /if (!${Once}) /echo Summoning ${nStacks} stack(s) of food and drink per cycle.
+	/call SummonDrinkFood
+	/call Cleanup
+	/echo Food/Drink Summoning is complete. Bye!
+/return
+
+	
+Sub SummonDrinkFood
+	/declare mycount int local
+	/declare count int local
+	/declare i int local
+	
+	:FoodLoop
+	/if (${Int[${foodneeded}]}<1) {
+		/if (${DEBUG}) /echo [DEBUG] Skipping Food Loop due to failing < 1 check
+		/goto :DrinkLoop
+	}
+	/if (${Me.CombatState.NotEqual[COMBAT]} && !${Me.Moving} && !${Cursor.ID}) {
+		/if (!${Me.Gem[${FoodSpell}]} && ${FoodSource.Find[gem]}) /call Memorize 1 "${FoodSpell}"
+	}
+	/for i 1 to ${foodneeded}
+		/if (${DEBUG}) /echo [DEBUG] Food Iteration: ${i}
+		/call Summon "${FoodSpell}" ${FoodSource}
+	/next i
+	/delay 1s
+	
+	:DrinkLoop
+	/if (${Int[${drinkneeded}]}<1) /return
+	/if (${Me.CombatState.NotEqual[COMBAT]} && !${Me.Moving} && !${Cursor.ID}) {
+		/if (!${Me.Gem[${DrinkSpell}]} && ${DrinkSource.Find[gem]}) /call Memorize 2 "${DrinkSpell}"
+	}
+	/for i 1 to ${drinkneeded}
+		/if (${DEBUG}) /echo [DEBUG] Drink Iteration: ${i}
+		/call Summon "${DrinkSpell}" ${DrinkSource}
+	/next i
+	/delay 2s
+	/if (${DEBUG}) /echo [DEBUG] return from SummonDrinkFood Subroutine
+/return
+
+
+Sub Memorize(int num, string s)
+	/if (${Me.Standing}) {
+		/sit
+		/delay 2s
+	}
+	/memspell ${num} "${s}"
+	/delay 5s ${Me.SpellReady[${s}]}
+/return
+
+	
+Sub Summon(string what, string castType)
+	:HoldFast
+	/if (${Me.CombatState.Equal[COMBAT]} || ${Me.Moving} || ${Cursor.ID} || ${Me.Casting.ID}) {
+		/delay 3s
+		/goto :HoldFast
+	}
+	/if (!${Me.Standing}) {
+		/stand
+		/delay 2s
+	}
+	/if ( ${castType.Equal[item]} ) {
+		/useitem ${FindItem[=${what}].ItemSlot} ${FindItem[=${what}].ItemSlot2}
+	}
+	/if ( ${castType.Find[gem]} ) {
+		/casting "${what}" ${castType}
+	}
+	:castwait
+	/delay 1s
+	/if ( ${Me.Casting.ID} ) /goto :castwait
+	/delay 5
+	/autoinv
+	/delay 5s !${Cursor.ID}
+/return
+
+
+Sub Cleanup
+	/delay 2s
+	/if (${Me.Standing}) {
+		/sit
+		/delay 2s
+	}
+	/memspell 1 "${OldSpell1}"
+	/delay 2s
+	/memspell 2 "${OldSpell2}"
+	/delay 2s
+	/stand
+/return

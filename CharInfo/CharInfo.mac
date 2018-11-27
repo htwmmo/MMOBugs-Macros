@@ -1,0 +1,239 @@
+| ==============================================================================================|
+| 					                                                	|	
+| 												|
+| USAGE: /macro CharInfo									|
+| 												| 													
+| Description:											|	
+|  Output a characters spell, equipments, aa, disc info to ${Me.Level}_${Me.Class}.ini		|
+| ==============================================================================================|
+#turbo 100
+#define MyIni ${Me.Level}_${Me.Class}.ini
+
+#event AATimer "[ #1#: #2# ] (Reuse Time: #3#)#*#"
+
+Sub main
+	/echo Loading character spell, item, AA, disc info to MyIni
+	/declare aaEventTimer		timer outer 0s
+	/ini "MyIni" "Character Information" "Class" "${Me.Class.Name}"
+	/ini "MyIni" "Character Information" "Level" "${Me.Level}"
+	
+	| Get memmed spells
+	/if (${Me.CurrentMana}) /call GetSpells 1 ${Me.Level} TRUE FALSE
+	
+	| Get book spells for previous 10 levels
+	/if (${Me.CurrentMana}) /call GetSpells ${Math.Calc[${Me.Level} - 10]} ${Me.Level} FALSE TRUE
+	
+	| Get Equipment (all equipped and inventory only with clicky effect)
+	/call GetEquipment1
+	/call GetEquipment2
+	/if (${Select[${Me.Class.ShortName},BER,BRD,BST,MNK,ROG,PAL,SHD,WAR,RNG]}) /call GetCombatDiscs
+	
+	| The following section uses /aa list timers to get activated aas only
+	/varset aaEventTimer 8s
+	/aa List timers
+	:aaLoop
+		/doevents
+	/if (${aaEventTimer}) /goto :aaLoop
+	
+/return
+
+
+Sub GetSpells(int lowLevel, int highLevel, bool memmedSpells, bool bookSpells)
+|TargetType
+|grouping
+|Skill
+|CounterType, if counter
+|slot1-12 info
+|SpellType
+|ResistType
+	/declare i int local
+
+	/declare gem int local
+	/declare sLoop					int local 0
+	/declare sName					string local
+	/if (!${Defined[lowLevel]}) {
+		/declare lowLevel			int local 1
+		/varcalc lowlevel ${Me.Level}-10
+		/declare highLevel		int local ${Me.Level}
+		/declare memmedSpells	bool local TRUE
+	}
+	/if (!${Defined[highLevel]}) {
+		/declare highLevel		int local ${Me.Level}
+	}
+	/if (!${Defined[memmedSpells]}) {
+		/declare memmedSpells	bool local TRUE
+	}
+	/if (!${Defined[bookSpells]}) {
+		/declare bookSpells		bool local TRUE
+	}
+	
+	/if (${memmedSpells}) {
+		/for sLoop 1 to 12
+			/varset sName ${Me.Gem[${sLoop}]}
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_Name" "${sName}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_ID" "${Me.Gem[${sLoop}].ID}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_Level" "${Spell[${sName}].Level}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_Gem" "gem${sLoop}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_TargetType" "${Spell[${sName}].TargetType}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_SpellType" "${Spell[${sName}].SpellType}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_ResistType" "${Spell[${sName}].ResistType}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_Skill" "${Spell[${sName}].Skill}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_SPA" "${Spell[${sName}].SPA}"
+				/for i 1 to 12 {
+					/if (${Spell[${Me.Gem[${sLoop}].ID}].Slot[${i}].Length}) /ini "MyIni" "Memmed Spells" "Spell${sLoop}_Slot[${i}]" "${Spell[${Me.Gem[${sLoop}].ID}].Slot[${i}]}"
+					/if (${Spell[${Me.Gem[${sLoop}].ID}].Slot[${i}].Length} && ${Spell[${Me.Gem[${sLoop}].ID}].Slot[${i}].Find[UnknownEffect]}) /call SpecialSpell "${Me.Gem[${sLoop}].ID}" "${i}" "${sLoop}"
+				}
+				/next i
+
+		/next sLoop
+	}
+
+	/if (${bookSpells}) {
+		/for sLoop 1 to 720
+			/varset sName ${Me.Book[${sLoop}]}
+			/if (${sName.NotEqual[NULL]} && ${Spell[${sName}].Level} >= ${lowLevel} && ${Spell[${sName}].Level} <= ${highLevel}) {
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_Name" "${sName}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_ID" "${Me.Book[${sLoop}].ID}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_Level" "${Spell[${Me.Book[${sLoop}].ID}].Level}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_TargetType" "${Spell[${Me.Book[${sLoop}].ID}].TargetType}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_SpellType" "${Spell[${Me.Book[${sLoop}].ID}].SpellType}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_ResistType" "${Spell[${Me.Book[${sLoop}].ID}].ResistType}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_Skill" "${Spell[${Me.Book[${sLoop}].ID}].Skill}"
+			/ini "MyIni" "Memmed Spells" "Spell${sLoop}_SPA" "${Spell[${Me.Book[${sLoop}].ID}].SPA}"
+				/for i 1 to 12 {
+					/if (${Spell[${Me.Book[${sLoop}].ID}].Slot[${i}].Length}) /ini "MyIni" "Memmed Spells" "Spell${sLoop}_Slot[${i}]" "${Spell[${Me.Book[${sLoop}].ID}].Slot[${i}]}"
+					/if (${Spell[${Me.Book[${sLoop}].ID}].Slot[${i}].Length} && ${Spell[${Me.Book[${sLoop}].ID}].Slot[${i}].Find[UnknownEffect]}) /call SpecialSpell "${Me.Book[${sLoop}].ID}" "${i}" "${sLoop}"
+				}
+				/next i
+			}
+		/next sLoop
+	}
+/return
+
+Sub SpecialSpell(int spell_id,int slot_num, int sloop)
+/if (${Spell[${spell_id}].Slot[${slot_num}].Find[280]}) /ini "MyIni" "Memmed Spells" "Spell${sloop}_Slot[${slot_num}]" "Increase Pet Chance to Flurry by (${Spell[${spell_id}].Base[${slot_num}]})"
+/if (${Spell[${spell_id}].Slot[${slot_num}].Find[305]}) /ini "MyIni" "Memmed Spells" "Spell${sloop}_Slot[${slot_num}]" "Mitigate Damage Shield (${Spell[${spell_id}].Base[${slot_num}]})"
+/if (${Spell[${spell_id}].Slot[${slot_num}].Find[348]}) /ini "MyIni" "Memmed Spells" "Spell${sloop}_Slot[${slot_num}]" "Limit: Minimum Mana Cost (${Spell[${spell_id}].Base[${slot_num}]})"
+/if (${Spell[${spell_id}].Slot[${slot_num}].Find[351]}) /ini "MyIni" "Memmed Spells" "Spell${sloop}_Slot[${slot_num}]" "Summons Aura: Spell.Field4 not defined by mq2"
+/if (${Spell[${spell_id}].Slot[${slot_num}].Find[364]}) /ini "MyIni" "Memmed Spells" "Spell${sloop}_Slot[${slot_num}]" "Increase Chance to Triple Attack by (${Spell[${spell_id}].Base[${slot_num}]})"
+/if (${Spell[${spell_id}].Slot[${slot_num}].Find[428]}) /ini "MyIni" "Memmed Spells" "Spell${sloop}_Slot[${slot_num}]" "Skill Limit: ${Spell[${spell_id}].Base[${slot_num}]}"
+/if (${Spell[${spell_id}].Slot[${slot_num}].Find[429]}) /ini "MyIni" "Memmed Spells" "Spell${sloop}_Slot[${slot_num}]" "Add proc: '${Spell[${Spell[${spell_id}].Base[${slot_num}]}]}' id: ${Spell[${spell_id}].Base[${slot_num}]}"
+/return
+
+Sub GetEquipment1
+	/declare eLoop						int outer
+	/declare sName						string local
+	
+	| ------------------- Equipped Gear -------------------
+	/for eLoop 0 to 22
+		/if (${InvSlot[${eLoop}].Item.Name.NotEqual[NULL]}) {
+			/varset sName ${InvSlot[${eLoop}].Item.Spell.Name}
+			/if (${sName.NotEqual[NULL]} && ${InvSlot[${eLoop}].Item.EffectType.Find[Click]}) {
+			/ini "MyIni" "Equipped Items" "Item${eLoop}_Name" "${InvSlot[${eLoop}].Item.Name}"
+			/ini "MyIni" "Equipped Items" "Item${eLoop}_Spell" "${sName}"
+			/ini "MyIni" "Equipped Items" "Item${eLoop}_EffectType" "${InvSlot[${eLoop}].Item.EffectType}"
+			/ini "MyIni" "Equipped Items" "Item${eLoop}_Gem" "item"
+			}			
+		}
+	/next eLoop
+	
+	| ------------------- Primary Inventory Slots -------------------
+	/for eLoop 23 to 32
+		/if (${InvSlot[${eLoop}].Item.Name.NotEqual[NULL]}) {
+			/varset sName ${InvSlot[${eLoop}].Item.Spell.Name}
+			/if (${sName.NotEqual[NULL]} && ${InvSlot[${eLoop}].Item.EffectType.Find[Click]}) {
+				/ini "MyIni" "Inventory Items" "Item${eLoop}_Name" "${InvSlot[${eLoop}].Item.Name}"
+				/ini "MyIni" "Inventory Items" "Item${eLoop}_Spell" "${sName}"
+				/ini "MyIni" "Equipped Items" "Item${eLoop}_EffectType" "${InvSlot[${eLoop}].Item.EffectType}"
+				/ini "MyIni" "Inventory Items" "Item${eLoop}_Gem" "item"
+			}	else /if (${InvSlot[${eLoop}].Item.Container}) {
+				/ini "MyIni" "Inventory Items" "Item${eLoop}" "${InvSlot[${eLoop}].Item.Container} slot container"
+			}
+		}
+	/next eLoop
+/return
+
+Sub GetEquipment2
+
+
+/declare iSlots int outer
+/declare iName int outer
+/declare iItemNum int local 1
+
+   	/for iSlots 1 to 32
+      	/if (${InvSlot[${iSlots}].Item.Container}>0) {
+         /for iName 1 to ${InvSlot[${iSlots}].Item.Container}
+            /if (${Me.Inventory[${iSlots}].Item[${iName}].ID} && ${Me.Inventory[${iSlots}].Item[${iName}].Spell.ID} && ${Me.Inventory[${iSlots}].Item[${iName}].CastTime} && ${Me.Inventory[${iSlots}].Item[${iName}].WornSlots} && ${Me.Level}>=${Me.Inventory[${iSlots}].Item[${iName}].RequiredLevel} && ${Me.Inventory[${iSlots}].Item[${iName}].Class[${Me.Class}].Name.Equal[${Me.Class}]} && ${Spell[${Me.Inventory[${iSlots}].Item[${iName}].Spell}].Duration}>50) {
+			/ini "MyIni" "Items" "Item${iItemNum}_Name" "${Me.Inventory[${iSlots}].Item[${iName}].Name}"
+			/ini "MyIni" "Items" "Item${iItemNum}_Spell" "${Me.Inventory[${iSlots}].Item[${iName}].Spell}"
+			/ini "MyIni" "Items" "Item${iItemNum}_EffectType" "${Me.Inventory[${iSlots}].Item[${iName}].EffectType}"
+			/ini "MyIni" "Items" "Item${iItemNum}_Gem" "item"
+			/varcalc iItemNum ${iItemNum}+1
+            		}
+         	/next iName
+	}
+	/next iSlots
+/return
+
+Sub GetCombatDiscs
+	/declare i int local
+	/declare cLoop						int local
+	/declare sName						string local
+	
+	| ------------------- Combat Disciplines -------------------
+	:openCombatSkills
+		/if (!${Window[CombatSkillSelectWnd].Open}) /squelch /windowstate CombatSkillSelectWnd Open
+		/delay 5s ${Window[CombatSkillSelectWnd].Open}
+		/if (!${Window[CombatSkillSelectWnd].Open}) /goto :openCombatSkills
+	/for cLoop 1 to 200
+		/if (${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop}].Length}) {
+			/varset sName ${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop}]}
+				/ini "MyIni" "Discs" "Disc${cLoop}_Name" "${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},1]}"
+				/ini "MyIni" "Discs" "Disc${cLoop}_Level" "${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},2]}"
+				/ini "MyIni" "Discs" "Disc${cLoop}_Cost" "${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},3]}"
+				/ini "MyIni" "Discs" "Disc${cLoop}_Upkeep" "${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},4]}"
+				/ini "MyIni" "Discs" "Disc${cLoop}_Target" "${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},5]}"
+				/ini "MyIni" "Discs" "Disc${cLoop}_TargetType" "${Spell[${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},1]}].TargetType}"
+				/ini "MyIni" "Discs" "Disc${cLoop}_Duration" "${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},6]}"
+				/ini "MyIni" "Discs" "Disc${cLoop}_Reuse" "${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},7]}"
+				/ini "MyIni" "Discs" "Disc${cLoop}_DurationSeconds" "${Spell[${sName}].Duration.TotalSeconds}s"
+				/ini "MyIni" "Discs" "Disc${cLoop}_Gem" "disc"
+				/for i 1 to 12 {
+					/if (${Spell[${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},1]}].Slot[${i}].Length}) /ini "MyIni" "Discs" "Disc${cLoop}_Slot[${i}]" "${Spell[${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},1]}].Slot[${i}]}"
+				}
+				/next i
+			/next cLoop
+		}
+	:closeCombatSkills
+		/if (${Window[CombatSkillSelectWnd].Open}) /squelch /windowstate CombatSkillSelectWnd close
+		/delay 5s !${Window[CombatSkillSelectWnd].Open}
+		/if (${Window[CombatSkillSelectWnd].Open}) /goto :closeCombatSkills
+/return
+
+Sub Event_AATimer(line, string aaNumber, string aaName, string aaReuseTime)
+|MyReuseTime
+|Type
+|Description
+|Spell
+|Slot1-12
+	/declare i int local
+	/if (!${Defined[aaloop]}) /declare aaloop int outer 1
+	/declare sName						string local
+	/varset sName ${aaName}
+		/ini "MyIni" "AAs" "AA${aaloop}_Name" "${sName}"
+		/ini "MyIni" "AAs" "AA${aaloop}_Number" "${aaNumber}"
+		/ini "MyIni" "AAs" "AA${aaloop}_Type" "${Me.AltAbility[${sName}].Type}"
+		/ini "MyIni" "AAs" "AA${aaloop}_MyReuseTime" "${Me.AltAbility[${sName}].MyReuseTime}"
+		/ini "MyIni" "AAs" "AA${aaloop}_Spell" "${Me.AltAbility[${sName}].Spell}"
+		/ini "MyIni" "AAs" "AA${aaloop}_Spell_ID" "${Me.AltAbility[${sName}].Spell.ID}"
+		/ini "MyIni" "AAs" "AA${aaloop}_Rank" "${Me.AltAbility[${sName}]}"
+		/ini "MyIni" "AAs" "AA${aaloop}_MaxRank" "${Me.AltAbility[${sName}].MaxRank}"
+		/ini "MyIni" "AAs" "AA${aaloop}_Gem" "alt"
+				/for i 1 to 12 {
+					/if (${Spell[${Me.AltAbility[${sName}].Spell.ID}].Slot[${i}].Length}) /ini "MyIni" "AAs" "AA${aaloop}_Slot[${i}]" "${Spell[${Me.AltAbility[${sName}].Spell.ID}].Slot[${i}]}"
+				}
+				/next i
+		/ini "MyIni" "AAs" "AA${aaloop}_Description" "${Me.AltAbility[${sName}].Description}"
+		/varcalc aaloop ${aaloop}+1
+	/varset aaEventTimer 5s
+/return

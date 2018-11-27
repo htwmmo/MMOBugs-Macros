@@ -1,0 +1,50 @@
+#event CombineError "#*#There was no place to put that#*#" 
+#event CombineError "#*#You cannot combine these items in this container type!#*#" 
+#event CombineError "#*#You are missing#*#" 
+#event ContUsed "#*#Someone else is using that. Try again later.#*#" 
+
+Sub Main 
+	/declare EndingVar int outer 1
+	/declare x int local 
+	/if (${Cursor.ID}) {
+		:auto_inv 
+	  /if (${Cursor.Container}) { 
+  	  /for x 1 to 8
+    		/if (!${InvSlot[pack${x}].Item.Container}) /nomodkey /itemnotify pack${x} leftmouseup 
+    	/next x 
+  	} else { 
+    	/timed 5 /autoinventory 
+  	} 
+  	/goto :auto_inv 
+	}
+	:ComboLoop 
+	/autoinventory 
+	/nomodkey /notify TradeskillWnd CombineButton leftmouseup 
+	/doevents 
+	/delay 2
+	/nomodkey /notify TradeskillWnd AutoInvButton leftmouseup
+	/if (${EndingVar}==1) /goto :ComboLoop
+	/if (${Cursor.ID}) {
+		:auto_inv 
+	  /if (${Cursor.Container}) { 
+  	  /for x 1 to 8
+    		/if (!${InvSlot[pack${x}].Item.Container}) /nomodkey /itemnotify pack${x} leftmouseup 
+    	/next x 
+  	} else { 
+    	/timed 5 /autoinventory 
+  	} 
+  	/goto :auto_inv 
+	}
+	/autoinventory 
+|	/nomodkey /notify TradeskillWnd COMBW_CloseButton Leftmouseup
+	/return
+
+Sub Event_ContUsed 
+	/echo Container in use. Waiting 1 Minute, or until no PCs are nearby and trying again. 
+	/delay 1m ${SpawnCount[pc radius 50]}<=1
+	/doevents 
+	/return 
+
+Sub Event_CombineError
+	/varset EndingVar 2
+	/return 

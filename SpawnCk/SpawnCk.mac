@@ -1,0 +1,157 @@
+#turbo
+
+|-------------------------------------------------------------------------------- 
+|SUB: Main
+|--------------------------------------------------------------------------------
+Sub Main
+
+|------------------------------------
+| Required declarations.
+|------------------------------------
+/declare Xi 		int 	1
+/declare NAME_MAX 	int 	50
+/declare NAMED
+/declare NAMED_COUNT 	int 	0
+/declare FoundMob 	string
+/declare NamedMapName   string
+/declare X 		float
+/declare Y 		float
+/declare Z 		float
+/declare debug 		bool 	FALSE
+|------------------------------------
+
+/call PluginCheck
+
+/if (${MMOIni[SpawnCk.ini, "${MMOZone.Name}"].Length}) {
+
+    /echo Turning off log timestamps.
+    /tslog off
+    /delay 1s
+
+    /echo Found zone info for: ${MMOZone.Name}
+    
+    |---------------------------------------------------------------
+    /for Xi 0 to ${NAME_MAX}              
+
+        |----------------------------------------------------
+
+        /varset NAMED ${MMOIni[SpawnCk.ini, "${MMOZone.Name}", Spawn${Xi}]}
+        /if (${debug}) /echo /varset NAMED ${MMOIni[SpawnCk.ini, "${MMOZone.Name}", Spawn${Xi}]}
+        
+        /if (${NAMED.Equal[DONE_NOW]}) {
+            /if (${NAMED_COUNT}==0) {
+                /popup No named up in zone.
+                /echo No named up in zone.
+            }
+           /delay 5s
+           /return      
+        }   
+       
+       |---------------------------------------------------
+      
+       
+       |----------------------------------------------------------------------
+       | Strip out (#), (_) and mob numbers for future case sensitive matches.
+       |----------------------------------------------------------------------
+       /if (${Spawn[npc #${NAMED}].ID} || ${Spawn[npc ${NAMED}].ID}) {
+           /if (${Spawn[npc #${NAMED}].ID}) {
+               /if (${debug}) /echo OldName1: ${Spawn[npc #${NAMED}].Name}               
+               /if (${Spawn[npc #${NAMED}].Name.Find[_]}>0) {
+                   /varset FoundMob ${Spawn[npc #${NAMED}].Name.Replace[#,].Replace[_, ].Left[-2]}
+               } else {
+                   /varset FoundMob ${Spawn[npc #${NAMED}].Name.Replace[#,].Left[-2]}               
+               }
+           } else /if (${Spawn[npc ${NAMED}].ID}) {
+                      /if (${debug}) /echo OldName2: ${Spawn[npc ${NAMED}].Name}
+                      /if (${Spawn[npc ${NAMED}].Name.Find[_]}>0) {
+                      /varset FoundMob ${Spawn[npc ${NAMED}].Name.Replace[_, ].Left[-2]}
+                  } else {
+                      /varset FoundMob ${Spawn[npc ${NAMED}].Name.Left[-2]}               
+                  }      
+           }
+
+       /if (${debug}) /echo NewName: ${FoundMob}     
+       }      
+       |----------------------------------------------------------------------              
+       
+       
+       |---------------------------------------------------------------------- 
+       /if (${FoundMob.EqualCS[${NAMED}]}) {
+          /popup (${Xi}) Named up: (${NAMED})          
+          /delay 20
+          /varcalc NAMED_COUNT ${NAMED_COUNT}+1
+
+          /varset X ${Spawn[npc #${NAMED}].X}
+          /varcalc X ${X}*-1
+          /varset Y ${Spawn[npc #${NAMED}].Y}
+          /varcalc Y ${Y}*-1
+          /varset Z ${Spawn[npc #${NAMED}].Z}
+ 
+          /echo Named up: (${NAMED}) - (${Spawn[${NAMED}]}) -
+          /echo Heading: ${Spawn[${NAMED}].HeadingTo} - ${Spawn[${NAMED}].Distance} paces.
+          
+          /varset NamedMapName ${FoundMob.Replace[ ,_]}
+          |/echo NamedMapName=(${NamedMapName})            
+      
+          /mqlog -----------------------------------------------------------------
+          /mqlog [${Zone.Name}] - Mapfile: [${Zone.ShortName}_2.txt]
+          /mqlog ${NAMED}: X:(${Spawn[npc #${NAMED}].X}), Y:(${Spawn[npc #${NAMED}].Y}), Z:(${Spawn[npc #${NAMED}].Z}) 
+          /mqlog P ${X}, ${Y}, ${Z}, 240, 0, 0, 3, ${NamedMapName}
+          /mqlog -----------------------------------------------------------------
+                    
+       }     
+       |---------------------------------------------------------------------- 
+
+    /next Xi        
+
+    /echo Re-enabling log timestamps.
+    /tslog on
+    /delay 1s    
+    |---------------------------------------------------------------
+
+} else {
+  /echo No zone data found for: ${MMOZone.Name}
+  /popup No zone data found for: ${MMOZone.Name}
+}
+|---------------------------------------------------------------------- 
+
+/return
+|-------------------------------------------------------------------------------- 
+
+
+|-------------------------------------------------------------------------------- 
+|SUB: PluginCheck
+|--------------------------------------------------------------------------------
+Sub PluginCheck
+
+/echo Checking required plugins . . .
+
+/if (!${Plugin[MQ2MMOTLO].Name.Equal[MQ2MMOTLO]}) {
+    /echo Loading MQ2MMOTLO plugin, because this macro requires it !
+    /squelch /plugin MQ2MMOTLO load
+    /delay 1s
+    /if (!${Plugin[MQ2MMOTLO].Name.Equal[MQ2MMOTLO]}) {
+        /beep
+	/echo Unable to load MQ2MMOTLO plugin, quiting.
+        /end
+    }
+} else {
+    /echo MQ2MMOTLO plugin is loaded.
+}
+
+
+/if (!${Plugin[MQ2LOG].Name.Equal[MQ2LOG]}) {
+    /echo Loading MQ2LOG plugin, because this macro requires it !
+    /squelch /plugin MQ2LOG load
+    /delay 1s
+    /if (!${Plugin[MQ2LOG].Name.Equal[MQ2LOG]}) {
+        /beep
+	/echo Unable to load MQ2LOG plugin, quiting.
+        /end
+    }
+} else {
+    /echo MQ2LOG plugin is loaded.
+}
+    
+/return
+|-------------------------------------------------------------------------------- 

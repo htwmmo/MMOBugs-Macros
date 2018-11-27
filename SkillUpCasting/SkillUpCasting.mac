@@ -1,0 +1,608 @@
+|------------------------------------------------------------------------------------------------------ 
+| 
+| Release Notes: 
+| 
+| /macro SkillUpCasting 
+| 
+| This macro will automatically increase your casting skills. It's configured to cast up 
+| to five spells assuming you want to increase the five different casting skills (e.g., Abjuration, 
+| Alteration, Conjuration, Divination, Evocation).  The macro will not start if something 
+| is on your cursor because it automatically memorizes your spells, and you can't memorize 
+| a spell if something is on your cursor. If you fizzle casting, the macro will continue 
+| to recast that specific spell until successful.  The macro will automatically stop training 
+| a skill when you reach the max level for that skill, including specialization if applicable. When 
+| you max all five skills the macro will camp you out.  If a GM/Guide appears in the zone (assuming 
+| they are not masking their GM identity) it will end the macro and camp out. A random delay is added 
+| to the end of the med period so if a GM were present, the macro will seem less "robotic". 
+| 
+| The macro initializes its character specific variables from settings in its INI file called 
+| SkillUpCasting.ini. The first time you run SkillUpCasting, the macro will generate its INI file 
+| if it does not already exist.  If the INI file does exist, but this is the first time you're 
+| Using SkillUpCasting for a new character, it will create a new Section in the INI file for that 
+| character. After the INI file is created or the new Section is created, edit the INI file with 
+| your character's settings. After the INI file is properly configured, run the macro again. 
+| 
+| 
+| Variables read from INI file: 
+| 
+| TotalSpells = Number of spells from 1 to 5 you want to cast/train (default 0). 
+| 
+| MaxRandomDelay = Maximum number (integer) of seconds added to end of med period (default 15). 
+|                  A minimum of 5 seconds is added to this number. 
+| 
+| DestroyCursor = TRUE/FALSE destroy all items on your cursor after you med to full (default TRUE). 
+| 
+| SpecializeActive = If your Specialization skills are active, set to TRUE (default FALSE). 
+| 
+| SitWhileSpellNotReady = TRUE/FALSE sit while waiting for a spell to become ready (default FALSE). 
+|                         This will cause you to sit/stand a lot and might look strange. 
+| 
+| MinPCRadius = If PC is inside this radius, macro will go AFK and wait until they leave (default 300). 
+| 
+| AnnounceTells = TRUE/FALSE beep and message MQ window when you receive a tell (default TRUE) 
+| 
+| CastingDetail = TRUE/FALSE display casting information in MQ window (default FALSE) 
+| 
+| SpellNameXX = Name of Spell to cast, no quotes around the name even if it has a space in it. 
+| 
+| TargetXX =  NOCHANGE  Will not change target before cast.
+              CLEAR     Will clear your target before cast.
+              myself    Will target yourself before cast.
+              pet       Will target your pet before cast.
+              (other)   Will execute /tar on whatever you have for this variable.
+| 
+| UseGMCheck = TRUE/FALSE if you want to use the GM/Guide check subroutine (default FALSE). 
+| 
+| UsePCCheck = TRUE/FALSE if you want to use the PC check subroutine (default FALSE). 
+| 
+| FirstSpecializeXX  = TRUE if this spell casts your Primary Specialization skill.
+| 
+| SecondSpecializeXX = TRUE if this spell casts a Secondary Specialization skill.
+| 
+|------------------------------------------------------------------------------------------------------ 
+| 
+#chat group 
+#chat tell 
+#chat chat 
+#chat say 
+
+#event Fizzle   "#*#Your spell fizzles!#*#" 
+#event Tells    "#1# tells you,#2#" 
+#event Hail     "#1# says, 'Hail, #2#'"
+#event Zoned    "You have entered #1#"
+#event Summoned "#*#You have been summoned!#*#"
+
+Sub Main 
+	/if (!${Plugin[MQ2CEcho].Name.Length}) /squelch /plugin mq2cecho noauto
+   | System variables not read from INI file. 
+   /declare SkillUpCastingINI string   outer SkillUpCasting.ini 
+   /declare Section           string   outer ${Me.CleanName} 
+   /declare MaxSkill          int      outer 0 
+   /declare SkillsMaxed       int      outer 0 
+   /declare MinPctHPs         int      outer 25 
+   /declare HybridClasses     string   outer PAL|RNG|SHD|BST 
+   /declare i                 int      outer 0 
+   /declare MeleeLoaded       bool     outer false
+   /declare WasAFK            bool     outer ${Me.AFK}
+   /declare FirstSpecMet      bool     outer false
+   /declare SecondSpecMet     bool     outer false
+   /declare FirstSpecNumber   int      outer 0
+   /declare SecondSpecNumber  int      outer 0
+
+   | Character specific variables read from INI file (don't edit below, edit in the INI file): 
+   /call DeclareIniVar  TotalSpells             int    ${Section}  0 
+   /call DeclareIniVar  PCIgnoreList            string ${Section}  "SomeToonName1,SomeToonName2,SomeToonName3"
+   /call DeclareIniVar  MaxRandomDelay          int    ${Section}  15 
+   /call DeclareIniVar  DestroyCursor           bool   ${Section}  TRUE 
+   /call DeclareIniVar  SpecializeActive        bool   ${Section}  FALSE 
+   /call DeclareIniVar  SitWhileSpellNotReady   bool   ${Section}  FALSE 
+   /call DeclareIniVar  MinPCRadius             int    ${Section}  300 
+   /call DeclareIniVar  AnnounceTells           bool   ${Section}  TRUE 
+   /call DeclareIniVar  AnnounceHails           bool   ${Section}  TRUE 
+   /call DeclareIniVar  CastingDetail           bool   ${Section}  FALSE 
+   /call DeclareIniVar  UseGMCheck              bool   ${Section}  FALSE 
+   /call DeclareIniVar  UsePCCheck              bool   ${Section}  FALSE 
+   /call DeclareIniVar  GMCamp                  bool   ${Section}  FALSE 
+   /call DeclareIniVar  CampWhenDone            bool   ${Section}  FALSE 
+   /call DeclareIniVar  StopOnTell              bool   ${Section}  FALSE 
+   /call DeclareIniVar  StopOnHail              bool   ${Section}  FALSE 
+
+  /if (${Plugin[MQ2Melee].Name.Length}) {
+    /if (${Melee.Enable}) { 
+      /varset MeleeLoaded true
+      /squelch /melee plugin=off
+    }
+  }
+  /squelch /alert clear 25
+  /declare loopctr int local 1
+  /declare TempIgnore string local
+  /declare TempPCList string local ${PCIgnoreList}
+  :nextloop
+  /varset TempIgnore ${TempPCList.Arg[${loopctr},,]}
+  /if (${TempIgnore.NotEqual[NULL]}) {
+    /squelch /alert add 25 pc ${TempIgnore}
+    /varset loopctr ${Math.Calc[${loopctr}+1]}
+    /goto :nextloop
+  }
+  /for i 1 to 5 
+      /call DeclareIniVar  SpellName${i}           string   ${Section}  "SPELL NAME HERE - USE NO QUOTES" 
+      /call DeclareIniVar  Target${i}              string   ${Section}  "NOCHANGE" 
+      /call DeclareIniVar  FirstSpecialize${i}     bool     ${Section}  FALSE 
+      /call DeclareIniVar  SecondSpecialize${i}    bool     ${Section}  FALSE 
+      /if ( ${SpecializeActive} ) { 
+      		/if (${Me.Book[${Me.Book[${SpellName${i}}]}].Skill.Equal[Abjuration]}) {
+       		  /declare FirstSpecializeMax${i}  int outer ${Me.SkillCap[Specialize Abjure]}
+       		  /declare SecondSpecializeMax${i} int outer ${Me.SkillCap[Specialize Abjure]}
+            /if ( ${FirstSpecialize${i}} ) {
+              /varset FirstSpecNumber ${i}
+              /if (${Me.Skill[Abjuration]} > 51) /varset FirstSpecMet true
+            }
+            /if ( ${SecondSpecialize${i}} ) {
+              /varset SecondSpecNumber ${i}
+              /if (${Me.Skill[Abjuration]} > 51) /varset SecondSpecMet true
+            }
+       		} else {
+            /declare FirstSpecializeMax${i}  int outer ${Me.SkillCap[Specialize ${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]}
+            /declare SecondSpecializeMax${i} int outer ${Me.SkillCap[Specialize ${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]}
+            /if ( ${FirstSpecialize${i}} ) {
+              /varset FirstSpecNumber ${i}
+              /if (${Me.Skill[${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]} > 51) /varset FirstSpecMet true
+            }
+            /if ( ${SecondSpecialize${i}} ) {
+              /varset SecondSpecNumber ${i}
+              /if (${Me.Skill[${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]} > 51) /varset SecondSpecMet true
+            }
+          }
+      } else { 
+         /declare FirstSpecializeMax${i}  int outer 0 
+         /declare SecondSpecializeMax${i} int outer 0 
+      } 
+      /if (!${FirstSpecializeMax${i}}) /varset FirstSpecMet true
+      /if (!${SecondSpecializeMax${i}}) /varset SecondSpecMet true
+      /declare MaxFlag${i} bool  outer FALSE 
+   /next i 
+
+   /cechob \agStarting \at${Macro.Name}\ag...
+
+   | Error checks. 
+   | Verify there is nothing on your cursor before we start. 
+   /if ( ${Cursor.ID} ) { 
+      /beep 
+      /beep 
+      /beep
+      /beep
+      /cechob \ar${Macro.Name}: \ayThere is something on your cursor so you can't memorize a spell. 
+      /cechob \ar${Macro.Name}: Stopping macro.
+      /if (${Plugin[MQ2Melee].Name.Length}) {
+        /if (${MeleeLoaded}) { 
+		      /squelch /melee plugin=on
+		    }
+		  }
+      /endmac 
+   } 
+   | Check if INI file was initialized. 
+   /if ( ${TotalSpells}==0 ) { 
+      /beep 
+      /beep 
+      /beep
+      /beep
+      /cechob \ar${Macro.Name}: \ayYou have not configured the [${Me.CleanName}] section of your ${SkillUpCastingINI} file.
+      /cechob \ar${Macro.Name}: Stopping macro.
+      /if (${Plugin[MQ2Melee].Name.Length}) {
+        /if (${MeleeLoaded}) { 
+		      /squelch /melee plugin=on
+		    }
+		  }
+      /endmac 
+   } 
+   | Startup messages. 
+   /cechob \aw- \agWill train your basic casting skills to your current cap for your class/level. 
+   /if ( ${SpecializeActive} ) { 
+      /cechob \aw- \agSpecialization training is activated. 
+   } else { 
+      /cechob \aw- \aoSpecilization training is NOT activated. 
+   } 
+   /if ( ${SitWhileSpellNotReady} ) { 
+      /cechob \aw- \agWill sit while waiting for a spell to become ready. 
+   } else { 
+      /cechob \aw- \aoWill NOT sit while waiting for a spell to become ready. 
+   } 
+   /cechob \aw- \agWill wait from \aw5 \agto \aw${Int[${Math.Calc[${MaxRandomDelay}+5]}]} \agseconds after medding to resume casting.
+   /if ( ${UsePCCheck} ) { 
+      /cechob \aw- \agWill stop casting, go AFK, and sit if an unknown PC is within a radius of ${MinPCRadius}. 
+      /cechob \aw- \agKnown PCs:  ${PCIgnoreList} 
+   } else { 
+      /cechob \aw- \aoWill NOT check for unknown PCs (radius currently configured as: ${MinPCRadius}). 
+      /cechob \aw- \aoKnown PCs:  ${PCIgnoreList} 
+   } 
+   /if ( ${AnnounceTells} ) { 
+      /cechob \aw- \agWill announce (beep) when you receive a tell. 
+   } else { 
+      /cechob \aw- \aoWill NOT announce (beep) when you receive a tell. 
+   } 
+   /if ( ${StopOnTell} ) { 
+      /cechob \aw- \agWill stop macro when you receive a tell. 
+   } else { 
+      /cechob \aw- \aoWill NOT stop macro when you receive a tell. 
+   } 
+   /if ( ${AnnounceHails} ) { 
+      /cechob \aw- \agWill announce (beep) when you are hailed. 
+   } else { 
+      /cechob \aw- \aoWill NOT announce (beep) when you are hailed. 
+   } 
+   /if ( ${StopOnHail} ) { 
+      /cechob \aw- \agWill stop macro when you are hailed. 
+   } else { 
+      /cechob \aw- \aoWill NOT stop macro when you are hailed. 
+   } 
+   /if ( ${CastingDetail} ) { 
+      /cechob \aw- \agWill show casting detail in MQ screen. 
+   } else { 
+      /cechob \aw- \aoWill NOT show casting detail in MQ screen. 
+   } 
+   /if ( ${UseGMCheck} ) { 
+      /if (${GMCamp}) /cechob \aw- \agIf a GM or Guide is detected in zone, will camp to desktop. 
+      /if (!${GMCamp}) /cechob \aw- \agIf a GM or Guide in detected in zone, will go AFK and end macro. 
+   } else { 
+      /cechob \aw- \aoWill NOT check for GM or Guide in zone. 
+   } 
+   /if ( ${CampWhenDone} ) { 
+      /cechob \aw- \agWill camp to desktop when macro is completed (all skills are max).
+   } else { 
+      /cechob \aw- \aoWill NOT camp to desktop when macro is completed (all skills are max).
+   } 
+   /if ( ${MeleeLoaded} ) {
+   		/cechob \ar${Macro.Name}: \ayMQ2Melee detected. Turned plugin off so downshits do not interfere with macro.  If you end macro manually, you will want to enable it with:  \aw/melee plugin=on
+   }
+
+   | Memorize your spells. 
+   /if ( ${Me.Standing} ) { 
+      /sit 
+      /delay 2s 
+   } 
+   /if ( !${Window[SpellBookWnd].Open} ) { 
+      /book 
+      /delay 1s 
+   } 
+   /for i 1 to ${TotalSpells} 
+      /if ( !${Me.Gem[${i}].Name.Equal[${SpellName${i}}]} ) { 
+         /memspell ${i} "${SpellName${i}}" 
+         /delay 10s ${Me.Gem[${SpellName${i}}]} 
+         /delay 4s 
+      } 
+      /if ( ${Me.Gem[${i}].Skill.NotEqual[Abjuration]} ) { 
+         /declare SpecializeName${i} string outer Specialize ${Me.Gem[${i}].Skill} 
+         } else { 
+         /declare SpecializeName${i} string outer Specialize Abjure 
+      } 
+   /next i 
+   /if ( ${Window[SpellBookWnd].Open} ) { 
+      /book 
+      /delay 1s 
+   } 
+   /stand 
+   /delay 2s 
+
+   | The main loop. 
+   :MainLoop 
+   /delay 1s
+   /call ClearCursor 
+   /call SkillUpCasting 
+   /goto :MainLoop 
+   /return
+
+   Sub SkillUpCasting 
+      /declare SkillName string local
+      /for i 1 to ${TotalSpells} 
+         /if ( ${UsePCCheck} ) /call CheckForPCs 
+         /if ( ${UseGMCheck} ) /call CheckForGMs 
+         :PCBusy
+         /if (${Me.Moving} || ${Me.Invis} || ${Me.State.NotEqual[STAND]} || ${Me.Casting.ID}) {
+         	 /delay 5s
+         	 /goto :PCBusy
+         }
+         /if ( ${SitWhileSpellNotReady} && !${Me.SpellReady[${SpellName${i}}]} ) { 
+            /if ( !${Me.Sitting} ) /sit 
+            /delay 10s ${Me.SpellReady[${SpellName${i}}]} 
+            /stand 
+            /delay 2s 
+         } else { 
+            /delay 10s ${Me.SpellReady[${SpellName${i}}]} 
+         } 
+         /varset SkillName ${Me.Gem[${i}].Skill}
+         /varset MaxSkill ${Me.SkillCap[${SkillName}]}
+      /if ( ${SpecializeActive} ) { 
+      		/if (${Me.Book[${Me.Book[${SpellName${i}}]}].Skill.Equal[Abjuration]}) {
+       		  /varset FirstSpecializeMax${i}  0
+       		  /varset SecondSpecializeMax${i} 0
+            /if ( ${FirstSpecialize${i}} ) {
+         		  /varset FirstSpecializeMax${i}  ${Me.SkillCap[Specialize Abjure]}
+              /varset FirstSpecNumber ${i}
+              /if (${Me.Skill[Abjuration]} > 51) /varset FirstSpecMet true
+              /varset SecondSpecializeMax${i} 0
+            }
+            /if ( ${SecondSpecialize${i}} ) {
+         		  /varset SecondSpecializeMax${i} ${Me.SkillCap[Specialize Abjure]}
+              /varset SecondSpecNumber ${i}
+              /if (${Me.Skill[Abjuration]} > 51) /varset SecondSpecMet true
+              /varset FirstSpecializeMax${i} 0
+            }
+       		} else {
+            /varset FirstSpecializeMax${i}  0
+            /varset SecondSpecializeMax${i} 0
+            /if ( ${FirstSpecialize${i}} ) {
+              /varset FirstSpecializeMax${i}  ${Me.SkillCap[Specialize ${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]}
+              /varset FirstSpecNumber ${i}
+              /if (${Me.Skill[${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]} > 51) /varset FirstSpecMet true
+              /varset SecondSpecializeMax${i} 0
+            }
+            /if ( ${SecondSpecialize${i}} ) {
+              /varset SecondSpecializeMax${i} ${Me.SkillCap[Specialize ${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]}
+              /varset SecondSpecNumber ${i}
+              /if (${Me.Skill[${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]} > 51) /varset SecondSpecMet true
+              /varset FirstSpecializeMax${i} 0
+            }
+          }
+      } else { 
+         /varset FirstSpecializeMax${i}  0 
+         /varset SecondSpecializeMax${i} 0 
+      } 
+      /if (!${FirstSpecializeMax${i}}) /varset FirstSpecMet true
+      /if (!${SecondSpecializeMax${i}}) /varset SecondSpecMet true
+         /if ( !${MaxFlag${i}} ) {
+            /if ( ${CastingDetail} ) /cechob \at${SkillName} \ag${Me.Skill[${SkillName}]}\aw/\ay${MaxSkill} \aw-- \am${SpecializeName${i}} ${If[${FirstSpecialize${i}} || ${SecondSpecialize${i}},\ag,\ao]}${Me.Skill[${SpecializeName${i}}]}\aw/\ay${FirstSpecializeMax${i}}/${SecondSpecializeMax${i}} 
+         }
+         /if (${Me.Skill[${SkillName}]}<50 || (${Me.Skill[${SkillName}]}<${MaxSkill} && ${FirstSpecMet} && ${SecondSpecMet}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${FirstSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${FirstSpecializeMax${i}}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${SecondSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${SecondSpecializeMax${i}})) {
+            /if ( ${String[${Target${i}}].Equal["CLEAR"]} ) {
+               /squelch /tar clear
+            } else {
+         		  /if ( !${String[${Target${i}}].Equal["NOCHANGE"]} ) {
+                /tar ${Target${i}} 
+                /delay 1s 
+              }
+            } 
+            /if ( ${Me.CurrentMana}<${Me.Gem[${i}].Mana} ) /call MedFullMana 
+            /if ( ${Me.PctHPs}<${MinPctHPs} ) /call MedFullHP 
+            /delay 10s ${Me.SpellReady[${i}]}
+            /cast "${SpellName${i}}" 
+            /delay 10s !${Me.Casting.ID} 
+            /doevents 
+            /next i 
+         } else { 
+            /if (!${FirstSpecMet} && ${FirstSpecNumber}==${i}) /goto :SkipThis
+            /if (!${SecondSpecMet} && ${SecondSpecNumber}==${i}) /goto :SkipThis
+            /if ( !${MaxFlag${i}} ) { 
+               /varset MaxFlag${i} TRUE 
+               /beep 
+               /cechob \ay${SkillName} Maxed @ ${MaxSkill} -- ${SpecializeName${i}} Maxed @ ${Me.Skill[${SpecializeName${i}}]} -- Skipping: ${SpellName${i}} 
+               /varcalc SkillsMaxed ${SkillsMaxed}+1 
+            } 
+            /if ( ${SkillsMaxed}==${TotalSpells} ) { 
+               /cechob \ar${Macro.Name}: \ayAll your skills are at cap:  ${MaxSkill}
+               /cechob \ar${Macro.Name}: Stopping macro.
+               /delay 10s !${Me.Casting.ID} 
+               /declare SkillMaxRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
+               :SkillMax-DelayLoop
+               /if ( ${SkillMaxRandomTimer} ) { 
+                 /doevents 
+                 /goto :SkillMax-DelayLoop
+               } 
+						   /varset WasAFK ${Me.AFK}
+               /if (!${WasAFK}) /afk
+               /if (${CampWhenDone}) {
+               	/cecho \ar${Macro.Name}: \ayCamping...
+               	/camp desktop 
+               	/delay 2s 
+               }
+				       /if (${Plugin[MQ2Melee].Name.Length}) {
+        				 /if (${MeleeLoaded}) { 
+						       /squelch /melee plugin=on
+						     }
+						   }
+               /endmac 
+            } 
+            :SkipThis
+         } 
+      /next i 
+      /if (${Plugin[MQ2Melee].Name.Length}) {
+        /if (${MeleeLoaded}) { 
+		      /squelch /melee plugin=on
+		    }
+		  }
+   /return 
+
+   Sub MedFullMana 
+      /declare ManaRandomTimer timer local 
+      /delay 10s !${Me.Casting.ID} 
+      /if ( ${Me.Standing} ) /sit 
+      :MedFullMana-MedLoop 
+      /if ( ${Me.PctMana}<100 ) { 
+         /doevents 
+         /goto :MedFullMana-MedLoop 
+      } 
+      /varset ManaRandomTimer ${Math.Calc[${Math.Rand[${MaxRandomDelay}]}+5]}s 
+      :MedFullMana-DelayLoop 
+      /if ( ${ManaRandomTimer} ) { 
+         /doevents 
+         /goto :MedFullMana-DelayLoop 
+      } 
+      /stand 
+      /delay 2s 
+   /return 
+
+   Sub MedFullHP 
+      /declare HPRandomTimer timer local 
+      /delay 10s !${Me.Casting.ID} 
+      /if ( ${Me.Standing} ) /sit 
+      :MedFullHP-MedLoop 
+      /if ( ${Me.PctHPs}<100 ) { 
+         /doevents 
+         /goto :MedFullHP-MedLoop 
+      } 
+      /varset HPRandomTimer ${Math.Calc[${Math.Rand[${MaxRandomDelay}]}+5]}s 
+      :MedFullHP-DelayLoop 
+      /if ( ${HPRandomTimer} ) { 
+         /doevents 
+         /goto :MedFullHP-DelayLoop 
+      } 
+      /stand 
+      /delay 2s 
+   /return 
+
+   Sub CheckForPCs 
+   /if ( ${NearestSpawn[2,PC radius ${MinPCRadius} noalert 25].ID} ) { 
+      /beep 
+      /cechob \ar${Macro.Name}: \ayAn unknown PC is within a radius of ${MinPCRadius} units - will stop casting and go AFK until they leave zone or move away. 
+ 	    /varset WasAFK ${Me.AFK}
+      /declare PCRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
+      :PCDetect-DelayLoop
+      /if ( ${PCRandomTimer} ) { 
+         /doevents 
+         /goto :PCDetect-DelayLoop
+      } 
+      /if (!${WasAFK}) /afk
+      /sit on
+      :CheckForPCs-VerifyLoop 
+      /if ( ${NearestSpawn[2,PC radius ${MinPCRadius} noalert 25].ID} ) { 
+         /doevents 
+         /goto :CheckForPCs-VerifyLoop 
+      } 
+      /beep 
+      /varset PCRandomTimer ${Math.Calc[${Math.Rand[100]}+100]} 
+      /cechob \ar${Macro.Name}: \agAll unknown PCs have left the detection area - will delay for ${Int[${Math.Calc[${PCRandomTimer}/10]}]} seconds and then continue casting. 
+      :CheckForPCs-DelayLoop 
+      /if ( ${PCRandomTimer} ) { 
+         /doevents 
+         /goto :CheckForPCs-DelayLoop 
+      } 
+      /if (!${WasAFK} && ${Me.AFK}) /afk
+      /sit off 
+   } 
+   /return 
+
+   Sub CheckForGMs 
+      /if ( ( ${Spawn[gm].ID} ) || ( ${Spawn[GM].ID} ) || ( ${Spawn[guide].ID} ) || ( ${Spawn[Guide].ID} ) ) { 
+         /delay 10s !${Me.Casting.ID} 
+         /beep 
+         /beep 
+         /cechob \ar${Macro.Name}: GM or Guide detected in zone. 
+         /cechob \ar${Macro.Name}: Stopping macro.
+         /who all GM 
+         /declare GMRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
+         :CheckForGMs-DelayLoop
+         /if ( ${GMRandomTimer} ) { 
+            /doevents 
+            /goto :CheckForGMs-DelayLoop
+         } 
+			   /varset WasAFK ${Me.AFK}
+         /if (!${WasAFK}) /afk
+         /if (${GMCamp}) { 
+           /delay 1s 
+           /camp desktop 
+           /delay 2s 
+         }
+         /if (${Plugin[MQ2Melee].Name.Length}) {
+           /if (${MeleeLoaded}) { 
+		         /squelch /melee plugin=on
+   		    }
+		     }
+         /endmac 
+         } 
+   /return 
+
+   Sub ClearCursor 
+      /if ( ${DestroyCursor} ) { 
+         :ClearCursor-Destroy 
+         /if ( ${Cursor.ID} ) { 
+            /destroy 
+            /delay 1s 
+            /goto :ClearCursor-Destroy 
+         } 
+      } 
+   /return 
+
+   Sub DeclareIniVar(string VarName,string VarType,string SectionName,string VarValue,string Alias) 
+      /if ( !${Defined[${VarName}]} ) /declare ${VarName} ${VarType} outer 
+      /varset ${VarName} ${Ini[${SkillUpCastingINI},${SectionName},${VarName},"${VarValue}"]} 
+      /ini "${SkillUpCastingINI}" "${SectionName}" "${VarName}" "${${VarName}}" 
+      /if ( ${Defined[Alias]} ) /squelch /alias ${Alias} /cechob \atReset: ${VarName} 
+   /return 
+
+   Sub Event_Fizzle 
+      /if ( ${Me.CurrentMana}<${Me.Gem[${i}].Mana} ) /call MedFullMana 
+      /if ( ${Me.PctHPs}<${MinPctHPs} ) /call MedFullHP 
+      /delay 10s ${Me.SpellReady[${SpellName${i}}]} 
+      /cast "${SpellName${i}}" 
+      /delay 10s !${Me.Casting.ID} 
+      /doevents 
+   /return 
+
+   Sub Event_Tells(string Line,string ChatSender, string ChatMessage) 
+   /if ( ${AnnounceTells} ) { 
+      /beep 
+      /cechob \ar${Macro.Name}: \atYou got a tell from \ag${ChatSender}\aw: \am${ChatMessage} 
+   } 
+   /if (${StopOnTell}) {
+     /cechob \ar${Macro.Name}: Stopping macro.
+	   /varset WasAFK ${Me.AFK}
+     /declare TellRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
+     :TellEvent-DelayLoop
+     /if ( ${TellRandomTimer} ) { 
+        /doevents 
+        /goto :TellEvent-DelayLoop
+     } 
+     /if (!${WasAFK}) /afk
+     /end
+   }
+   /return 
+
+   Sub Event_Hail(string Line,string HailSender, string HailedName) 
+		/if (${HailedName.Equal[${Me.CleanName}]}) {
+	   /if ( ${AnnounceHails} ) { 
+  	    /beep 
+    	  /cechob \ar${Macro.Name}: \atYou were hailed by \ag${HailSender}
+	   } 
+  	 /if (${StopOnHail}) {
+    	 /cechob \ar${Macro.Name}: Stopping macro.
+		   /varset WasAFK ${Me.AFK}
+  	   /declare HailRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
+    	 :HailEvent-DelayLoop
+     	/if ( ${HailRandomTimer} ) { 
+      	  /doevents 
+        	/goto :HailEvent-DelayLoop
+	     } 
+  	   /if (!${WasAFK}) /afk
+    	 /end
+	   }
+	 }
+   /return 
+
+   Sub Event_Zoned(string Line,string ZoneName) 
+     /beep 
+     /cechob \ar${Macro.Name}: \ayYou zoned \aw(\am${ZoneName}\aw)
+     /cechob \ar${Macro.Name}: Stopping macro.
+	   /varset WasAFK ${Me.AFK}
+     /declare ZonedRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
+     :Zoned-DelayLoop
+     /if ( ${ZonedRandomTimer} ) { 
+        /doevents 
+        /goto :Zoned-DelayLoop
+     } 
+     /if (!${WasAFK}) /afk
+     /end
+     /return 
+
+   Sub Event_Summoned(string Line) 
+     /beep 
+     /cechob \ar${Macro.Name}: \ayYou were summoned!
+     /cechob \ar${Macro.Name}: Stopping macro.
+	   /varset WasAFK ${Me.AFK}
+     /declare SummonedRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
+     :Summoned-DelayLoop
+     /if ( ${SummonedRandomTimer} ) { 
+        /doevents 
+        /goto :Summoned-DelayLoop
+     } 
+     /if (!${WasAFK}) /afk
+     /end
+     /return 
