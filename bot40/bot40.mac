@@ -196,7 +196,7 @@ Sub Main(string Param0, string Param1)
 	/declare AssistPC2 string outer 
 	/if (!${Defined[DebugLevel]}) /declare DebugLevel int outer ${Ini[MyIni,Settings,DebugLevel,0]}
 	|** Changed the BotVersion: vYear.MonthDayHour (CST) Because I live in Texas ~Chat**|
-	/declare BotVersion string outer v2018.11271900
+	/declare BotVersion string outer v2018.11281630
 	/declare MyVersion string local ${Ini[MyIni,Settings,BotVersion]}
 	/declare NewVersion bool outer ${BotVersion.NotEqual[${MyVersion}]}
 	
@@ -2401,7 +2401,7 @@ Sub FindMob
 						/return
 					}
 					/if (${Int[${Math.Abs[${Math.Calc[${Me.Z}-${Target.Z}]}]}]}>${PullZRadius}) { 
-						/echo ${NearestSpawn[${i}, npc noalert 1 radius ${PullRadius} zradius ${PullZRadius}]} is beyond PullZRadius allowances, picking another...
+						/if (${NearestSpawn[${i}, npc noalert 1 radius ${PullRadius} zradius ${PullZRadius}].NotEqual[NULL]}) /echo ${NearestSpawn[${i}, npc noalert 1 radius ${PullRadius} zradius ${PullZRadius}]} is beyond PullZRadius allowances, picking another...
 						/squelch /tar clear
 						/continue
 					}
@@ -2737,7 +2737,7 @@ Sub MoveCheck(int forcemovecheck)
 Sub ReturnCamp
 	/varset CurrentSub ReturnCamp
 	/if (${Pulling}) /varset PullingAnnounceCMD ${Ini[MyIni,Pulling,PullingAnnounceCMD,NULL]}
-	/if (${Pulling} && ${Me.CombatState.Equal[COMBAT]} && ${Target.ID} && ${PullingAnnounceCMD.NotEqual[NULL]}) /docommand ${PullingAnnounceCMD}
+	/if (${Pulling} && ${Me.CombatState.Equal[COMBAT]} && ${Target.ID} && ${PullingAnnounceCMD.NotEqual[NULL]} && ${PullingAnnounceCMD.NotEqual[----]}) /docommand ${PullingAnnounceCMD}
 	/if (${Me.Pet.Following.ID}) /pet back off
 	/if (${ReturnActionTotal}) {
 		/declare i int local
@@ -3391,7 +3391,8 @@ Sub AlertRecheck(AlertList,alerttimer)
 /return
 
 Sub Event_CantLoot
-   /varset DontLoot ${Target.ID}
+	/if (!${Defined[DontLoot]}) /declare DontLoot int outer
+  /varset DontLoot ${Target.ID}
 /return
 
 Sub LootMobs
@@ -3447,6 +3448,7 @@ Sub LootCorpse
 	/loot
 	/delay 3s ${Corpse.Open}
 	/doevents CantLoot
+	/if (!${Defined[DontLoot]}) /declare DontLoot int outer
 	/if (${Target.ID}==${DontLoot} && ${Spawn[${DontLoot}].ID}) /squelch /alert add 25 id ${DontLoot}
 	/delay 3s (${Corpse.Items} || ${Target.ID}==${DontLoot})
 	/if (${Corpse.Open} && ${Corpse.Items}) {
@@ -7440,9 +7442,9 @@ Sub Jolt
 	/if (${ImNotReady}||${NeedLoad}) /return
 	/declare z int local
 	/for z 1 to ${${CurrentSub}Total}
-		/if (!${Defined[${CurrentSub}On${z}]}) /define ${CurrentSub}On${z} bool outer FALSE
-		/if (!${Defined[${CurrentSub}MaxTries${z}]}) /define ${CurrentSub}MaxTries${z} int outer 0
-		/if (!${Defined[${CurrentSub}Resisted${z}]}) /define ${CurrentSub}Resisted${z} bool outer FALSE
+		/if (!${Defined[${CurrentSub}On${z}]}) /declare ${CurrentSub}On${z} bool outer FALSE
+		/if (!${Defined[${CurrentSub}MaxTries${z}]}) /declare ${CurrentSub}MaxTries${z} int outer 0
+		/if (!${Defined[${CurrentSub}Resisted${z}]}) /declare ${CurrentSub}Resisted${z} bool outer FALSE
 	/next z
 	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
 	/if (!${${CurrentSub}Conditions}) /return

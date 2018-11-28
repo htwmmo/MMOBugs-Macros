@@ -193,6 +193,7 @@ Sub Cast(spellName,spellType,giveUpValue,mySub,int ResistTotal)
 }
 /if (${Defined[giveUpValue]}) /varset giveUpTimer ${giveUpValue}
 /if (${Defined[ResistTotal]}) /varset ResistCounter ${ResistTotal}
+/if (!${Defined[spellID]})  /declare spellID int local ${Me.Book[${Me.Book[${spellName}]}].ID}
 /varset spellNotHold 0
 /varset selfResist 0
 :wait_for_stop
