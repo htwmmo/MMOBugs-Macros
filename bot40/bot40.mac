@@ -284,9 +284,11 @@ Sub Main(string Param0, string Param1)
 		}
 
 		/if (!${Defined[GMAction]}) /declare GMAction string outer
-		/if (${GMCheck} && ${GMAction.Left[1].Equal[/]}) {
-			/mqlog ${Me.Class} -  GM ${GMCheck.Names} popped in
-			/docommand ${GMAction}
+		/if (${Plugin[MQ2GMCheck].Name.Length}) {
+			/if (${GMCheck} && ${GMAction.Left[1].Equal[/]}) {
+				/mqlog ${Me.Class} -  GM ${GMCheck.Names} popped in
+				/docommand ${GMAction}
+			}
 		}
 		
 		/if (!${Defined[TarID]}) /declare TarID int outer
@@ -3032,8 +3034,8 @@ Sub SpellLoad2(SubName,SubOptions)
 	/if (${temptotal2}>${temptotal1}) /varset temptotal ${temptotal2}
 	/if (!${Defined[${SubName}Total]}) /declare ${SubName}Total int outer ${Ini[MyIni,${SubName},${SubName}Total,0]}
 	/if (!${${SubName}Total} && ${SubName.NotEqual[GoM]} && ${OptionsCheck.Find[|${SubName}|]} && ${SubName.NotEqual[Buff]}) {
-		/cechob \ay${SubName}Total=0 -- You wont use this section, consider removing section from [Settings] OptionsCheck=
-		/mqlog ${Me.Class} -  ${SubName}Total=0 -- You wont use this section, consider removing section from [Settings] OptionsCheck=
+		/cechob \ay${SubName}Total=0 -- You won't use this section, consider removing ${SubName} from [Settings] OptionsCheck=
+		/mqlog ${Me.Class} -  ${SubName}Total=0 -- You won't use this section, consider removing ${SubName} from [Settings] OptionsCheck=
 		/return
 	}
 	/if (!${Defined[${SubName}TotalIfNamed]}) /declare ${SubName}TotalIfNamed int outer ${Ini[MyIni,${SubName},${SubName}TotalIfNamed,0]}
@@ -3078,12 +3080,14 @@ Sub SpellLoad2(SubName,SubOptions)
 				|/if (((${Defined[${SubName}SpellName${x}]}&&${Defined[${SubName}Name${x}]}) && (${Me.Book[${${SubName}SpellName${x}} Rk. III ]} || ${Me.CombatAbility[${${SubName}Name${x}} Rk. III ]}) && ${spellload2.NotEqual[alt]}) /varset ${SubName}SpellName${x} "${${SubName}SpellName${x}} Rk. III "
 				|/if (((${Defined[${SubName}SpellName${x}]}&&${Defined[${SubName}Name${x}]}) && (${Me.Book[${${SubName}SpellName${x}} Rk. II ]} || ${Me.CombatAbility[${${SubName}Name${x}} Rk. II ]})  && ${spellload2.NotEqual[alt]}) /varset ${SubName}SpellName${x} "${${SubName}SpellName${x}} Rk. II "
 				/if (!${Me.Book[${${SubName}SpellName${x}}]} && !${Me.AltAbility[${${SubName}SpellName${x}}].Name.Length} && !${Me.CombatAbility[${${SubName}SpellName${x}}]} && !${FindItem[${${SubName}SpellName${x}}].ItemSlot}) {
-					/if (!${ErrorFound}) {
-						/cechob \arError(s) found in MyIni
-						/varset ErrorFound TRUE
+					/if (${${SubName}SpellName${x}.NotEqual[----]}) {
+						/if (!${ErrorFound}) {
+							/cechob \arError(s) found in MyIni
+							/varset ErrorFound TRUE
+						}
+						/cechob \ar [${SubName}] ${SubName}SpellName${x}=${${SubName}SpellName${x}} -- You don't have this ability/item
+						/mqlog ${Me.Class} -  [${SubName}] ${SubName}SpellName${x}=${${SubName}SpellName${x}} -- You dont have this ability/item
 					}
-					/cechob \ar [${SubName}] ${SubName}SpellName${x}=${${SubName}SpellName${x}} -- You don't have this ability/item
-					/mqlog ${Me.Class} -  [${SubName}] ${SubName}SpellName${x}=${${SubName}SpellName${x}} -- You dont have this ability/item
 				}
 			}
 	
@@ -4372,32 +4376,73 @@ Sub CalculateBest
 	|Soothing vs KotP
 	|${Spell[Knowledge of the Past].Slot[8].Left[-9].Right[-17]}
 
-	/if (${ClickyArray[9,1]} && ${ClickyArray[8,1]}) {
-		/if (${Spell[${ClickyArray[8,2]}].Base[8]}>${Spell[${ClickyArray[9,2]}].Base[8]}) {
+	/if (!${Defined[numEffectsA]}) /declare numEffectsA int local 0
+	/if (!${Defined[numEffectsB]}) /declare numEffectsB int local 0
+	/varcalc numEffectsA ${Spell[${ClickyArray[8,2]}].NumEffects}
+	/varcalc numEffectsA ${Spell[${ClickyArray[9,2]}].NumEffects}
+	/if (${numEffectsA} < 8 && ${numEffectsB} < 8) {
+		/varset ClickyArray[8,1] 0
+	} else {
+		/if (${numEffectsA} < 8) {
 			/varset ClickyArray[9,1] 0
 		} else {
 			/varset ClickyArray[8,1] 0
+		}
+	}
+	/if (${numEffectsA} >= 8 && ${numEffectsB} >= 8) {
+		/if (${ClickyArray[9,1]} && ${ClickyArray[8,1]}) {
+			/if (${Spell[${ClickyArray[8,2]}].Base[8]}>${Spell[${ClickyArray[9,2]}].Base[8]}) {
+				/varset ClickyArray[9,1] 0
+			} else {
+				/varset ClickyArray[8,1] 0
+			}
 		}
 	}
 
 	|FoD vs Pris Ward
 	|${Spell[name].Slot[10].Left[-15]}
 
-	/if (${ClickyArray[4,1]} && ${ClickyArray[5,1]}) {
-		/if (${Spell[${ClickyArray[4,2]}].Base[10]}>${Spell[${ClickyArray[5,2]}].Base[10]}) {
+	/varcalc numEffectsA ${Spell[${ClickyArray[4,2]}].NumEffects}
+	/varcalc numEffectsA ${Spell[${ClickyArray[5,2]}].NumEffects}
+	/if (${numEffectsA} < 10 && ${numEffectsB} < 10) {
+		/varset ClickyArray[4,1] 0
+	} else {
+		/if (${numEffectsA} < 10) {
 			/varset ClickyArray[5,1] 0
 		} else {
 			/varset ClickyArray[4,1] 0
 		}
 	}
+	/if (${numEffectsA} >= 10 && ${numEffectsB} >= 10) {
+		/if (${ClickyArray[4,1]} && ${ClickyArray[5,1]}) {
+			/if (${Spell[${ClickyArray[4,2]}].Base[10]}>${Spell[${ClickyArray[5,2]}].Base[10]}) {
+				/varset ClickyArray[5,1] 0
+			} else {
+				/varset ClickyArray[4,1] 0
+			}
+		}
+	}
 
 	|Taelosian vs AM
 	|${Spell[Ancestral Memories III].Slot[1].Left[-1].Right[-21]}
-	/if (${ClickyArray[2,1]} && ${ClickyArray[1,1]}) {
-		/if (${Spell[${ClickyArray[1,2]}].Base[1]}>${Spell[${ClickyArray[2,2]}].Base[1]}) {
+	/varcalc numEffectsA ${Spell[${ClickyArray[1,2]}].NumEffects}
+	/varcalc numEffectsA ${Spell[${ClickyArray[2,2]}].NumEffects}
+	/if (${numEffectsA} < 1 && ${numEffectsB} < 1) {
+		/varset ClickyArray[1,1] 0
+	} else {
+		/if (${numEffectsA} < 1) {
 			/varset ClickyArray[2,1] 0
 		} else {
 			/varset ClickyArray[1,1] 0
+		}
+	}
+	/if (${numEffectsA} >= 1 && ${numEffectsB} >= 1) {
+		/if (${ClickyArray[2,1]} && ${ClickyArray[1,1]}) {
+			/if (${Spell[${ClickyArray[1,2]}].Base[1]}>${Spell[${ClickyArray[2,2]}].Base[1]}) {
+				/varset ClickyArray[2,1] 0
+			} else {
+				/varset ClickyArray[1,1] 0
+			}
 		}
 	}
 
@@ -5813,7 +5858,7 @@ Sub CureLoad
 	/call SpellLoad2 "Cure" "3|4|6|30|"
 
 	/declare CureArray[${CureTotal},5] string outer 0
-	/declare numEffects int local 0
+	/if (!${Defined[numEffects]}) /declare numEffects int local 0
 	/for i 1 to ${CureTotal}
 		/varcalc numEffects ${Spell[${CureSpellName${i}}].NumEffects}
 		/for b 1 to ${numEffects}
@@ -7393,6 +7438,12 @@ Sub Jolt
 	/varset CurrentSub Jolt
 	/if (!${Defined[${CurrentSub}Loaded]}) /call ${CurrentSub}Load
 	/if (${ImNotReady}||${NeedLoad}) /return
+	/declare z int local
+	/for z 1 to ${${CurrentSub}Total}
+		/if (!${Defined[${CurrentSub}On${z}]}) /define ${CurrentSub}On${z} bool outer FALSE
+		/if (!${Defined[${CurrentSub}MaxTries${z}]}) /define ${CurrentSub}MaxTries${z} int outer 0
+		/if (!${Defined[${CurrentSub}Resisted${z}]}) /define ${CurrentSub}Resisted${z} bool outer FALSE
+	/next z
 	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
 	/if (!${${CurrentSub}Conditions}) /return
 	/if (!${${CurrentSub}Total}) /return
@@ -7626,13 +7677,17 @@ Sub ModRod
 	|update alert
 	/if (!${Defined[ModRodList]}) /declare ModRodList string outer |Summoned: Giant Modulation Shard|Summoned: Large Modulation Shard|Summoned: Medium Modulation Shard|Summoned: Small Modulation Shard|Rod of Arcane Transvergence|Rod of Spectral Transvergence|Rod of Ethereal Transvergence|Rod of Prime Transvergence|Wand of Elemental Transvergence|Rod of Mystical Transvergence|Summoned: Modulating Rod|Wand of Phantasmal Modulation|
 	/declare i int local
+	/declare iItemEffects int local 0
 
 	/for i 1 to ${Math.Calc[${ModRodList.Count[|]}-1]}
-		/if (${FindItem[${ModRodList.Arg[${i},|]}].ItemSlot} && !${FindItem[${ModRodList.Arg[${i},|]}].Timer} && ${Me.CurrentHPs}>${Math.Abs[${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[1]}]} && ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[2]}) {
-			/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${ModRodList.Arg[${i},|]}].ItemSlot} ${FindItem[=${ModRodList.Arg[${i},|]}].ItemSlot2}
-			/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "${ModRodList.Arg[${i},|]}"|item
-			/call ${EchoSub} "${Green} ${ModRodList.Arg[${i},|]} -- ${White} ${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[1]} HP Loss for ${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[2]} Mana Gain"
+		/varset iItemEffects ${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].NumEffects}]}
+		/if (${iItemEffects}>=2) {
+			/if (${FindItem[${ModRodList.Arg[${i},|]}].ItemSlot} && !${FindItem[${ModRodList.Arg[${i},|]}].Timer} && ${Me.CurrentHPs}>${Math.Abs[${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[1]}]} && ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[2]}) {
+				/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${ModRodList.Arg[${i},|]}].ItemSlot} ${FindItem[=${ModRodList.Arg[${i},|]}].ItemSlot2}
+				/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "${ModRodList.Arg[${i},|]}"|item
+				/call ${EchoSub} "${Green} ${ModRodList.Arg[${i},|]} -- ${White} ${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[1]} HP Loss for ${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[2]} Mana Gain"
 		}
+	}
 	/next i
 /return
 
@@ -7647,21 +7702,25 @@ Sub Mana
 	/if (!${Defined[ManaLoaded]}) /call ManaLoad
 	/if (${SpawnCount[pccorpse ${Me.CleanName}]}||${NeedLoad}) /return
 	/declare i int
+	/declare iItemEffects int local 0
 
 	/if (${Me.PctMana} < 10 && ${Me.PctHPs} > 50) {
 		/if (${Me.Class.CanCast}) /call ModRod
 	}
 	
 	/if (${Me.Class.ShortName.Equal[SHM]}) {
-		/if (${Me.AltAbilityReady[Cannibalization]} && ${Me.CurrentHPs}>${Math.Abs[${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[1]}]} && ((${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[2]}||${Me.PctMana}<=${MyManaLessThan}) && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan}))) {
-			/call ${EchoSub} "${Orange} Cannibalization -- ${White} ${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[1]} HP Loss for ${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[2]} Mana Gain"
-			/alt act ${Me.AltAbility[Cannibalization].ID}
-		}
+		/varset iItemEffects ${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].NumEffects}]}
+		/if (${iItemEffects}>=2) {
+			/if (${Me.AltAbilityReady[Cannibalization]} && ${Me.CurrentHPs}>${Math.Abs[${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[1]}]} && ((${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[2]}||${Me.PctMana}<=${MyManaLessThan}) && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan}))) {
+				/call ${EchoSub} "${Orange} Cannibalization -- ${White} ${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[1]} HP Loss for ${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[2]} Mana Gain"
+				/alt act ${Me.AltAbility[Cannibalization].ID}
+			}
 		
-		/if (!${Me.GemTimer[${${CurrentSub}Boost${Me.Class.ShortName}}]} && (${Me.CurrentHPs}>${Math.Abs[${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]}]}||${Me.CurrentHPs}>${MyHPMoreThan}) && (${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[2]}||${Me.PctMana}<${MyManaLessThan}) && ${Me.SpellReady[${${CurrentSub}Boost${Me.Class.ShortName}}]} && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan})) {
-			/call ${EchoSub} "${Orange}${${CurrentSub}Boost${Me.Class.ShortName}} -- ${White} ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]} HP Loss for ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[2]} Mana Gain"
-			/call Cast "${${CurrentSub}Boost${Me.Class.ShortName}}" "${${CurrentSub}BoostGem${Me.Class.ShortName}}" 0 CheckStuff NULL
-			/delay 5s !${Me.Casting.ID}
+			/if (!${Me.GemTimer[${${CurrentSub}Boost${Me.Class.ShortName}}]} && (${Me.CurrentHPs}>${Math.Abs[${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]}]}||${Me.CurrentHPs}>${MyHPMoreThan}) && (${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[2]}||${Me.PctMana}<${MyManaLessThan}) && ${Me.SpellReady[${${CurrentSub}Boost${Me.Class.ShortName}}]} && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan})) {
+				/call ${EchoSub} "${Orange}${${CurrentSub}Boost${Me.Class.ShortName}} -- ${White} ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]} HP Loss for ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[2]} Mana Gain"
+				/call Cast "${${CurrentSub}Boost${Me.Class.ShortName}}" "${${CurrentSub}BoostGem${Me.Class.ShortName}}" 0 CheckStuff NULL
+				/delay 5s !${Me.Casting.ID}
+			}
 		}
 	}
 	
@@ -7672,31 +7731,43 @@ Sub Mana
 			/delay 5s !${Me.Casting.ID}
 		}	
 	
-		/if ((${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]}||${Me.PctMana}<${MyManaLessThan}) && ${Me.SpellReady[${${CurrentSub}Boost${Me.Class.ShortName}}]} && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan})) {
-			/call ${EchoSub} "${Orange}${${CurrentSub}Boost${Me.Class.ShortName}} -- ${White} ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]} Mana Gain"
-			/call Cast "${${CurrentSub}Boost${Me.Class.ShortName}}" "${${CurrentSub}BoostGem${Me.Class.ShortName}}" NULL NULL NULL
-			/delay 5s !${Me.Casting.ID}
+		/varset iItemEffects ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].NumEffects}
+		/if (${iItemEffects}>=1) {
+			/if ((${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]}||${Me.PctMana}<${MyManaLessThan}) && ${Me.SpellReady[${${CurrentSub}Boost${Me.Class.ShortName}}]} && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan})) {
+				/call ${EchoSub} "${Orange}${${CurrentSub}Boost${Me.Class.ShortName}} -- ${White} ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]} Mana Gain"
+				/call Cast "${${CurrentSub}Boost${Me.Class.ShortName}}" "${${CurrentSub}BoostGem${Me.Class.ShortName}}" NULL NULL NULL
+				/delay 5s !${Me.Casting.ID}
+			}
 		}
 	}
 
 	/if (${Me.Class.ShortName.Equal[ENC]} && (${Me.PctMana}<=25||${Me.CombatState.NotEqual[COMBAT]}) && !${Me.Casting.ID}) {
-		/if (${Me.AltAbility[Mana Draw]} && ${Me.AltAbilityReady[Mana Draw]} && ${Me.PctMana}<=5) {
-			/call ${EchoSub} "${Orange} Mana Draw -- ${White} ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[1]} Instant Mana Gain - ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[7]} per tick for ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Duration} ticks (${Math.Calc[${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[7]}*${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Duration}].Int} total)"
-			/alt act ${Me.AltAbility[Mana Draw].ID}
-			/delay 5s !${Me.Casting.ID}
-		}	
+		/varset iItemEffects ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].NumEffects}
+		/if (${iItemEffects}>=7) {
+			/if (${Me.AltAbility[Mana Draw]} && ${Me.AltAbilityReady[Mana Draw]} && ${Me.PctMana}<=5) {
+				/call ${EchoSub} "${Orange} Mana Draw -- ${White} ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[1]} Instant Mana Gain - ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[7]} per tick for ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Duration} ticks (${Math.Calc[${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[7]}*${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Duration}].Int} total)"
+				/alt act ${Me.AltAbility[Mana Draw].ID}
+				/delay 5s !${Me.Casting.ID}
+			}	
+		}
 	
-		/if (${Me.AltAbility[Gather Mana]} && !${Me.AltAbility[Mana Draw]} && ${Me.AltAbilityReady[Gather Mana]} && ${Me.PctMana}<=5) {
-			/call ${EchoSub} "${Orange} Gather Mana -- ${White} ${Spell[${Me.AltAbility[Gather Mana].Spell.ID}].Base[1]} Instant Mana Gain"
-			/alt act ${Me.AltAbility[Gather Mana].ID}
-			/delay 5s !${Me.Casting.ID}
-		}	
+		/varset iItemEffects ${Spell[${Me.AltAbility[Gather Mana].Spell.ID}].NumEffects}
+		/if (${iItemEffects}>=1) {
+			/if (${Me.AltAbility[Gather Mana]} && !${Me.AltAbility[Mana Draw]} && ${Me.AltAbilityReady[Gather Mana]} && ${Me.PctMana}<=5) {
+				/call ${EchoSub} "${Orange} Gather Mana -- ${White} ${Spell[${Me.AltAbility[Gather Mana].Spell.ID}].Base[1]} Instant Mana Gain"
+				/alt act ${Me.AltAbility[Gather Mana].ID}
+				/delay 5s !${Me.Casting.ID}
+			}	
+		}
 
-		/if (${Me.PctMana}<${MyManaLessThan} && ${Me.AltAbilityReady[Fundament: Second Spire of Enchantment]} && ${Spell[Second Spire of Enchantment].Stacks}) {
-			/call ${EchoSub} "${Orange} Fundament: Second Spire of Enchantment -- ${White} ${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Base[9]} Mana Gain per tick for ${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Duration} ticks (${Math.Calc[${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Duration}*${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Base[9]}].Int} total)"
-			/if (${Target.ID}) /squelch /tar clear
-			/alt act ${Me.AltAbility[Fundament: Second Spire of Enchantment].ID}
-			/delay 5s !${Me.Casting.ID}
+		/varset iItemEffects ${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.NumEffects}
+		/if (${iItemEffects}>=9) {
+			/if (${Me.PctMana}<${MyManaLessThan} && ${Me.AltAbilityReady[Fundament: Second Spire of Enchantment]} && ${Spell[Second Spire of Enchantment].Stacks}) {
+				/call ${EchoSub} "${Orange} Fundament: Second Spire of Enchantment -- ${White} ${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Base[9]} Mana Gain per tick for ${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Duration} ticks (${Math.Calc[${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Duration}*${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Base[9]}].Int} total)"
+				/if (${Target.ID}) /squelch /tar clear
+				/alt act ${Me.AltAbility[Fundament: Second Spire of Enchantment].ID}
+				/delay 5s !${Me.Casting.ID}
+			}
 		}
 	
 		/for i 0 to 5
@@ -7720,16 +7791,22 @@ Sub Mana
 			/call ${EchoSub} "${Orange} Azure Mind Crystal --> ${White} ${Me.CleanName}"
 		}
 	
-		/if (${Me.PctMana}<=20 && ${FindItemCount[Azure Mind Crystal]}) {
-			/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=Azure Mind Crystal].ItemSlot} ${FindItem[=Azure Mind Crystal].ItemSlot2}
-		 	/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Azure Mind Crystal"|item
-			/call ${EchoSub} "${Orange} Azure Mind Crystal --> ${White} ${Math.Calc[${FindItem[Azure Mind Crystal].Spell.Base[1]} - 5 + ${Me.Level}*5].Int} mana gain"
+		/varset iItemEffects ${FindItem[Azure Mind Crystal].Spell.NumEffects}
+		/if (${iItemEffects}>=1) {
+			/if (${Me.PctMana}<=20 && ${FindItemCount[Azure Mind Crystal]}) {
+				/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=Azure Mind Crystal].ItemSlot} ${FindItem[=Azure Mind Crystal].ItemSlot2}
+			 	/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Azure Mind Crystal"|item
+				/call ${EchoSub} "${Orange} Azure Mind Crystal --> ${White} ${Math.Calc[${FindItem[Azure Mind Crystal].Spell.Base[1]} - 5 + ${Me.Level}*5].Int} mana gain"
+			}
 		}
 		
-		/if (${Me.PctHPs}<=50 && ${FindItemCount[Sanguine Mind Crystal]}) {
-			/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=Sanguine Mind Crystal].ItemSlot} ${FindItem[=Sanguine Mind Crystal].ItemSlot2}
-		 	/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Sanguine Mind Crystal"|item
-			/call ${EchoSub} "${Teal} Sanguine Mind Crystal --> ${White} [${FindItem[Sanguine Mind Crystal].Spell.Base[1]} hp gain"
+		/varset iItemEffects ${FindItem[Sanguine Mind Crystal].Spell.NumEffects}
+		/if (${iItemEffects}>=1) {
+			/if (${Me.PctHPs}<=50 && ${FindItemCount[Sanguine Mind Crystal]}) {
+				/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=Sanguine Mind Crystal].ItemSlot} ${FindItem[=Sanguine Mind Crystal].ItemSlot2}
+			 	/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Sanguine Mind Crystal"|item
+				/call ${EchoSub} "${Teal} Sanguine Mind Crystal --> ${White} [${FindItem[Sanguine Mind Crystal].Spell.Base[1]} hp gain"
+			}
 		}
 	
 		/if (${Select[${Cursor.Name},Azure Mind Crystal,Sanguine Mind Crystal]}) /autoinv
@@ -7741,10 +7818,13 @@ Sub Mana
 			/alt act 2065
 		}
 	
-		/if ((${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]}||${Me.PctMana}<${MyManaLessThan}) && ${Me.SpellReady[${${CurrentSub}Boost${Me.Class.ShortName}}]}) {
-			/call ${EchoSub} "${Orange}${${CurrentSub}Boost${Me.Class.ShortName}} -- ${White} ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]} Mana Gain"
-			/call Cast "${${CurrentSub}Boost${Me.Class.ShortName}}" "${${CurrentSub}BoostGem${Me.Class.ShortName}}" NULL NULL NULL
-			/delay 5s !${Me.Casting.ID}
+		/varset iItemEffects ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].NumEffects}
+		/if (${iItemEffects}>=1) {
+			/if ((${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]}||${Me.PctMana}<${MyManaLessThan}) && ${Me.SpellReady[${${CurrentSub}Boost${Me.Class.ShortName}}]}) {
+				/call ${EchoSub} "${Orange}${${CurrentSub}Boost${Me.Class.ShortName}} -- ${White} ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]} Mana Gain"
+				/call Cast "${${CurrentSub}Boost${Me.Class.ShortName}}" "${${CurrentSub}BoostGem${Me.Class.ShortName}}" NULL NULL NULL
+				/delay 5s !${Me.Casting.ID}
+			}
 		}
 		
 		/if (${Me.AltAbility[Summon Modulation Shard].Rank} && ${Me.AltAbilityReady[Summon Modulation Shard]}) {
@@ -7804,11 +7884,14 @@ Sub Mana
 	}
 
 	/if (${Me.Class.ShortName.Equal[BST]}) {
-		/if (${Me.PctMana}<${MyManaLessThan} && ${Me.AltAbilityReady[Paragon of Spirit]} && ${Spell[Paragon of Spirit].Stacks} && !${Me.Song[Paragon of Spirit].ID} && !${Me.Song[Focused Paragon of Spirits].ID}) {
-			/call ${EchoSub} "${Orange} Paragon of Spirit -- ${White} ${Me.AltAbility[Paragon of Spirit].Spell.Base[9]} HP Gain and ${Me.AltAbility[Paragon of Spirit].Spell.Base[10]} Mana Gain per tick for ${Me.AltAbility[Paragon of Spirit].Spell.Duration} ticks (${Math.Calc[${Me.AltAbility[Paragon of Spirit].Spell.Duration}*${Me.AltAbility[Paragon of Spirit].Spell.Base[9]}].Int} hp total - ${Math.Calc[${Me.AltAbility[Paragon of Spirit].Spell.Duration}*${Me.AltAbility[Paragon of Spirit].Spell.Base[10]}].Int} mana total)"
-			/if (${Target.Type.NotEqual[npc]} && ${Target.ID}!=${Me.ID} && ${Target.ID}!=${Me.Pet.ID}) /squelch /tar clear
-			/alt act ${Me.AltAbility[Paragon of Spirit].ID}
-			/delay 5s !${Me.Casting.ID}
+		/varset iItemEffects ${Me.AltAbility[Paragon of Spirit].Spell.NumEffects}
+		/if (${iItemEffects}>=10) {
+			/if (${Me.PctMana}<${MyManaLessThan} && ${Me.AltAbilityReady[Paragon of Spirit]} && ${Spell[Paragon of Spirit].Stacks} && !${Me.Song[Paragon of Spirit].ID} && !${Me.Song[Focused Paragon of Spirits].ID}) {
+				/call ${EchoSub} "${Orange} Paragon of Spirit -- ${White} ${Me.AltAbility[Paragon of Spirit].Spell.Base[9]} HP Gain and ${Me.AltAbility[Paragon of Spirit].Spell.Base[10]} Mana Gain per tick for ${Me.AltAbility[Paragon of Spirit].Spell.Duration} ticks (${Math.Calc[${Me.AltAbility[Paragon of Spirit].Spell.Duration}*${Me.AltAbility[Paragon of Spirit].Spell.Base[9]}].Int} hp total - ${Math.Calc[${Me.AltAbility[Paragon of Spirit].Spell.Duration}*${Me.AltAbility[Paragon of Spirit].Spell.Base[10]}].Int} mana total)"
+				/if (${Target.Type.NotEqual[npc]} && ${Target.ID}!=${Me.ID} && ${Target.ID}!=${Me.Pet.ID}) /squelch /tar clear
+				/alt act ${Me.AltAbility[Paragon of Spirit].ID}
+				/delay 5s !${Me.Casting.ID}
+			}
 		}
 		/for i 0 to 5
 			/if (!${Select[${Group.Member[${i}].Class.ShortName},BRD,WAR,MNK,ROG,BER,SHM,NEC]} && ${Me.AltAbilityReady[Focused Paragon of Spirits]} && !${Me.Song[Paragon of Spirit].ID} && !${Me.Buff[Paragon of Spirit].ID} && ${Group.Member[${i}].PctMana}<=${TheirManaLessThan} && ${Group.Member[${i}].PctMana}>0 && !${SpawnCount[${Group.Member[${i}]} corpse]}) {
@@ -9046,7 +9129,7 @@ Sub RootClear(int RootMobID)
 	/for i 1 to ${RootTotal}
 		/if (${Defined[Root${i}${RootMobID}]}) /deletevar Root${i}${RootMobID}
 		/if (${Defined[Root${i}${RootMobID}Resist]}) {
-			/deletevar ${Root${i}${RootMobID}Resist}
+			/deletevar Root${i}${RootMobID}Resist
 		}
 
 	/next i
