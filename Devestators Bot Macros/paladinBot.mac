@@ -46,7 +46,7 @@
 |  -Removed some code dealing with pet that got left over after a copy and paste
 | 
 | =================================================================================================
-
+#warning
 #include devCommonPremium.inc
 |#include paladinBotSettings.ini
 
@@ -63,7 +63,7 @@ Sub main(string iniNameStr, string groupRoleStr)
 	/call CommonInit
 	/varset reqCommon 2.51
 	/varset reqMovement 1.74
-	/varset debugMode FALSE
+	/varset debugMode TRUE
 	
 	/call EchoLog "PaladinBot v${meVersion} Initialized" true
 	/call EchoLog "Loading variables..." true

@@ -717,7 +717,7 @@ Sub PositionCheckDefault(float allowedDistance,bool ignorePuller,float maxAllowe
 	/if (${allowedDistance} == NULL) /varset allowedDistance ${Math.Calc[${campRadius}*${campReturnRatio}]}
 	/if (${maxAllowed} == NULL) /varset maxAllowed 300 
 	| ${Math.Calc[${allowedDistance} * 3]}
-	/if (${maxAllowed}<${allowedDistance}) /varcalc maxAllowed ${allowDistance}*2
+	/if (${maxAllowed}<${allowedDistance}) /varcalc maxAllowed ${allowedDistance}*2
 	/if (!${followMode} && (${ignorePuller} || !${Defined[pullMode]} || !${pullMode}) && ${Math.Distance[${homeY},${homeX}]} > ${allowedDistance}) {
 		/if (${Math.Distance[${homeY},${homeX}]} < ${maxAllowed} || ${useNavigation} || ${alwaysAttemptReturn}) {
 			/call moveLogWrapper "We are to far away from our home location, returning to it." TRUE

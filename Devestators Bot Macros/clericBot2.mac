@@ -137,7 +137,7 @@
 |  -Corrected a bug that would let the cleric try to sit while in follow mode
 | 
 | ==================================================================================================
-
+#warning
 #include devCommonPremium.inc
 |#include clericBotSettings.ini
 
@@ -151,7 +151,7 @@ Sub main(string iniNameStr)
 	/call CommonInit
 	/varset reqCommon	2.51
 	/varset reqMovement  1.74
-	/varset debugMode FALSE
+	/varset debugMode TRUE
 	
 	/call EchoLog "ClericBot2 v${meVersion} Initialized" true
 	/call EchoLog "Loading variables..." true

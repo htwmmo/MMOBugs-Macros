@@ -116,7 +116,7 @@
 |  -Fixed a variable declaration that was causing merc stances not to change.
 | 
 | ==================================================================================================
-
+#warning
 #include devCommonPremium.inc
 |#include monkBotSettings.ini
 
@@ -461,12 +461,13 @@ Sub BurnSetConditionCheck
 	} else {
 		/varset TargetNamed FALSE
 	}
-	/if (${autoBurnCondition.NotEqual[NULL]} && ${${autoBurnCondition}}) {
-		/varset burnSetID 0
-		/varset burnAlias NULL
-		/varset burnMode TRUE
-		/call EchoLog "\ayAuto Burn Condition has been met, initiating burn mode.  Burn sets must still be ready to be used"
-	} else {
+	/if (${autoBurnCondition.NotEqual[NULL]}) {
+	  /if (${${autoBurnCondition}}) {
+			/varset burnSetID 0
+			/varset burnAlias NULL
+			/varset burnMode TRUE
+			/call EchoLog "\ayAuto Burn Condition has been met, initiating burn mode.  Burn sets must still be ready to be used"
+		} else {
 		/for bSetArray 1 to ${burnSetCount}
 			/if (${burnSetCondition[${bSetArray}].NotEqual[NULL]} && ${${burnSetCondition[${bSetArray}]}}) {
 				/call BurnSetReady ${bSetArray} TRUE
@@ -476,6 +477,22 @@ Sub BurnSetConditionCheck
 					/varset burnMode TRUE
 					/call EchoLog "\ayAuto burn condition has been met for set ${burnSets[${bSetArray},1]} and it is ready to be used, initiating burn for this set."
 					/return	
+				}
+			}
+		/next bSetArray
+		}
+	} else {
+		/for bSetArray 1 to ${burnSetCount}
+			/if (${burnSetCondition[${bSetArray}].NotEqual[NULL]}) {
+			  /if(${${burnSetCondition[${bSetArray}]}}) {
+				  /call BurnSetReady ${bSetArray} TRUE
+				  /if (${Macro.Return}) {
+					  /varset burnSetID ${bSetArray}
+					  /varset burnAlias ${burnSets[${bSetArray},1]}
+					  /varset burnMode TRUE
+					  /call EchoLog "\ayAuto burn condition has been met for set ${burnSets[${bSetArray},1]} and it is ready to be used, initiating burn for this set."
+					  /return	
+					}
 				}
 			}
 		/next bSetArray

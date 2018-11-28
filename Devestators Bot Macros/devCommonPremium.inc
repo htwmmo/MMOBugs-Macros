@@ -222,6 +222,7 @@ Sub CommonInit
 	/declare lootOnlyKilled								bool outer TRUE
 	/declare devCommonPremiumDatVersion					float outer 0.00
 	/declare modRodNameCommon							string outer NULL
+	/declare modRodSpell							string outer NULL
 	/declare modRodMinHPsCommon							int outer 50
 	/declare modRodManaCommon							int outer 50
 	/declare noInvis									bool outer FALSE
@@ -620,12 +621,14 @@ Sub AddCleanUp
 	/for acLoop 1 to ${targCount}
 		/varset mobID ${targArray[${acLoop}]}
 		/if (${mobID}) {
-			/if (${Defined[addTracking${mobID}]} && !${addTracking${mobID}}) {
-				/if (${Spawn[${mobID}].ID} && ${Spawn[${mobID}].Type.NotEqual[Corpse]}) /call EchoLog "Add removed because it is no longer in the camp, ${Spawn[${mobID}].CleanName} | ${mobID}" TRUE
-				/varset targArray[${acLoop}] 0
-				/varcalc corpseCount ${corpseCount} + 1
-				/varset corpseArray[${corpseCount}] ${If[${Spawn[${mobID}].Type.Equal[Corpse]},${mobID},0]}
-				/deletevar addTracking${mobID}
+			/if (${Defined[addTracking${mobID}]}) {
+			  /if (!${addTracking${mobID}}) {
+					/if (${Spawn[${mobID}].ID} && ${Spawn[${mobID}].Type.NotEqual[Corpse]}) /call EchoLog "Add removed because it is no longer in the camp, ${Spawn[${mobID}].CleanName} | ${mobID}" TRUE
+					/varset targArray[${acLoop}] 0
+					/varcalc corpseCount ${corpseCount} + 1
+					/varset corpseArray[${corpseCount}] ${If[${Spawn[${mobID}].Type.Equal[Corpse]},${mobID},0]}
+					/deletevar addTracking${mobID}
+				}
 			} else /if (!${Defined[addTracking${mobID}]}) {
 				/if (!${Spawn[${mobID}].ID} || (${Math.Distance[${Spawn[${mobID}].Y},${Spawn[${mobID}].X}:${homeY},${homeX}]} > ${Math.Calc[${campRadius} * 2]} && ${Spawn[${mobID}].Distance} > ${campRadius})) {
 					/declare addTracking${mobID}					timer outer 15s
@@ -988,6 +991,8 @@ Sub CombatCheck(bool AddCheck)
 /return
 
 Sub CommonCombatRoutines(string callRoutine,bool AllowCombatBuff,bool AllowDebuff,bool AllowAddCleanup)
+  /if (!${Defined[AllowDebuff]}) /declare AllowDebuff bool outer TRUE
+  /if (!${Defined[AllowAddCleanup]}) /declare AllowAddCleanup bool outer TRUE
 	/if (${Zone.ID}!=${startZoneID}) {
 		/call EchoLog "\ayWe have changed zones, setting home location to current location."
 		/call SetHome
@@ -1002,8 +1007,8 @@ Sub CommonCombatRoutines(string callRoutine,bool AllowCombatBuff,bool AllowDebuf
 	/if (${Me.State.Equal[HOVER]}) /call Event_died
 	
 	/if (${AllowCombatBuff} == NULL) /varset AllowCombatBuff TRUE
-	/if (${AllowDebuff]} == NULL) /varset AllowDebuff TRUE
-	/if (${AllowAddCleanup]} == NULL) /varset AllowAddCleanup TRUE
+	/if (${AllowDebuff} == NULL) /varset AllowDebuff TRUE
+	/if (${AllowAddCleanup} == NULL) /varset AllowAddCleanup TRUE
 	/if (!${Defined[LastMercAssistID]}) /declare LastMercAssistID		int outer 0
 	/if (${callRoutine.NotEqual[NULL]}) {
 		/varset inCombatBuffRoutine ${callRoutine}
@@ -2656,7 +2661,10 @@ Sub CheckForAdds(int cDist, int checkID, bool useChoose, bool checkAll, bool sil
 	/if (${silentRun} == NULL) /varset silentRun FALSE
 
 	/if (${checkID} && !${Spawn[${checkID}].ID}) /varset checkID 0
-	/if (!${checkID} && (${followMode} || (${Defined[soloMode]} && ${soloMode}))) /varset checkID ${Me.ID}
+	/if (!${Defined[soloMode]}) {
+	  /declare soloMode bool outer FALSE
+	}
+	/if (!${checkID} && (${followMode} || ${soloMode})) /varset checkID ${Me.ID}
 	/declare checkY					float local ${If[!${checkID},${homeY},${Spawn[${checkID}].Y}]}
 	/declare checkX					float local ${If[!${checkID},${homeX},${Spawn[${checkID}].X}]}
 
@@ -3186,7 +3194,7 @@ Sub CommonINILoad
 			/call GetINISetting ${iniName} Combat SpellSetType${nArray} spellTypes[${nArray}] NULL
 			/call EchoLog "   ${nArray} - TYPE: ${spellTypes[${nArray}]}" TRUE
 		} else {
-			/call GetINISetting ${iniName} Combat SpellSetType${nArray} NULL NULL ${If[${spellSetTypeValue},TRUE,FALSE]}
+			/call GetINISetting ${iniName} Combat SpellSetType${nArray} NULL NULL ${If[${spellTypeValue},TRUE,FALSE]}
 		}
 	/next nArray
 
@@ -3424,6 +3432,7 @@ Sub CommonINILoad
 	/call EchoLog "Checking for MQ2Navigation for movement" TRUE	
 	/call GetINISetting ${iniName} General UseNavigation useNavigation TRUE FALSE
 	/if (${useNavigation} && !${Plugin[MQ2Navigation].Version}) /squelch /plugin MQ2Navigation
+	/if (${Defined[Navigation]}) {
 	/if (${Navigation}) {
 		/if (${useNavigation}) {
 			/if (!${Navigation.MeshLoaded}) {
@@ -3443,6 +3452,9 @@ Sub CommonINILoad
 		}
 	} else {
 		/varset useNavigation FALSE
+	}
+	} else {
+	  /varset useNavigation FALSE
 	}
 	
 	/if (${useNavigation} && !${Plugin[MQ2EQDraw].Version}) /squelch /plugin MQ2EQDraw
@@ -3497,7 +3509,12 @@ Sub CommonINILoad
 	}
 	
 	/call LootInit FALSE ${lootININame}
-	/if (!${Defined[soloMode]} || !${soloMode}) /call PullInit
+	/if (!${Defined[soloMode]}) {
+	  /declare soloMode bool outer FALSE
+	  /call PullInit 
+	} else {
+	  /if (!${soloMode}) /call PullInit
+	}
 /return
 
 Sub CorpseCheck

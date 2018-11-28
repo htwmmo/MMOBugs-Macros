@@ -2,7 +2,7 @@
  **
  ** From MMOBugs.com
  ** Original Author: PeteSampras 
- ** Updates by: [40oz], [ChatWithThisName], [Poly]
+ ** Updates by: [40oz], [ChatWithThisName], [Poly], [htw]
  **
  ** TODO:
 <<<<<<< HEAD
@@ -20,6 +20,8 @@
  ** Change List:
  ** Of note, bugs reporters will be credited by the change that fixes their bug in paranthesis.
  **
+ ** 2018-11-27 - htw
+ **   - Started overhaul for not defined issues and various bugs
  ** 2017-10-07 - Chatwiththisname
  **   - Fixed buff logic
  **   - Fixed Buff durations to use Buff Extension modifiers. 
@@ -170,7 +172,7 @@
  **|
 
 #turbo 80
-
+#warning
 #define MyIni Bot_${Me.CleanName}_${MacroQuest.Server}_${Me.Class}.ini
 #define MobIni Camps.ini
 #define LootIni Loot.ini
@@ -180,6 +182,7 @@
 #include bot_custom_events.inc
 
 Sub Main(string Param0, string Param1)
+	/if (!${Defined[NeedLoad]}) /declare NeedLoad bool outer FALSE
 	/if (!${Defined[doBurn]}) /declare doBurn int outer 0
 	/if (${Plugin[Navigation].Name.NotEqual[Navigation]}) /declare Navigation bool outer FALSE
 	/if (${Plugin[MQ2Cecho].Name.Equal[MQ2Cecho]}) {
@@ -196,12 +199,11 @@ Sub Main(string Param0, string Param1)
 		}
 	}
 	/declare AssistPC2 string outer 
-	/declare DebugLevel int outer ${Ini[MyIni,Settings,DebugLevel,0]}
+	/if (!${Defined[DebugLevel]}) /declare DebugLevel int outer ${Ini[MyIni,Settings,DebugLevel,0]}
 	|** Changed the BotVersion: vYear.MonthDayHour (CST) Because I live in Texas ~Chat**|
-	/declare BotVersion string outer v2017.11011040
+	/declare BotVersion string outer v2018.11271900
 	/declare MyVersion string local ${Ini[MyIni,Settings,BotVersion]}
 	/declare NewVersion bool outer ${BotVersion.NotEqual[${MyVersion}]}
-	/declare NeedLoad bool outer FALSE
 	
 	/if (${DebugLevel}!=0) /call Debug 1 "Debug Level is set to ${DebugLevel}"
 	/call Debug 2 "BotVersion: ${BotVersion} | MyVersion: ${MyVersion} | NewVersion: ${NewVersion}"
@@ -210,7 +212,7 @@ Sub Main(string Param0, string Param1)
 		/call Load
 		/if (${NeedLoad}) {
 			/echo Macro INI finished.  Edit MyIni in your macros folder.
-			/end
+			/endmac
 			/return
 		}
 	}
@@ -219,28 +221,36 @@ Sub Main(string Param0, string Param1)
 	
 
 	/if ((${Ini[MyIni,AA,AATotal,123456].Equal[123456]} && ${Ini[MyIni,Settings,OptionsCheck].Find[|AA|]}||${MyVersion.Equal[NULL]}) && !${NeedLoad}) {
-		/echo (${Ini[MyIni,AA,AATotal,123456].Equal[123456]} && ${Ini[MyIni,Settings,OptionsCheck].Find[|AA|]}||${MyVersion.Equal[NULL]}) && !${NeedLoad})
+		/cecho \aw(\ayIni[MyIni,AA,AATotal] && Ini[MyIni,Settings,OptionCheck.Find[AA] || MyVersion==NULL && !NeedLoad) \aw=== \ar(${Ini[MyIni,AA,AATotal,123456].Equal[123456]} && ${Ini[MyIni,Settings,OptionsCheck].Find[|AA|]}||${MyVersion.Equal[NULL]}) && !${NeedLoad})
 		/beep
-		/echo You have attempted to fail, but I will not let you.  Go read the instructions on the forums.
+		/cecho \atInitial set up:
+		/cecho \aw1. \agSet up your group puller/tank as intended.
+		/cecho \aw2. \agSet XTarget1 to your main/group tank's/assist's target.
+		/cecho \aw3. \ao/mac ThisMac load
+		/cecho \aw4. \agThis will create an ini in your Macros folder: \ayMyIni
+		/cecho \aw5. \agEdit the ini to desired settings. Note that AAs, Auras, Discs, SelfBuffs, Buffs are set to FALSE by default to prevent issues. Also note that ALL pet information must be done manually for now. Ensure SpellIcon names are correct. For group Buffs they will almost certainly be wrong. I suggest using single target buffs for best results and most efficiency. (make sure to edit to proper classes)
+		/cecho \aw6. \agStart \aoThisMac \gagain \arper these instructions starting from step 1.
 		/beep
 		/mmoini "MyIni" "Settings" "BotVersion" "Initial"
-		/mac ThisMac load
+		/endmac
 	}
 
 
-	/call ${EchoSub} "${Red}Bot.Mac ${Green} Loaded ${White} ${BotVersion}"
+	/call ${EchoSub} "${Red}ThisMac ${Green} Loaded ${White} ${BotVersion}"
 	/cechob \ay/helpme \aw- Shows available options and commands
 
 	
 
-	/if (!${Raid.Members} && ${Me.XTarget[1].TargetType.NotEqual[Group Assist Target]} && ${Me.XTarget[1].TargetType.NotEqual[Group Tank's Target]} && ${Select[${AssistType},3]}) {
+	/if (!${Defined[AssistType]}) /declare AssistType int outer 3
+	/if (!${Raid.Members} && ${Me.XTarget[1].TargetType.NotEqual[Group Assist Target]} && ${Me.XTarget[1].TargetType.NotEqual[Group Tank's Target]} && ${AssistType}==3) {
 		/echo Setting Xtarget1 to group assist target, be sure to have your group roles set	
 		/xtarget set 1 groupassisttarget
 	}
-	
-	/if (${Raid.Members} && !${Select[${Me.XTarget[1].TargetType},Raid Assist 1 Target,Raid Assist 2 Target,Raid Assist 3 Target]} && ${Select[${AssistType},3]}) {
+	/if (!${Defined[AssistType]}) /declare AssistType int outer 3
+	/if (${Raid.Members} && !${Select[${Me.XTarget[1].TargetType},Raid Assist 1 Target,Raid Assist 2 Target,Raid Assist 3 Target]} && ${AssistType}==3) {
 		/cechob \ar!!! WARNING !!! \atXTarget1 set to ${Me.XTarget[1].TargetType}, if you aren't the main assist, you need to change it
 	}
+	/if (!${Defined[AssistPC]}) /declare AssistPC string outer
 	/if (!${Bool[${AssistPC}]}) {
 		/if (!${Bool[${Ini[MyIni,Assist,AssistPC,FALSE]}]}) {
 			/echo \arError: No AssistPC identified. Macro will not function, /ending.
@@ -251,6 +261,7 @@ Sub Main(string Param0, string Param1)
 			/echo \agUsing previous AssistPC.
 		}
 	}
+	/if (!${Defined[AssistAt]}) /declare AssistAt int outer
 	/if (${Me.Name.Equal[${AssistPC}]}) {
 		/varset AssistAt 100
 	} else {
@@ -262,8 +273,9 @@ Sub Main(string Param0, string Param1)
 	
 
 	
+	/if (!${Defined[ErrorFound]}) /declare ErrorFound bool outer
 	/if (${ErrorFound}) {
-		/echo Errors found in MyIni. See messages above or look in \\mq2\\logs\\ThisMac.log for errors encountered.
+		/echo Errors found in MyIni. See messages above or look in your MQ2 Logs directory for ThisMac.mac.log to review errors encountered.
 		/beep
 	}
 	
@@ -276,11 +288,13 @@ Sub Main(string Param0, string Param1)
 			/endmacro
 		}
 
+		/if (!${Defined[GMAction]}) /declare GMAction string outer
 		/if (${GMCheck} && ${GMAction.Left[1].Equal[/]}) {
 			/mqlog ${Me.Class} -  GM ${GMCheck.Names} popped in
 			/docommand ${GMAction}
 		}
 		
+		/if (!${Defined[TarID]}) /declare TarID int outer
 		/if (${Me.Hovering} && ${TarID}) /call ClearTarget
 		
 		|** Zone IDs Here:
@@ -289,9 +303,12 @@ Sub Main(string Param0, string Param1)
 			151 - The Bazaar
 			345 - Guild Hall
 		**|  
+		/if (!${Defined[AutoUseCampfire]}) /declare AutoUseCampfire bool outer ${Ini[MyIni,Campfire,AutoUseCampfire,FALSE]}
 		/if (${Select[${Zone.ID},344,202,151,345]} && ${AutoUseCampfire}) /call AutoUseCampfire
 		/doevents
 		
+		/if (!${Defined[RestrictedZones]}) /declare RestrictedZones string outer
+		/if (!${Defined[NeedLoad]}) /declare NeedLoad bool outer FALSE
 		/if (${Me.Hovering} || ${Window[tradewnd].Open} || ${Window[lootwnd].Open} || ${Me.State.Equal[BIND]} || ${Select[${Zone.ID},${RestrictedZones}]} && !${NeedLoad}) {
 			| do nothing
 		} else {
@@ -312,6 +329,7 @@ Sub Main(string Param0, string Param1)
 /return
 
 Sub Debug(int level, string message)
+	/if (!${Defined[DebugLevel]}) /declare DebugLevel int outer ${Ini[MyIni,Settings,DebugLevel,0]}
 	/if (${DebugLevel} >= ${level}) /echo DBG${level}: ${message}
 /return
 
@@ -320,7 +338,11 @@ Sub Always
 	/call Debug 4 "Entering Sub Always"
 	/if (${Select[${Cursor.ID},9963,76504,79322,79321,79320,6346,64953,64954,64955,64979,64980,64981,64982,64983,64984,52817,64951,52709,3426,57264,52674,76503,121336,64978,77613,77678,77681,57265,52818,52710,77679,64952,77682,52701,76501,79497]}) /autoinventory
 
-	/if (${TarID} && (!${Target.ID}||${Target.ID}!=${TarID}) && ${Spawn[id ${TarID}].Type.NotEqual[corpse]} && (!${Me.Casting.ID}||${Twist.Twisting}) && ${Spawn[${TarID}].ID}) /squelch /tar id ${TarID}
+	/if (!${Plugin[MQ2Twist].Name.Length}) {
+		/if (${TarID} && (!${Target.ID}||${Target.ID}!=${TarID}) && ${Spawn[id ${TarID}].Type.NotEqual[corpse]} && !${Me.Casting.ID} && ${Spawn[${TarID}].ID}) /squelch /tar id ${TarID}
+	} else {
+		/if (${TarID} && (!${Target.ID}||${Target.ID}!=${TarID}) && ${Spawn[id ${TarID}].Type.NotEqual[corpse]} && (!${Me.Casting.ID}||${Twist.Twisting}) && ${Spawn[${TarID}].ID}) /squelch /tar id ${TarID}
+	}
 	/if (${OptionsCheckCurrent.Equal[Group]} && ${Raid.Members} && ${OptionsCheckRaid.NotEqual[123456]}) {
 		/varset OptionsCheck ${Ini[MyIni,Settings,OptionsCheckRaid]}
 		/varset OptionsCheckCurrent Raid
@@ -335,7 +357,11 @@ Sub Always
 		/call AddHandler
 	}
 	/call CheckTarget${AssistType}
-	/if (${AssistType} && ${TarID} && (!${Target.ID}||${Target.ID}!=${TarID}) && ${Spawn[id ${TarID}].Type.NotEqual[corpse]} && (!${Me.Casting.ID}||${Twist.Twisting}) && ${Spawn[${TarID}].ID}) /squelch /tar id ${TarID}
+	/if (!${Plugin[MQ2Twist].Name.Length}) {
+		/if (${AssistType} && ${TarID} && (!${Target.ID}||${Target.ID}!=${TarID}) && ${Spawn[id ${TarID}].Type.NotEqual[corpse]} && !${Me.Casting.ID} && ${Spawn[${TarID}].ID}) /squelch /tar id ${TarID}
+	} else {
+		/if (${AssistType} && ${TarID} && (!${Target.ID}||${Target.ID}!=${TarID}) && ${Spawn[id ${TarID}].Type.NotEqual[corpse]} && (!${Me.Casting.ID}||${Twist.Twisting}) && ${Spawn[${TarID}].ID}) /squelch /tar id ${TarID}
+	}
 
 	/if (!${Defined[MainTankPetMaster]}) /declare MainTankPetMaster string outer NULL
 	
@@ -377,7 +403,7 @@ Sub Combat
 		}
 	}
 	
-	/if (${Me.Class.ShortName.Equal[BRD]}) {
+	/if (${Me.Class.ShortName.Equal[BRD]} && ${Plugin[MQ2Twist].Name.Length}) {
 		/if (!${Me.GemTimer[${PBAEMezSpellGem}]} && ${PBAEMezSpellName.NotEqual[NULL]} && ${Me.Gem[${PBAEMezSpellName}]} && ${Spawn[${Me.XTarget[2].ID}].Distance}<35 && ${Me.XTarget[2].ID} && ${Me.CurrentMana}>${Spell[${PBAEMezSpellName}].Mana}) {
 			/twist once ${PBAEMezSpellGem}
 			/echo PBAEMEZ is firing.
@@ -466,7 +492,7 @@ Sub Combat
 	
 	/if (${NeedLoad}||${SetCampfire}) /call Campfire
 	
-	/if (${Select[${Me.Class.ShortName},BRD]}) {
+	/if (${Select[${Me.Class.ShortName},BRD]} && ${Plugin[MQ2Twist].Name.Length}) {
 		/if (${Defined[CombatTwist]}) {
 			/if (!${Defined[Mezzing]}) /declare Mezzing bool outer FALSE
 			/if (!${Mezzing} && ${Twist.List} != ${CombatTwist} && ${Me.CombatState.Equal[COMBAT]} && !${Twist.Twisting}) {
@@ -534,7 +560,7 @@ Sub Rest
 		/next i
 	}
 
-	/if (${Defined[RestTwist]}) {
+	/if (${Defined[RestTwist]} && ${Plugin[MQ2Twist].Name.Length}) {
 		/if (${RestTwist.Equal[NULL]} && ${Twist.Twisting}) {
 			/twist off
 			/echo Turning off Twist RestTwist!= Twist.List and RestTwist is NULL
@@ -558,7 +584,7 @@ Sub Rest
 		/if (!${Me.Buff[${SelosSong}].ID}) {
 			/if (${Me.AltAbility[${SelosSong}]}) {
 				/alt act ${Me.AltAbility[${SelosSong}].ID}
-			} else /if (${Me.Gem[${SelosSong}]}) {
+			} else /if (${Me.Gem[${SelosSong}]} && ${Plugin[MQ2Twist].Name.Length}) {
 				/twist once ${Me.Gem[${SelosSong}]}
 			}
 		}
@@ -605,12 +631,13 @@ Sub Load
 	/declare CurrentSubHold string outer
 	/declare debug int outer
 	/declare tempsubtotal int outer
-	/declare TarID int outer
+	/if (!${Defined[TarID]}) /declare TarID int outer
 	/declare Hate int outer 0
 	/declare ListVar string outer
 	/declare ListVarType string outer
 	/declare ListDefault string outer
 	/declare ListSection string outer
+	/if (!${Defined[GMAction]}) /declare GMAction string outer
 	/declare LoadListVar string outer RestrictedZones|GMAction|LootNPCs|AuthorizedUsers|Verbose|MyChannel|AnnounceChannel|AnnounceEvents|EQBCAnnounceAdds|AutoHideNPCCorpses|ClearTargetDataAlias|EmergencyAlias|EmergencySkill|ImmunityCheck|
 	/declare LoadListVarType string outer string|string|bool|string|bool|string|string|string|bool|bool|string|string|string|bool|
 	/declare LoadListDefault string outer "344,202,151,345"|NULL|FALSE|NULL|FALSE|bc|bc|NULL|FALSE|FALSE|ClearTargetDataAlias|EmergencyAlias|EmergencySkill|TRUE|
@@ -629,7 +656,7 @@ Sub Load
 	/declare HideCorpseTimer timer outer 2m
 	/declare spellload2 string outer
 	/declare Heals string outer HealBalance|HealGroup|HealSingle|HealSelf|HealSplash|
-	/declare ErrorFound bool outer
+	/if (!${Defined[ErrorFound]}) /declare ErrorFound bool outer
 	/declare ExitSubEarly int outer 1
 
 	/noparse /declare Mezzer string outer (${SpawnCount[group enc]}||${SpawnCount[group brd]})
@@ -1486,10 +1513,10 @@ Sub Event_DebugLevel(line, int new_level)
 |#################>  Plugin Load <###############################
 Sub PluginLoad
 	/call Debug 3 "In Sub PluginLoad"
-	/declare PluginCheckList string outer MQ2CEcho|MQ2Cast|MQ2MMOTLO|MQ2Debuffs|Mq2MoveUtils|
+	/declare PluginCheckList string outer MQ2CEcho|MQ2Cast|MQ2Debuffs|Mq2MoveUtils|
 	/declare i int local
 	/for i 1 to ${PluginCheckList.Count[|]} 
-		/if (!${Plugin[${PluginCheckList.Arg[${i},|]}].Name.Equal[${PluginCheckList.Arg[${i},|]}]}) /squelch /plugin ${PluginCheckList.Arg[${i},|]} load
+		/if (!${Plugin[${PluginCheckList.Arg[${i},|]}].Name.Equal[${PluginCheckList.Arg[${i},|]}]}) /squelch /plugin ${PluginCheckList.Arg[${i},|]}
 	/next i
 	/call Debug 3 "Leaving Sub PluginLoad"
 /return
@@ -1578,6 +1605,7 @@ Sub CheckTargetLoad
 Sub Event_AddHandlerForce(line, string newaddlist)
 	/if (${EQBCAnnounceAdds}) /return
 	/if (!${Defined[iAddList]}) /declare iAddList int outer
+	/if (!${Defined[iAddCount]}) /declare iAddCount int outer 0
 	/declare i int local
 	/for iAddList 2 to ${newaddlist.Count[|]}
 		/for i 1 to ${XTarget.Max}
@@ -1959,7 +1987,9 @@ Sub ClearHate
 /return
 
 Sub ClearAttack
-	/if (${Twist.Twisting}) /twist off
+	/if (${Plugin[MQ2Twist].Name.Length}) {
+		/if (${Twist.Twisting}) /twist off
+	}
 	/squelch /tar clear
 	/squelch /attack off
 	/if (${Me.Casting.ID}) /call Interrupt
@@ -2454,9 +2484,11 @@ Sub Pull(int spawnid)
 		/call ReturnCamp
 		/return
 	}
-	/if (${Twist.Twisting}) {
-		/varset twisting TRUE
-		/squelch /twist stop
+	/if (${Plugin[MQ2Twist].Name.Length}) {
+		/if (${Twist.Twisting}) {
+			/varset twisting TRUE
+			/squelch /twist stop
+		}
 	}
 	/call PullCheck ${spawnid}
 	
@@ -2494,9 +2526,11 @@ Sub Pull(int spawnid)
 		/if (!${Navigation.Active}) {
 			/nav id ${spawnid}
 			/echo Nav to ${Spawn[${spawnid}]}
-			/if (${Twist.Twisting}) {
-				/varset twisting TRUE
-				/squelch /twist off
+			/if (${Plugin[MQ2Twist].Name.Length}) {
+				/if (${Twist.Twisting}) {
+					/varset twisting TRUE
+					/squelch /twist off
+				}
 			}
 			/call PullCheck
 			/if (${Int[${Target.Distance}]}>${PullCastRange} && !${Me.XTarget}) /goto :move
@@ -2540,7 +2574,11 @@ Sub PullCheck
 	:castingpull
 	/doevents PullHold
 	/doevents CannotSeeTarget
-	/if (!${Defined[CanEngage]}) /declare CanEngage string outer ((${Target.LineOfSight}||!${PullSkillRequiresLineOfSight1}) && !${Me.XTarget} && !${Me.CombatState.Equal[COMBAT]} && (!${Me.Moving}||${Me.Class.ShortName.Equal[BRD]}||${PullSkillName1.Equal[/attack on]}) && (!${Me.Casting.ID}||${Twist.Twisting}) && ((${Me.SpellReady[${PullSkillName1}]}||${Me.CombatAbilityReady[${PullSkillName1}]}||${Me.AltAbilityReady[${PullSkillName1}]})||(!${Me.Gem[${PullSkillName1}]} && ${PullSkillGem1.Find[gem]})||(${FindItem[${PullSkillName1}].ItemSlot} && !${FindItem[${PullSkillName1}].Timer})||${PullSkillName1.Equal[/attack on]}))
+	/if (${Plugin[MQ2Twist].Name.Length}) {
+		/if (!${Defined[CanEngage]}) /declare CanEngage string outer ((${Target.LineOfSight}||!${PullSkillRequiresLineOfSight1}) && !${Me.XTarget} && !${Me.CombatState.Equal[COMBAT]} && (!${Me.Moving}||${Me.Class.ShortName.Equal[BRD]}||${PullSkillName1.Equal[/attack on]}) && (!${Me.Casting.ID}||${Twist.Twisting}) && ((${Me.SpellReady[${PullSkillName1}]}||${Me.CombatAbilityReady[${PullSkillName1}]}||${Me.AltAbilityReady[${PullSkillName1}]})||(!${Me.Gem[${PullSkillName1}]} && ${PullSkillGem1.Find[gem]})||(${FindItem[${PullSkillName1}].ItemSlot} && !${FindItem[${PullSkillName1}].Timer})||${PullSkillName1.Equal[/attack on]}))
+	} else {
+		/if (!${Defined[CanEngage]}) /declare CanEngage string outer ((${Target.LineOfSight}||!${PullSkillRequiresLineOfSight1}) && !${Me.XTarget} && !${Me.CombatState.Equal[COMBAT]} && (!${Me.Moving}||${Me.Class.ShortName.Equal[BRD]}||${PullSkillName1.Equal[/attack on]}) && !${Me.Casting.ID} && ((${Me.SpellReady[${PullSkillName1}]}||${Me.CombatAbilityReady[${PullSkillName1}]}||${Me.AltAbilityReady[${PullSkillName1}]})||(!${Me.Gem[${PullSkillName1}]} && ${PullSkillGem1.Find[gem]})||(${FindItem[${PullSkillName1}].ItemSlot} && !${FindItem[${PullSkillName1}].Timer})||${PullSkillName1.Equal[/attack on]}))
+	}
 	/if (${PullSkillName1.Equal[/attack on]}) {
 		/varset CanEngage TRUE
 	}
@@ -2568,7 +2606,7 @@ Sub PullCheck
 		/echo ${PullSkillName1} --> ${Target}
 		/if (${PullSkillGem1.Equal[bow]}) /ranged
 		/if (${PullSkillGem1.Equal[ammo]}) /throwit
-		/if (${Me.Class.ShortName.Equal[BRD]} && ${Me.Gem[${PullSkillName1}]}) {
+		/if (${Me.Class.ShortName.Equal[BRD]} && ${Me.Gem[${PullSkillName1}]} && ${Plugin[MQ2Twist].Name.Length}) {
 			/twist once ${Me.Gem[${PullSkillName1}]}
 			/echo Twisting once ${PullSkillName1}
 		}
@@ -2579,7 +2617,13 @@ Sub PullCheck
     	/if (${Spell[${PullSkillName1}].Slot[1].Find[Summon ]} && ${Me.Pet.ID}) /pet attack  		
 	}
 	/if (${Defined[PullSkillName2]}) {
-		/if ((${Target.LineOfSight}||!${PullSkillRequiresLineOfSight2}) && ${PullingTotal}==2 && !${Me.XTarget} && !${Me.CombatState.Equal[COMBAT]} && (!${Me.Moving}||${Me.Class.ShortName.Equal[BRD]}) && (!${Me.Casting.ID}||${Twist.Twisting}) && ((${Me.SpellReady[${PullSkillName2}]}||${Me.CombatAbilityReady[${PullSkillName2}]}||${Me.AltAbilityReady[${PullSkillName2}]})||(!${Me.Gem[${PullSkillName2}]} && ${PullSkillGem2.Find[gem]})||(${FindItem[${PullSkillName2}].ItemSlot} && !${FindItem[${PullSkillName2}].Timer}))) {
+		/declare bTwistOn bool outer FALSE
+		/if (${Plugin[MQ2Twist].Name.Length}) {
+			/varset bTwistOn TRUE
+		} else {
+			/varset bTwistOn FALSE
+		}
+		/if ((${Target.LineOfSight}||!${PullSkillRequiresLineOfSight2}) && ${PullingTotal}==2 && !${Me.XTarget} && !${Me.CombatState.Equal[COMBAT]} && (!${Me.Moving}||${Me.Class.ShortName.Equal[BRD]}) && (!${Me.Casting.ID}||${bTwistOn}) && ((${Me.SpellReady[${PullSkillName2}]}||${Me.CombatAbilityReady[${PullSkillName2}]}||${Me.AltAbilityReady[${PullSkillName2}]})||(!${Me.Gem[${PullSkillName2}]} && ${PullSkillGem2.Find[gem]})||(${FindItem[${PullSkillName2}].ItemSlot} && !${FindItem[${PullSkillName2}].Timer}))) {
 			/if (${Me.SpellReady[${PrePullSkillName}]}||${Me.AltAbilityReady[${PrePullSkillName}]}||${Me.CombatAbilityReady[${PrePullSkillName}]} && ${Me.CurrentEndurance}>${Spell[${PrePullSkillName}].EnduranceCost}||${FindItem[=${PrePullSkillName}].ItemSlot} && !${FindItem[=${PrePullSkillName}].Timer} && !${PrePullSkillReuse}) {
 				/call Cast "${PrePullSkillName}" "${PrePullSkillGem}" NULL NULL NULL
 				/varset PrePullReuse ${PrePullSkillReuse}
@@ -2706,7 +2750,9 @@ Sub ReturnCamp
 			/if (${ReturnAction${i}.Find[/twist]}) /varset twisting TRUE
 		/next i
 	}
-	/if (${twisting} && !${Twist.Twisting}) /squelch /twist
+	/if (${Plugin[MQ2Twist].Name.Length}) {
+		/if (${twisting} && !${Twist.Twisting}) /squelch /twist
+	}
 	/if (${PullingMethod.Find[nav]}) /nav locxyz ${XLOC} ${YLOC} ${ZLOC}
 	|/if (${PullingMethod.Find[standard]} && ${Pulling}) /squelch /moveto set breakonaggro off
 	/if (${PullingMethod.Find[standard]}) {
@@ -3131,7 +3177,6 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 				/declare ${CurrentSub}Check bool outer FALSE
 			}
 		}
-
 		/for i 1 to ${slIniLoad}
 			/for a 1 to ${Math.Calc[${slIniTraits.Count[|]}-1]}
 				|/echo Finding ${CurrentSub}${i} information. 
@@ -3156,7 +3201,9 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 							/if (${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot}) /declare ${CurrentSub}${AA${CurrentSub}.Arg[${c},|].Replace[ ,]} string outer item
 							/if (!${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot} && ${Me.AltAbility[${AA${CurrentSub}.Arg[${c},|]}]}) /declare ${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID} string outer alt
 							/if (!${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot} && ${Me.Book[${AA${CurrentSub}.Arg[${c},|]}]} && !${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]} && !${Defined[${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID}]}) /declare ${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID} string outer gem${MyGemTotal}
-							/if (!${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot} && ${Me.Book[${AA${CurrentSub}.Arg[${c},|]}]} && ${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]}) /declare ${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID} string outer gem${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]}
+							/if (!${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot} && ${Me.Book[${AA${CurrentSub}.Arg[${c},|]}]} && ${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]}) {
+								/if (!${Defined[${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID}]}) /declare ${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID} string outer gem${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]}
+							}
 							/if (${CurrentSub.Equal[aura]}) /mmoini "MyIni" "${slType}" "${slType}Name${i}"
 							/if (${Me.CombatAbility[${AA${CurrentSub}.Arg[${c},|]}]})  {
 								/mmoini "MyIni" "${slType}" "${slType}SpellGem${i}" "disc"
@@ -3166,7 +3213,6 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 							/goto :nexttrait
 						}	
 					/next c
-					
 					/for b ${bookspot} to ${bookmax}
 						/varset bookcheck ${Me.Book[${b}]}
 						/if (${bookcheck.NotEqual[NULL]} && ${Range.Between[${spelllevelcheck},${Me.Level}:${Spell[${bookcheck}].Level}]} && ${${CurrentSub}Check} && !${booklist.Find[${b}]} && ${bookcheck.NotEqual[Invigor]}) {
@@ -3195,7 +3241,6 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 									/mmoini "MyIni" "${slType}" "${slType}SpellGem${i}" "gem${Me.Gem[${Me.Book[${b}]}]}"
 									/if (!${Defined[${slType}SpellGem${i}]}) /declare ${slType}SpellGem${i} string outer 
 									/varset ${slType}SpellGem${i} gem${Me.Gem[${Me.Book[${b}]}]}
-									
 									/varset bookspot ${b}
 								}
 								/if (!${Me.Gem[${Me.Book[${b}]}]}) {
@@ -3215,7 +3260,6 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 			/next a
 		/next i
 	}
-
 	:skipini
 	/if (!${slIniLoad}) {
 		/if (!${Defined[${slType}Total]}) /declare ${slType}Total int outer ${Ini[MyIni,${slType},${slType}Total,0]}
@@ -3506,12 +3550,14 @@ Sub CheckCursor
 
 | **************** Foraged Items Section ******************** |
 Sub Event_Forage
-    /if (!${LootForage}||!${Me.FreeInventory}) /return
+		/if (${Defined[LootForage]}) {
+    	/if (!${LootForage}||!${Me.FreeInventory}) /return
+    }
     /declare ForagedItem string local
 
     :MoreToAutoInventory
     /if (${Cursor.ID}) {
-		/if (${Item[${Cursor.ID}].NoDrop} && ${Me.FreeInventory}) {
+		/if (${Cursor.NoDrop} && ${Me.FreeInventory}) {
 			/autoinv
 			/goto :MoreToAutoInventory
 		}
@@ -4235,7 +4281,7 @@ Sub Aura
 					/casting "${${CurrentSub}SpellName1}" ${${CurrentSub}SpellGem1}
 					/cechob \ag${AuraSpellName1} \aw<~~ 
 					/delay 2s !${Me.Casting.ID}
-				} else /if (${Me.Class.ShortName.Equal[BRD]} && ${NeedAura}) {
+				} else /if (${Me.Class.ShortName.Equal[BRD]} && ${NeedAura} && ${Plugin[MQ2Twist].Name.Length}) {
 					/squelch /twist once ${Me.Gem[${${CurrentSub}SpellName1}]}
 					/cechob \ag${AuraSpellName1} \aw<~~ 
 					/delay 35 ${Me.Aura[1].Find[${AuraSpellName1}]}
@@ -4374,17 +4420,21 @@ Sub DoClickies
 	/for i 1 to ${iBuffTotal}
 		/if (${ClickyArray[${i},1]} && ${Spell[${ClickyArray[${i},2]}].Stacks} && !${Me.Buff[${ClickyArray[${i},2]}].ID} && (!${Me.Invis}||${AutoBreakInvis} && ${AutoInvis}) && !${Me.Sitting} && (!${Me.Moving}||${Me.Class.ShortName.Equal[BRD]}) && (!${Me.Song[Commanding Voice].ID} && !${Me.Buff[Commanding Voice].ID} && !${Me.Song[Guardian Circle I Effect].ID} && !${Me.Song[Guardian Circle II Effect].ID} && !${Me.Song[Guardian Circle III Effect].ID}||${i}!=7)  && (${i}!=14||!${Me.Hasted.ID})) {
 			/if (${Me.Hovering}||!${MMOBugs.FreeBuffs} && ${MMOBugs}||${Me.Casting.ID} && !${Me.Class.ShortName.Equal[BRD]}) /return
-			/if (${Twist.Twisting}) {
-				/declare temptwist bool local TRUE
-				/twist stop
-				/delay 2
+			/if (${Plugin[MQ2Twist].Name.Length}) {
+				/if (${Twist.Twisting}) {
+					/declare temptwist bool local TRUE
+					/twist stop
+					/delay 2
+				}
 			}
 			/if (${FindItem[${ClickyArray[${i},3]}].EffectType.Equal[Click Inventory]} && ${Me.HaveExpansion[Veil of Alaris]} && (${Me.Subscription.Equal[GOLD]}||${FindItem[=${ClickyArray[${i},3]}].InvSlot}<33)) /useitem ${FindItem[=${ClickyArray[${i},3]}].ItemSlot} ${FindItem[=${ClickyArray[${i},3]}].ItemSlot2}
 			/if (${FindItem[${ClickyArray[${i},3]}].EffectType.Equal[Click Worn]}||!${Me.HaveExpansion[Veil of Alaris]}||${Me.Subscription.NotEqual[GOLD]}) /casting "${ClickyArray[${i},3]}"|item
 			/delay 1s ${Me.Casting.ID}
 			/echo ${ClickyArray[${i},3]} --> ${ClickyArray[${i},2]}
 			/delay 10s !${Me.Casting.ID}
-			/if (${temptwist}) /twist start
+			/if (${Plugin[MQ2Twist].Name.Length}) {
+				/if (${temptwist}) /twist start
+			}
 		}
 	/next i
 /return
@@ -4492,8 +4542,8 @@ Sub BardLoad
 		/declare RestTwist string outer ${Ini[MyIni,Bard,RestTwist,NULL]}
 		/declare CombatTwist string outer ${Ini[MyIni,Bard,CombatTwist,NULL]}
 		/declare StopSongsIfPullerIsThisDistanceOrMore int outer ${Ini[MyIni,Bard,StopSongsIfPullerIsThisDistanceOrMore,0]}
-		/if (${RestTwist.Equal[NULL]}) /mmoini "MyIni" "Bard" "RestTwist" "${Twist.List}"
-		/if (${CombatTwist.Equal[NULL]}) /mmoini "MyIni" "Bard" "CombatTwist" "${Twist.List}"
+		/if (${RestTwist.Equal[NULL]} && ${Plugin[MQ2Twist].Name.Length}) /mmoini "MyIni" "Bard" "RestTwist" "${Twist.List}"
+		/if (${CombatTwist.Equal[NULL]} && ${Plugin[MQ2Twist].Name.Length}) /mmoini "MyIni" "Bard" "CombatTwist" "${Twist.List}"
 		/if (!${StopSongsIfPullerIsThisDistanceOrMore}) /mmoini "MyIni" "Bard" "StopSongsIfPullerIsThisDistanceOrMore" "0"
 		/declare BardTimer timer outer
 		/declare BardMezList string outer
@@ -4538,10 +4588,12 @@ Sub BardRest
 		/if (${Me.PctMana}>${CrescendoMyMinMana}) {
 			/for i 1 to ${Group}
 				/if ((${Select[${Group.Member[${i}].Class.ShortName},CLR,DRU,SHM,PAL,SHD,RNG,BST,WIZ,MAG,NEC,ENC]} && ${Group.Member[${i}].PctMana}<${CrescendoAtGroupMana}||${Select[${Group.Member[${i}].Class.ShortName},MNK,WAR,ROG,BER,SHD,PAL,RNG,BST]} && ${Group.Member[${i}].PctEndurance}<${CrescendoAtGroupEndurance}) && !${Me.GemTimer[${Crescendo}]} && ${Me.Gem[${Crescendo}]}) {
-					/twist once ${CrescendoGem}
-					/echo Twisting once - Crescendo
-					/call ${EchoSub} "${Orange} ${Crescendo} ${White} --> Group"
-					/delay 38
+					/if (${Plugin[MQ2Twist].Name.Length}) {
+						/twist once ${CrescendoGem}
+						/echo Twisting once - Crescendo
+						/call ${EchoSub} "${Orange} ${Crescendo} ${White} --> Group"
+						/delay 38
+					}
 				}
 			/next i
 		}
@@ -4580,7 +4632,7 @@ Sub BardMezAdd(int mezid)
 				/varset BardMez${mezid} ${BardMezTimer${i}.OriginalValue}
 				/return
 			}
-			/if (${Me.Gem[${BardMezSpellName${i}}]}) {
+			/if (${Me.Gem[${BardMezSpellName${i}}]} && ${Plugin[MQ2Twist].Name.Length}) {
 				/twist once ${BardMezSpellGem${i}}
 				/call ${EchoSub} "${Pink} ${BardMezSpellName${i}} ${White} --> ${Target.CleanName}"
 				/varset BardMez${mezid} ${BardMezTimer${i}.OriginalValue}
@@ -4597,7 +4649,7 @@ Sub Bard
 	/if (${Me.Class.ShortName.NotEqual[BRD]}||${Defined[${Target.ID}TashOrbTimer]} && ${Defined[${Target.ID}SlowTimer]}||${Me.Hovering}) /return
 	/if (${Me.Hovering}||${Pulling}) /return
 	/if (${UseTashOrb} && !${Defined[${Target.ID}TashOrbTimer]} && !${FindItem[Orb of Tishan].Timer} && ${FindItem[Orb of Tishan].ItemSlot} && ${Target.PctHPs}<=${AssistAt} && ${TarID}==${Target.ID}) {
-		/squelch /twist stop
+		/if (${Plugin[MQ2Twist].Name.Length}) /squelch /twist stop
 		/delay 2s !${Me.Casting.ID}
 		/casting "Orb of Tishan"|item
 		/call ${EchoSub} "${DarkYellow} Howl of Tashan ${White} --> ${Target.CleanName}"
@@ -4605,7 +4657,7 @@ Sub Bard
 		/if (!${Defined[${Target.ID}TashOrbTimer]}) /declare ${Target.ID}TashOrbTimer timer outer 14m
 		/delay 35
 		/delay !${Me.Casting.ID}
-		/squelch /twist start
+		/if (${Plugin[MQ2Twist].Name.Length}) /squelch /twist start
 		/if (!${Melee.Combat}) /call Attacking2
 	}
 	/doevents
@@ -5351,7 +5403,7 @@ Sub CampfireLoad
 	/varset CampfireLoaded TRUE
 	/if (${Me.HaveExpansion[Prophecy of Ro]}) /blockspell add me 7618
 	/if (!${Defined[CampfireLoaded]}) /declare CampfireLoaded int outer 1
-	/declare AutoUseCampfire bool outer ${Ini[MyIni,Campfire,AutoUseCampfire,FALSE]}
+	/if (!${Defined[AutoUseCampfire]}) /declare AutoUseCampfire bool outer ${Ini[MyIni,Campfire,AutoUseCampfire,FALSE]}
 	/if (!${AutoUseCampfire}) 	/mmoini "MyIni" "Campfire" "AutoUseCampfire"
 	/declare SetCampfire bool outer ${Ini[MyIni,Campfire,SetCampfire,FALSE]}
 	/if (!${SetCampfire}) 	/mmoini "MyIni" "Campfire" "SetCampfire"
@@ -5529,10 +5581,12 @@ Sub ClickyMaintenance
 	/for loopid 1 to ${clickies}
 		:topclickloop
 		/if (!${Me.Buff[${FindItem[${click${loopid}}].Spell}].ID} && ${FindItem[${click${loopid}}].Spell.Stacks} && (${Outside}||!${FindItem[${click${loopid}}].Spell.Slot[1].Find[Summon]})) {
-			/if (${Twist.Twisting} && ${Me.Class.ShortName.Equal[BRD]}) {
-				/declare temptwist bool local TRUE
-				/twist stop
-				/delay 1s !${Me.Casting.ID}
+			/if (${Plugin[MQ2Twist].Name.Length}) {
+				/if (${Twist.Twisting} && ${Me.Class.ShortName.Equal[BRD]}) {
+					/declare temptwist bool local TRUE
+					/twist stop
+					/delay 1s !${Me.Casting.ID}
+				}
 			}
 			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.Equal[Click Worn]}||!${Me.HaveExpansion[Veil of Alaris]}) /casting "${click${loopid}}"|item
 			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.NotEqual[Click Worn]} && ${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${click${loopid}}].ItemSlot} ${FindItem[=${click${loopid}}].ItemSlot2}
@@ -5545,10 +5599,12 @@ Sub ClickyMaintenance
 		/goto :bottomloop
 	
 		/if (${Me.Buff[${FindItem[${click${loopid}}].Spell}].ID} && ${Me.Buff[${FindItem[${click${loopid}}].Spell}].Duration}<5 && (!${Outside}||!${FindItem[${click${loopid}}].Spell.Slot[1].Find[Summon]})) {
-			/if (${Twist.Twisting} && ${Me.Class.ShortName.Equal[BRD]}) {
-				/declare temptwist bool local TRUE
-				/twist stop
-				/delay 1s !${Me.Casting.ID}
+			/if (${Plugin[MQ2Twist].Name.Length}) {
+				/if (${Twist.Twisting} && ${Me.Class.ShortName.Equal[BRD]}) {
+					/declare temptwist bool local TRUE
+					/twist stop
+					/delay 1s !${Me.Casting.ID}
+				}
 			}
 			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.Equal[Click Worn]}||!${Me.HaveExpansion[Veil of Alaris]}||${Me.Subscription.NotEqual[GOLD]}) /casting "${click${loopid}}"|item
 			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.NotEqual[Click Worn]} && ${Me.HaveExpansion[Veil of Alaris]} && (${Me.Subscription.Equal[GOLD]}||${FindItem[=${click${loopid}}].InvSlot}<33)) /useitem ${FindItem[=${click${loopid}}].ItemSlot} ${FindItem[=${click${loopid}}].ItemSlot2}
@@ -6464,7 +6520,9 @@ Sub Fade
 		/if (!${Ini[MyIni,Fade,FadeConditions${i}]}) /mmoini "MyIni" "${CurrentSub}" "FadeConditions${i}" "12345"
 		/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset FadeConditions${i} ${Ini[MyIni,Fade,FadeConditions${i},123456]}
 		/if (${Range.Between[0,${FadeUseAtMyHP${i}}:${Me.PctHPs}]} && ${FadeConditions${i}} && ${Me.AltAbilityReady[${FadeSpellName${i}}]}) {
-			/if (${Twisting}) /twist stop
+			/if (${Plugin[MQ2Twist].Name.Length}) {
+				/if (${Twisting}) /twist stop
+			}
 			/attack off
 			/if (${${CurrentSub}Announce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${${CurrentSub}SpellName${i}} --> FADING
 			/call ClearTarget
@@ -7093,7 +7151,7 @@ Sub HealSingle
 							/if (!${Defined[HealSingleRecast${i}${Group.Member[${gmember}].ID}]}) /declare HealSingleRecast${i}${Group.Member[${gmember}].ID} timer outer
 							/varset HealSingleRecast${i}${Group.Member[${gmember}].ID} ${Ini[MyIni,HealSingle,HealSingleRecast${i}]}
 							/if (${debug}==3) /mqlog ${Me.Class} -  2645 /varset ${CurrentSub}Recast${i}${Group.Member[${gmember}].ID} ${${CurrentSub}Recast${i}.OriginalValue}
-							/if (${debug}==3 && ${i}==1) /echo Debugging HealSingle Routine to mq2\logs\bot.mac.log   To end, type: /varset debug 0
+							/if (${debug}==3 && ${i}==1) /echo Debugging HealSingle Routine to mq2\logs\ThisMac.log   To end, type: /varset debug 0
 						}
 						/if (${gmember}==0) {
 							/if (!${Defined[HealSingleRecast${i}${Me.ID}]}) /declare HealSingleRecast${i}${Me.ID} timer outer
@@ -7533,7 +7591,6 @@ Sub MainTankBuff
 				/goto :castmt
 			}
 		}
-	
 		:maintank
 		|Group.MainTank
 		/if (${Range.Between[${${CurrentSub}StopAt${i}},${${CurrentSub}UseAt${i}}:${Group.MainTank.PctHPs}]} && (${Spawn[${TarID}].Name.Find[#]}||${Spawn[${TarID}].Named}||!${${CurrentSub}NamedOnly${i}}) && ${CastIsReady} && ${MainTankBuffConditions${i}}) {
@@ -7546,7 +7603,6 @@ Sub MainTankBuff
 			/goto :castmt
 		}
 		/continue
-	
 		:castmt
 		/call ${EchoSub} "${Green} ${${CurrentSub}SpellName${i}} --> ${White} ${Target}"
 	   	/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${${CurrentSub}SpellName${i}} --> ${Target.CleanName}
@@ -7792,7 +7848,9 @@ Sub Mana
 	}
 	
 	/if (${Me.PctMana}<${MedAt} && !${MedTimer} && !${Me.Mount.ID} && ${Me.State.Equal[STAND]} && (${Me.CombatState.Equal[ACTIVE]} && !${sitTimer}||${Me.CombatState.Equal[DEBUFFED]} && !${Debuff.Count} && !${sitTimer}|| !${sitTimer} && ${Me.CombatState.NotEqual[COMBAT]} && ${MedEvenIfNotInOOCRegen})) {
-		/if (${Twist.Twisting}) /twist stop
+		/if (${Plugin[MQ2Twist].Name.Length}) {
+			/if (${Twist.Twisting}) /twist stop
+		}
   		
 		/varset sitTimer ${Ini[MyIni,General,SitTimer]}
 		/varset MedTimer ${MedTimer.OriginalValue}
@@ -7836,6 +7894,7 @@ Sub ManaLoad
 
 			|Attrib 15 = Mana
 			/for effect 1 to ${numEffects}
+			  |/echo Checking effect ${effect}
 				/if (${Me.Gem[${i}].Attrib[${effect}]}==15 && ((${Me.Class.ShortName.Equal[SHM]} && ${Me.Gem[${i}].Base[${effect}]}>0) || ${Me.Gem[${i}].Base[${effect}]}>150)) {
 					/if (!${Defined[${CurrentSub}Boost${Me.Class.ShortName}]}) /declare ${CurrentSub}Boost${Me.Class.ShortName} string outer ${Me.Gem[${i}]}
 					/if (!${Defined[${CurrentSub}BoostGem${Me.Class.ShortName}]}) /declare ${CurrentSub}BoostGem${Me.Class.ShortName} string outer gem${Me.Gem[${${CurrentSub}Boost${Me.Class.ShortName}}]}
@@ -8124,9 +8183,11 @@ Sub Mez
  		/if ((${PBAEMezcnt}>2||${PBAEMezcnt}>0 && ${AddCount}>1 && ${SpawnCount[npc radius 35]}>1 && ${Me.Class.ShortName.Equal[BRD]}) && (${Me.SpellReady[${PBAEMezSpellName${i}}]}||${Me.AltAbilityReady[${PBAEMezSpellName${i}}]}||${Me.Class.ShortName.Equal[BRD]} && ${Me.Gem[${PBAEMezSpellName${i}}]} && !${Me.GemTimer[${PBAEMezSpellName${i}}]}) && ${Me.CurrentMana}>${Spell[${PBAEMezSpellName${i}}].Mana} && ${PBAEMezUse${i}}) {
 			/if (!${Me.Class.ShortName.Equal[BRD]}) /call MezAdd "${PBAEMezSpellName${i}}" "${PBAEMezSpellGem${i}}" ${Target.ID} 
 			/if (${Me.Class.ShortName.Equal[BRD]}) {
-				/if (${Twist.Twisting}) {
-					/varset twisting TRUE
-					/squelch /twist stop
+				/if (${Plugin[MQ2Twist].Name.Length}) {
+					/if (${Twist.Twisting}) {
+						/varset twisting TRUE
+						/squelch /twist stop
+					}
 				}
 			
 				/delay !${Me.Casting.ID}
@@ -8143,9 +8204,11 @@ Sub Mez
 		}
 	/next i
 	
-	/if (${twisting} && !${Twist.Twisting}) {
-		/squelch /twist start
-		/varset twisting FALSE
+	/if (${Plugin[MQ2Twist].Name.Length}) {
+		/if (${twisting} && !${Twist.Twisting}) {
+			/squelch /twist start
+			/varset twisting FALSE
+		}
 	}
 
 	/varset CurrentSub AEMez
@@ -9026,6 +9089,9 @@ Sub RootAdd(int RootID)
 		/if (!${CastIsReady}) {
 			/memspell ${${CurrentSub}SpellGem${i}.Right[1]} "${${CurrentSub}SpellName${i}}"
 		}
+		/if (!${Defined[${CurrentSub}IgnoreRecast${i}]}) /declare ${CurrentSub}IgnoreRecast${i} bool outer FALSE
+		/if (!${Defined[${CurrentSub}On${i}]}) /declare ${CurrentSub}On${i} bool outer FALSE
+		/if (!${Defined[${CurrentSub}Resisted${i}]}) /declare ${CurrentSub}Resisted${i} bool outer FALSE
 		/if (${ValidSpell} && ${CanCastOnMob} && ((${Target.PctHPs}>=${${CurrentSub}StopAtMobPctHP${i}} && ${Target.PctHPs}<=${${CurrentSub}UseAtMobPctHP${i}}||!${Defined[${CurrentSub}UseAtMobPctHP${i}]}) && !${${CurrentSub}On${i}} && (!${${CurrentSub}MaxTries${i}}||${${CurrentSub}MaxTries${i}}>${${CurrentSub}Resisted${i}})) && ${CastIsReady} && ${RootConditions${i}}) {
 			/if ((!${Defined[Root${i}${RootID}]}||${Defined[Root${i}${RootID}]} && !${Root${i}${RootID}}) && ${CanCastOnMob} && ${ShouldCastOnMob} && ${CastIsReady} && !${DontRootConColor.Find[|${Spawn[${RootID}].ConColor}|]}) {
 				/if (${Target.ID} && ${Target.ID}!=${RootID} && ${Spawn[id ${RootID}].ID}) /squelch /tar id ${RootID}
@@ -9322,6 +9388,7 @@ Sub Stun
 	/declare b int local
  	/declare i int local
  	/for i 1 to ${${CurrentSub}Total}
+ 		/if (!${Defined[${CurrentSub}Use${i}]}) /declare ${CurrentSub}Use${i} bool outer TRUE
 	 	/if (!${${CurrentSub}Use${i}}) /continue
 		/if (!${Defined[StunOn${i}]}) /declare StunOn${i} bool outer FALSE
 		/if (!${Defined[StunMaxTries${i}]}) /declare StunMaxTries${i} int outer 2

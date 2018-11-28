@@ -221,7 +221,7 @@ Sub PullInit
 	
 	/call GetINIArrayCount ${iniName} "Pull Settings" RequiredPullBuff NULL
 	/varset reqBuffsCount ${Macro.Return}	
-	/for nArray 1 to ${Math.Calc[${reqBuffCounts}+1]}
+	/for nArray 1 to ${Math.Calc[${reqBuffsCount}+1]}
 		/call GetINISetting ${iniName} "Pull Settings" RequiredPullBuff${nArray} requiredPullBuffs[${nArray}] NULL
 		/if (${requiredPullBuffs[${nArray}].NotEqual[NULL]}) /call EchoLog ".....Required Pull Buff ${requiredPullBuffs[${nArray}]}" TRUE
 	/next nArray
