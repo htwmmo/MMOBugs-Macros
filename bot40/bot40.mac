@@ -172,6 +172,7 @@
 #define MobIni Camps.ini
 #define LootIni Loot.ini
 #define ThisMac bot40
+#define ThisBotVersion v2018.11290630
 
 #include spell_routines.inc
 #include bot_custom_events.inc
@@ -195,13 +196,11 @@ Sub Main(string Param0, string Param1)
 	}
 	/declare AssistPC2 string outer 
 	/if (!${Defined[DebugLevel]}) /declare DebugLevel int outer ${Ini[MyIni,Settings,DebugLevel,0]}
-	|** Changed the BotVersion: vYear.MonthDayHour (CST) Because I live in Texas ~Chat**|
-	/declare BotVersion string outer v2018.11281630
 	/declare MyVersion string local ${Ini[MyIni,Settings,BotVersion]}
-	/declare NewVersion bool outer ${BotVersion.NotEqual[${MyVersion}]}
+	/declare NewVersion bool outer ${MyVersion.NotEqual[ThisBotVersion]}
 	
 	/if (${DebugLevel}!=0) /call Debug 1 "Debug Level is set to ${DebugLevel}"
-	/call Debug 2 "BotVersion: ${BotVersion} | MyVersion: ${MyVersion} | NewVersion: ${NewVersion}"
+	/call Debug 2 "BotVersion: ThisBotVersion | MyVersion: ${MyVersion} | NewVersion: ${NewVersion}"
     /if (${Param0.Equal[load]}) {
 		/varset NeedLoad TRUE
 		/call Load
@@ -231,7 +230,7 @@ Sub Main(string Param0, string Param1)
 	}
 
 
-	/call ${EchoSub} "${Red}ThisMac ${Green} Loaded ${White} ${BotVersion}"
+	/call ${EchoSub} "${Red}ThisMac ${Green} Loaded ${White} ThisBotVersion"
 	/cechob \ay/helpme \aw- Shows available options and commands
 
 	
@@ -1495,8 +1494,8 @@ Sub AliasLoad
 	/noparse	/squelch /alias		/taskget			/${MyChannel}  TaskGet ${Target}
 	/noparse	/squelch /alias		/lootthis			/${MyChannel}  LootThis ${Target.ID}
 
-	/call Debug 2 "Updating Ini version to ${BotVersion}"
-	/mmoini "MyIni" "Settings" "BotVersion" "${BotVersion}"
+	/call Debug 2 "Updating Ini version to ThisBotVersion"
+	/mmoini "MyIni" "Settings" "BotVersion" "ThisBotVersion"
 
 	/call Debug 3 "Leaving Sub AliasLoad"
 /return
@@ -2207,7 +2206,7 @@ Sub PullingLoad
 			/plugin MQ2Nav
 			/echo Loaded MQ2Nav because your [Pulling] PullingMethod=${PullingMethod}
 		}
-		/delay 2s ${Plugin[MQ2Nav].Name.Equal[MQ2Nav]}
+		/delay 2s ${Plugin[MQ2Nav].Name.Length}
 		/if (!${Navigation.MeshLoaded} && ${AmIPuller}) {
 			/if (${Plugin[MQ2Nav].Name.Equal[MQ2Nav]} && !${Navigation.MeshLoaded}) /cechob \arMesh not created for this zone, MQ2Nav pulling cannot function.
 			/echo [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
@@ -3108,8 +3107,8 @@ Sub SpellLoad2(SubName,SubOptions)
 						/cechob \arError(s) found in MyIni
 						/varset ErrorFound TRUE
 					}
-					/cechob \at[${SubName}] ${SubName}SpellIcon${x}=${${SubName}SpellIcon${x}} -- This spell doesnt exist or you are using the wrong name
-					/mqlog ${Me.Class} -  [${SubName}] ${SubName}SpellIcon${x}=${${SubName}SpellIcon${x}} -- This spell doesnt exist or you are using the wrong name
+					/cechob \at[${SubName}] ${SubName}SpellIcon${x}=${${SubName}SpellIcon${x}} -- This spell doesn't exist or you are using the wrong name
+					/mqlog ${Me.Class} -  [${SubName}] ${SubName}SpellIcon${x}=${${SubName}SpellIcon${x}} -- This spell doesn't exist or you are using the wrong name
 				}
 			}
 		/next i
@@ -5340,8 +5339,10 @@ Sub HitObstacle(int strafetime)
 		/call ReturnCamp
 		/goto :skip1
 	}
-	/if (${Navigation}) {
-		/if (${Navigation.Active}) /return
+	/if (${Plugin[MQ2Nav].Name.Length}) {
+		/if (${Navigation}) {
+			/if (${Navigation.Active}) /return
+		}
 	}
 	|/echo Obstacle hit, moving around it... 
 	/keypress forward 
@@ -9165,6 +9166,7 @@ Sub RootAdd(int RootID)
 	/for i 1 to ${RootTotal}
 		/if (!${${CurrentSub}Use${i}}) /continue
 		/if (!${Defined[Root${i}${RootID}Resist]} && ${Spawn[id ${RootID}].ID}) /declare Root${i}${RootID}Resist int outer
+		/if (!${Defined[Root${i}${RootID}]} && ${Spawn[id ${RootID}].ID}) /declare Root${i}${RootID} int outer
 		/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset RootConditions${i} ${Ini[MyIni,Root,RootConditions${i},123456]}
 		/if (!${CastIsReady}) {
 			/memspell ${${CurrentSub}SpellGem${i}.Right[1]} "${${CurrentSub}SpellName${i}}"
@@ -9462,17 +9464,21 @@ Sub Stun
 	/if (${Me.Hovering}) /return
 	/varset CurrentSub Stun
 	/if (!${Defined[${CurrentSub}Loaded]}) /call ${CurrentSub}Load
-    /if (${ImNotReady}||${Target.Distance}>${AttackRange}) /return
+  /if (${ImNotReady}||${Target.Distance}>${AttackRange}) /return
 	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
 	/if (!${${CurrentSub}Conditions}) /return
 	/declare b int local
  	/declare i int local
  	/for i 1 to ${${CurrentSub}Total}
+	/if (!${Defined[${CurrentSub}SpellName${i}]}) /declare ${CurrentSub}SpellName${i} string outer
  		/if (!${Defined[${CurrentSub}Use${i}]}) /declare ${CurrentSub}Use${i} bool outer TRUE
 	 	/if (!${${CurrentSub}Use${i}}) /continue
 		/if (!${Defined[StunOn${i}]}) /declare StunOn${i} bool outer FALSE
 		/if (!${Defined[StunMaxTries${i}]}) /declare StunMaxTries${i} int outer 2
 		/if (!${Defined[StunResisted${i}]}) /declare StunResisted${i} bool outer FALSE
+		/if (!${Defined[StunConditions${i}]}) /declare StunConditions${i} string outer
+		/if (!${Defined[StunUseAtMobPctHP${i}]}) /declare StunUseAtMobPctHP${i} int outer 0
+		/if (!${Defined[StunStopAtMobPctHP${i}]}) /declare StunStopAtMobPctHP${i} int outer 0
 			/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset StunConditions${i} ${Ini[MyIni,Stun,StunConditions${i},123456]}
      		/if (${ValidEnemy}  && !${StunImmuneList.Find[${Target.CleanName}]} && ${StunConditions${i}} && ${ShouldCastOnMob} && ${CanCastOnMob}) {
       			/if ((${Me.AltAbilityReady[${${CurrentSub}SpellName${i}}]}||${Me.SpellReady[${${CurrentSub}SpellName${i}}]}) && ${Me.FeetWet}==${Target.FeetWet} && ${CanCastOnMob} && ${ShouldCastOnMob}) {
@@ -9497,6 +9503,8 @@ Sub Stun
 
 Sub Event_StunGate
     /declare i int local
+    /if (!${Defined[StunCHeal]}) /declare StunCHeal bool outer FALSE
+    /if (!${Defined[StunTotal]}) /declare StunTotal int outer 0
     /if (${StunCHeal} && ${Me.AltAbilityReady[Translocational Anchor]}) {
      	/echo Translocational Anchor --> ${Target.CleanName}
      	/call Cast "Translocational Anchor" alt NULL NULL NULL
@@ -9511,6 +9519,8 @@ Sub Event_StunGate
 
 Sub Event_StunCHeal
     /declare i int local
+    /if (!${Defined[StunCHeal]}) /declare StunCHeal bool outer FALSE
+    /if (!${Defined[StunTotal]}) /declare StunTotal int outer 0
     /for i 1 to ${StunTotal}
     	/if (${StunCHeal}  && (${Me.AltAbilityReady[${StunSpellName${i}}]}||${Me.SpellReady[${StunSpellName${i}}]})) {
 			/call Cast "${StunSpellName${i}}" "${StunSpellGem${i}}" NULL NULL NULL
