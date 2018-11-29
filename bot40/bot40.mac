@@ -172,7 +172,7 @@
 #define MobIni Camps.ini
 #define LootIni Loot.ini
 #define ThisMac bot40
-#define ThisBotVersion v2018.11290630
+#define ThisBotVersion v2018.11291230
 
 #include spell_routines.inc
 #include bot_custom_events.inc
@@ -181,6 +181,7 @@ Sub Main(string Param0, string Param1)
 	/if (!${Defined[NeedLoad]}) /declare NeedLoad bool outer FALSE
 	/if (!${Defined[doBurn]}) /declare doBurn int outer 0
 	/if (${Plugin[Navigation].Name.NotEqual[Navigation]}) /declare Navigation bool outer FALSE
+	/if (!${Defined[UseCamp]}) /declare UseCamp bool outer ${Ini[MyIni,Settings,UseCamp,FALSE]}
 	/if (${Plugin[MQ2Cecho].Name.Equal[MQ2Cecho]}) {
 		/cechob \agStarting ThisMac
 	} else {
@@ -3563,6 +3564,7 @@ Sub Event_Forage
 		}
 		
 		/varset ForagedItem ${Cursor.Name}
+		/if (!${Defined[ReportLoot]}) /declare ReportLoot bool outer FALSE
 		/if (!${Select[${Ini[Loot.ini,"${Cursor.Name.Left[1]}","${Cursor.Name}"]},Ignore,Keep,Destroy,Sell,Tradeskills,Collectible]}) {
 			/if (${Cursor.ID}) /mmoini "loot.ini" "${Cursor.Name.Left[1]}" "${Cursor.Name}" "Keep"
 			/if (${ReportLoot}) /echo New foraged item >> ${Cursor.Name} << added to Loot.ini
@@ -5322,7 +5324,7 @@ Sub CampLoad
 	/declare ZLOC int outer ${Me.Z}
 	/declare MyHeading int outer ${Me.Heading.DegreesCCW}
 	/declare Camp_Zone int outer ${Zone.ID}
-	/declare UseCamp bool outer ${Ini[MyIni,Settings,UseCamp,FALSE]}
+	/if (!${Defined[UseCamp]}) /declare UseCamp bool outer ${Ini[MyIni,Settings,UseCamp,FALSE]}
 	/declare CampRadius int outer ${Ini[MyIni,Settings,CampRadius]}
 	/declare CampRadiusMax int outer ${Ini[MyIni,Settings,CampRadiusMax,150]}
 	/if (${NeedLoad} && !${UseCamp} && !${CampRadius}) {
@@ -8314,6 +8316,7 @@ Sub Mez
 	/for i 1 to ${MezTotal}
  		/if (${mezcnt} && (${Me.SpellReady[${MezSpellName${i}}]} && ${Me.CurrentMana}>${Spell[${MezSpellName${i}}].Mana}||${Me.AltAbilityReady[${MezSpellName${i}}]}) && ${MezUse${i}}) {
 			/for m 1 to ${MezList.Count[|]}
+				/if (!${Defined[MezTimer${MezList.Arg[${m},|]}]}) /declare MezTimer${MezList.Arg[${m},|]} int outer 0
 				/if (${MezTimer${MezList.Arg[${m},|]}}>6) /continue
 				/if ((!${Defined[MezTimer${MezList.Arg[${m},|]}]}||${Defined[MezTimer${MezList.Arg[${m},|]}]} && !${MezTimer${MezList.Arg[${m},|]}}) && ${MezList.Arg[${m},|]}!=${TarID} && ${MezList.Arg[${m},|]}>0 && ${Spawn[id ${MezList.Arg[${m},|]}].ID} && ${Spawn[id ${MezList.Arg[${m},|]}].Distance}<=${AttackRange}) {
 					/squelch /tar id ${MezList.Arg[${m},|]}
@@ -9522,6 +9525,7 @@ Sub Event_StunCHeal
     /if (!${Defined[StunCHeal]}) /declare StunCHeal bool outer FALSE
     /if (!${Defined[StunTotal]}) /declare StunTotal int outer 0
     /for i 1 to ${StunTotal}
+    	/if (!${Defined[StunSpellName${i}]}) /declare StunSpellName${i} string outer
     	/if (${StunCHeal}  && (${Me.AltAbilityReady[${StunSpellName${i}}]}||${Me.SpellReady[${StunSpellName${i}}]})) {
 			/call Cast "${StunSpellName${i}}" "${StunSpellGem${i}}" NULL NULL NULL
 			/echo ${StunSpellName${i}} --> ${Target.DisplayName}
