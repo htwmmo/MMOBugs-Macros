@@ -528,6 +528,9 @@ Sub Event_Recover
 /return
 
 Sub Event_Resisted(line,name)
+/if (!${Defined[selfResist]}) /declare selfResist bool outer false
+/if (!${Defined[selfResistSpell]}) /declare selfResistSpell string outer
+/if (!${Defined[ResistCounter]}) /declare ResistCounter int outer 0
 /if (${selfResist} && ${name.Equal[${selfResistSpell}]}) /varset selfResist 0
 /if (${ResistCounter}) /varcalc ResistCounter ${ResistCounter}-1
 /if (${Defined[castReturn]}) /varset castReturn CAST_RESISTED
