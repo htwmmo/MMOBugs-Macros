@@ -1,0 +1,77 @@
+|| Macro ScribeAll.mac
+||
+|| Originally coded by gimp 
+|| Modified 2012-12-03 by Dewey2461 to add autoclicking of spell book slot. 
+|| Updated 2018-11-20 by htw
+
+Sub Main
+	 /if (!${Plugin[MQ2CEcho].Name.Length}) {
+	 	/squelch /plugin MQ2CEcho
+	 	/delay 1s
+	 }
+	 /if (!${Plugin[MQ2CEcho].Name.Length}) {
+	 	/echo MQ2CEcho not found.
+	 	/return
+	 }
+   /cecho \agScribe all macro by gimp, Dewey2461, and htw started!
+   /declare i int local
+   /declare j int local
+   /declare b int local 0
+   /declare p int local 1
+   /declare s int local -1
+   /declare d bool local FALSE
+   /if (${Cursor.ID}) /autoinv
+ 	 /delay 1s !${Cursor.ID}
+   /if (${Cursor.ID}) {
+   	 /cecho \arCan't get rid of item on cursor, ending macro.
+   	 /return
+   }
+   /if (!${Window[SpellBookWnd].Open}) /squelch /windowstate SpellBookWnd open
+   /delay 2s ${Window[SpellBookWnd.Open]}
+   /if (!${Window[SpellBookWnd].Open}) {
+   	 /cecho \arCan't open spell book window, ending macro.
+   	 /return
+   }
+   /for i 1 to 10
+      /if (${InvSlot[pack${i}].Item.Container}) {
+         /if (!${Window[Pack${i}].Open}) /itemnotify pack${i} rightmouseup
+         | need a small delay so bag content can load
+         /delay 5
+         /for j 1 to ${InvSlot[pack${i}].Item.Container}
+            /if (${InvSlot[pack${i}].Item.Item[${j}].Type.Equal["Scroll"]} && ${InvSlot[pack${i}].Item.Item[${j}].Spell.Level} <= ${Me.Level} && !${Me.Book[${InvSlot[pack${i}].Item.Item[${j}].Spell.Name}]}) {
+            	/varset d FALSE
+            	/if (${InvSlot[pack${i}].Item.Item[${j}].Deities}>0) {
+            		/if (${InvSlot[pack${i}].Item.Item[${j}].Deity[1].Name.NotEqual[${Me.Deity.Name}]}) /varset d TRUE
+            	}
+            	/if (${d}) {
+            		/cecho \aySkipping \ao${InvSlot[pack${i}].Item.Item[${j}].Spell.Name} \aw(requires ${InvSlot[pack${i}].Item.Item[${j}].Deity[1].Name}, yours is ${Me.Deity.Name}).
+            	} else {
+								/cecho \agScribing \ao${InvSlot[pack${i}].Item.Item[${j}].Spell.Name}\ag...
+								/itemnotify in pack${i} ${j} leftmouseup
+								| Need a small delay so pickup event can happen
+								/delay 1s ${Cursor.ID}
+								| Logic for finding which spell book page and slot next spell should go. 
+								:FindNextBlankSpot
+								/varcalc b ${b}+1
+								/varcalc s ${s}+1
+								/if (${s}>15) {
+									/varset s 0
+									/varcalc p ${p}+2
+								}
+								|/cecho Me.Book[${b}] = page ${p} , slot ${s} = ${Me.Book[${b}]}
+								/if (${Me.Book[${b}].Name.NotEqual[NULL]}) /goto :FindNextBlankSpot
+								/book ${p}
+								/delay 2
+								/notify SpellBookWnd SBW_Spell${s} leftmouseup
+								| Loop while user scribes the spell
+								:WaitForScribe
+								/if (${Cursor.ID}) /goto :WaitForScribe
+      	 			}
+      	 		}
+   			 /next j
+   			 /if (${Window[Pack${i}].Open}) /itemnotify pack${i} rightmouseup
+   		}
+   /next i
+   /if (${Window[SpellBookWnd].Open}) /squelch /windowstate SpellBookWnd close
+   /cecho \atFinished scribing spells.
+/return

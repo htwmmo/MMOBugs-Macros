@@ -1,0 +1,301 @@
+|Usage:
+| /macro spellstobuy
+|  lists every spell to be bought
+| /macro spellstobuy <level>
+|  lists every level <level> spell to be bought
+| /macro spellstobuy <minlevel> <maxlevel>
+|  lists every level <minlevel> to level <maxlevel> spell to be bought
+|
+
+#event Bazaar "[MQ2] Bazaar"
+#event Merchant "[MQ2] BuySpells"
+#event MerchantAll "[MQ2] BuyAllSpells"
+#event Log "[MQ2] Log"
+#event SearchVendors "[MQ2] SearchVendors"
+#event SearchVendorLog "[MQ2] SearchVendorDump"
+#event SpellsToScribe "[MQ2] SpellsToScribe"
+
+Sub Main
+/if (!${Plugin[MQ2MMOTLO].Name.Length}) /squelch /plugin mq2mmotlo
+/declare Verbose int outer 1
+/declare MaxIndex int local ${MMOBugs.SpellCount}
+|/declare MaxIndex int local 2000
+/declare x int local
+/declare LevelMin int local
+/declare MaxLevel int local
+/declare SpellsMissing int outer 0
+/declare SpellNames[2000] string outer
+/declare SpellIDs[2000] int outer
+/declare SpellLevels[2000] int outer
+
+/if (!${Plugin[MQ2CEcho].Name.Length}) /squelch /plugin mq2cecho
+
+/if (!${Defined[STB_BuySpellStatus]}) /declare STB_BuySpellStatus int global
+
+/if (${Defined[Param0]}) {
+  /varset LevelMin ${Param0}
+} else {
+  /varset LevelMin 1
+}
+/if (${Defined[Param1]}) {
+  /varset MaxLevel ${Param1}
+} else {
+  /varset MaxLevel ${Me.Level}
+}
+
+/echo Searching for missing ${Me.Class} spells level ${LevelMin} to ${MaxLevel} (Number of spells to search: ${MaxIndex})...
+
+/for x 1 to ${MaxIndex}
+  /if (!${Math.Calc[${x}%1000]}) {
+    /echo ${x}...
+  }
+  /if (!${Me.Book[${Spell[${x}]}]} && !${Me.Book[${Spell[${x}]} Rk. II]} && !${Me.Book[${Spell[${x}]} Rk. III]} && !${Spell[${x}].Name.Find[Rk. II]}) {
+   /if (${MaxLevel}) {
+    /if (${Spell[${x}].Level}<=${MaxLevel}&&${Spell[${x}].Level}>=${LevelMin}) {
+     /call SpellInfo ${x}
+    }
+   } else /if (${LevelMin}) {
+    /if (${Spell[${x}].Level}==${LevelMin}) {
+     /call SpellInfo ${x}
+    }
+   } else {
+    /call SpellInfo ${x}
+   }
+  }
+/next x
+
+/echo Search done, waiting for commands. Availiable commands are: Bazaar, BuySpells, BuyAllSpells, SearchVendors, SearchVendorDump, SpellsToScribe and Log.
+
+:endlessloop
+   /doevents
+   /delay 1s
+/goto :endlessloop
+
+/return
+
+Sub Event_SpellsToScribe
+   /declare Counter int local
+
+   /for Counter 1 to ${SpellsMissing}
+      /if (!${Me.Book[${Spell[${SpellIDs[${Counter}]}].Name}]} && ${Spell[${SpellIDs[${Counter}]}].Level}<=${Me.Level}) {
+         /if (${FindItemCount[=${SpellNames[${Counter}]}]}) {
+            /echo ${SpellNames[${Counter}]} is in inventory.
+         }
+         |/if (${FindItemBankCount[=${SpellNames[${Counter}]}]}) {
+         |   /echo ${SpellNames[${Counter}]} is in bank.
+         |}
+      }
+   /next Counter
+     
+   /echo Done looking for spells to scribe.
+/return
+
+Sub Event_SearchVendors
+   /call SearchVendors 0
+/return
+
+Sub Event_SearchVendorLog
+   /call SearchVendors 1
+/return
+
+Sub SearchVendors(bool Logging)
+   /declare Counter int local
+   /declare KeyList string local
+   /declare KeyTemp string local
+   /declare KeyCount int local
+   /declare ZoneTemp string local
+   /declare FoundSpells bool local 0
+   
+   /if (${Logging}) /mqlog ---------------------- Merchants with missing spells for ${Me.Name} --------------------------   
+   /for Counter 1 to ${SpellsMissing}
+      /if (!${FindItemCount[=${SpellNames[${Counter}]}]}) {
+         /varset KeyList ${Ini[SpellVendors.ini,${SpellIDs[${Counter}]}]}
+         /if (${String[${KeyList}].NotEqual[NULL]}) {
+            /varset KeyCount 1
+            :MoreKeys
+            /varset KeyTemp ${KeyList.Arg[${KeyCount},|]}
+            /if (${String[${KeyTemp}].Equal[Null]}) /goto :NoMoreKeys
+            /varset ZoneTemp ${Ini[SpellVendors.ini,${SpellIDs[${Counter}]},${KeyTemp},]}
+            /varset FoundSpells 1
+            /if (${Logging}) {
+               /mqlog ${SpellNames[${Counter}]} available from ${KeyTemp} in ${ZoneTemp} at loc ${Ini[SpellVendorList.ini,${ZoneTemp},${KeyTemp}]}
+            } else {
+               /echo ${SpellNames[${Counter}]} available from ${KeyTemp} in ${ZoneTemp} at loc ${Ini[SpellVendorList.ini,${ZoneTemp},${KeyTemp}]}
+            }
+            /varcalc KeyCount ${KeyCount}+1
+            /goto :MoreKeys
+            :NoMoreKeys
+         }
+      }
+   /next Counter
+   /if (${Logging}) /mqlog ---------------------- End of merchants for ${Me.Name} ---------------------------------------
+   /if (${Logging}) /echo Logging of merchants to ${Macro.Name}.log done.
+   /echo Vendor search done. ${If[${FoundSpells},,No matches found.]}
+/return
+
+Sub Event_Merchant
+   /if (!${Merchant.Open}) {
+      /echo You need to open a merchant window.
+      /return
+   }
+   /call BuySpells
+/return
+
+Sub Event_MerchantAll
+   /if (!${Merchant.Open}) {
+      /echo You need to open a merchant window.
+      /return
+   }
+   /call BuyAllSpells
+/return
+
+Sub BuySpells
+   /if (!${Merchant.Open}) /return
+   /squelch /custombind add BUYSPELLYES
+   /squelch /custombind set BUYSPELLYES-up /varset STB_BuySpellStatus 1
+   /squelch /bind BUYSPELLYES shift+y
+
+   /squelch /custombind add BUYSPELLNO
+   /squelch /custombind set BUYSPELLNO-up /varset STB_BuySpellStatus 0
+   /squelch /bind BUYSPELLNO shift+n
+
+   /if (!${Defined[STB_BuySpellStatus]}) /declare STB_BuySpellStatus int global
+
+   /declare Counter int local
+   /declare ItemCounter int local
+   /declare ItemSlotNumber int local
+   
+   /for Counter 1 to ${SpellsMissing}
+      /varset ItemSlotNumber 0
+      /varset STB_BuySpellStatus 2
+      /if (${Merchant.Item[=${SpellNames[${Counter}]}].ID} && !${FindItemCount[${SpellNames[${Counter}]}]} ) {
+         /for ItemCounter 1 to ${Window[MerchantWnd].Child[MW_ItemList].Items}
+            /if (${Window[MerchantWnd].Child[MW_ItemList].List[${ItemCounter},2].Equal[${SpellNames[${Counter}]}]}) /varset ItemSlotNumber ${ItemCounter}
+         /next ItemCounter
+         /if (${ItemSlotNumber}) {
+            /echo Buy ${Window[MerchantWnd].Child[MW_ItemList].List[${ItemSlotNumber},2]}? (Shift-Y / Shift-N)
+            /invoke ${Merchant.SelectItem[${Window[MerchantWnd].Child[MW_ItemList].List[${ItemSlotNumber},2]}]}
+            |/notify MerchantWnd MW_ItemList listselect ${ItemSlotNumber}
+            :WaitForSpellBuyResponse
+            /if (${STB_BuySpellStatus}==2) {
+               /delay 1
+               /goto :WaitForSpellBuyResponse
+            }
+            /if (${STB_BuySpellStatus}==1) {
+               /buyitem 1
+               |/ctrlkey /notify MerchantWnd MW_Buy_Button leftmouseup
+               /delay 2s
+            }
+         }
+      }
+   /next Counter
+   /echo Finished buying spells.
+   /squelch /custombind delete BUYSPELLYES
+   /squelch /custombind delete BUYSPELLNO
+   /squelch /bind shift+y clear
+   /squelch /bind shift+n clear
+   /squelch /deletevar STB_BuySpellStatus
+/return
+
+Sub BuyAllSpells
+   /if (!${Merchant.Open}) /return
+   /declare Counter int local
+   /declare ItemCounter int local
+   /declare ItemSlotNumber int local
+   /for Counter 1 to ${SpellsMissing}
+      /varset ItemSlotNumber 0
+      /if (${Merchant.Item[=${SpellNames[${Counter}]}].ID} && !${FindItemCount[${SpellNames[${Counter}]}]} ) {
+         /for ItemCounter 1 to ${Window[MerchantWnd].Child[MW_ItemList].Items}
+            /if (${Window[MerchantWnd].Child[MW_ItemList].List[${ItemCounter},2].Equal[${SpellNames[${Counter}]}]}) /varset ItemSlotNumber ${ItemCounter}
+         /next ItemCounter
+         /if (${ItemSlotNumber}) {
+            /invoke ${Merchant.SelectItem[${Window[MerchantWnd].Child[MW_ItemList].List[${ItemSlotNumber},2]}]}
+            /echo Buying ${Window[MerchantWnd].Child[MW_ItemList].List[${ItemSlotNumber},2]}...
+            /delay 1s
+            /buyitem 1
+            /delay 1s
+         }
+      }
+   /next Counter
+   /echo Finished buying spells.
+/return
+
+Sub Event_Log
+   /declare Counter int local
+   /mqlog ------------------------ Missing Spells for ${Me.Name} ------------------------
+|   /echo SpellsMissing: ${SpellsMissing}
+   /for Counter 1 to ${SpellsMissing}
+|   		/echo Counter: ${Counter}   SpellNames[Counter]: ${SpellNames[${Counter}]}   FindItemCount: ${FindItemCount[=${SpellNames[$Counter]}]}
+      /if (!${FindItemCount[=${SpellNames[${Counter}]}]}) /mqlog ${Me.Name} is missing level ${SpellLevels[${Counter}]} ${SpellNames[${Counter}]}
+   /next Counter
+|   /echo Counter: ${Counter}
+   /mqlog ------------------------ End of Spells for ${Me.Name} -------------------------
+   /echo Logging to ${Macro.Name}.log done.
+/return
+
+Sub Event_Bazaar
+   /if (${Zone.Name.NotEqual[The Bazaar]}) {
+      /echo You need to be in The Bazaar to search.
+      /return
+   }
+   /if (${String[${Plugin[MQ2Bzsrch]}].Equal[NULL]}) {
+      /echo You need to load the mq2bzsrch plugin to search.
+      /return
+   }
+   /call BazaarSearch
+/return
+
+Sub BazaarSearch
+/declare Counter int local
+/declare ItemCounter int local
+/declare CheapestPrice int local
+/declare CheapestVendor string local
+/declare FoundSpells bool local 0
+/echo Searching the bazaar for missing spells - this will take a while...
+
+/for Counter 1 to ${SpellsMissing}
+   /if (!${FindItemCount[=${SpellNames[${Counter}]}]}) {
+      /varset CheapestPrice 0
+     :KeepSearching
+     /delay 30s ${Window[BazaarSearchWnd].Child[BZR_QueryButton].Enabled}
+     /echo Searching for ${SpellNames[${Counter}]}...
+     /bzsrch race any class any stat any slot any type scroll price 0 9999999 "${SpellNames[${Counter}]}"
+     /delay 5s ${Bazaar.Done}
+     /if (!${Bazaar.Done}) /goto :KeepSearching
+      /if (${Bazaar.Count}) {
+         /for ItemCounter 1 to ${Bazaar.Count}
+            /varset FoundSpells 1
+            /if (!${CheapestPrice} || ${CheapestPrice}>${Bazaar.Item[${ItemCounter}].Price} && ${Bazaar.Item[${ItemCounter}].Name.Equal[${SpellNames[${Counter}]}]}) {
+               /varset CheapestPrice ${Bazaar.Item[${ItemCounter}].Price}
+               /varset CheapestVendor ${Bazaar.Item[${ItemCounter}].Trader.Name}
+            }
+         /next ItemCounter
+         /echo ${SpellNames[${Counter}]} is sold by ${CheapestVendor} for ${Math.Calc[${CheapestPrice}\1000].Int}p ${Math.Calc[(${CheapestPrice}\100)%10].Int}g ${Math.Calc[(${CheapestPrice}\10)%10].Int}s ${Math.Calc[${CheapestPrice}%10].Int}c.
+      }
+   }
+/next Counter
+/echo Bazaar search done. ${If[${FoundSpells},,No matches found.]}
+/return
+
+
+Sub SpellInfo(int SpellNum)
+/if (${SpellNum}<1) /return
+/declare SpellText string local
+/if (${Me.Class.Name.Equal[Bard]}) {
+   /varset SpellText Song:
+} else {
+   /varset SpellText Spell:
+}
+/declare InBank bool local 0
+|${FindItemBankCount[=${SpellText} ${Spell[${SpellNum}].Name}]}
+/declare InBag bool local ${FindItemCount[=${SpellText} ${Spell[${SpellNum}].Name}]}
+
+| /if (!${InBank} && !${InBag}) {
+    /varcalc SpellsMissing ${SpellsMissing}+1
+    /varset SpellNames[${SpellsMissing}] ${SpellText} ${Spell[${SpellNum}].Name}
+    /varset SpellLevels[${SpellsMissing}] ${Spell[${SpellNum}].Level}
+    /varset SpellIDs[${SpellsMissing}] ${Spell[${SpellNum}].ID}
+| }
+/cecho \aw${SpellsMissing}: \at[${SpellNum}] - ${Spell[${SpellNum}]} ${If[${Spell[${SpellNum}].Level}>${Me.Level},\ar(Above level) ,]}${If[${InBag},\ay(In Bag) ,]}${If[${InBank},\ao(In Bank) ,]}\agLevel:\am${Spell[${SpellNum}].Level}  \agType:\am${Spell[${SpellNum}].SpellType}  \agTarget:\am${Spell[${SpellNum}].TargetType}
+
+/return
