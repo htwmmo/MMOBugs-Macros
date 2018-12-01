@@ -4292,6 +4292,7 @@ Sub Aura
 		}
 		
 		/if (${dblaura.Find[${Me.Class.ShortName}]}) {
+			/if (!${Defined[${CurrentSub}Use2]}) /declare ${CurrentSub}Use2 bool outer FALSE
 			/if (${${CurrentSub}Use2}) {
 				/if (!${Me.Aura[1].Find[${AuraSpellName2}]} && !${Me.Aura[2].Find[${AuraSpellName2}]}) {
 					/if ((${Me.AltAbility[Spirit Mastery]}||${Me.AltAbility[Auroria Mastery]})) {
