@@ -1,4 +1,4 @@
-|** bot40.mac
+|** bot40.mac 
  **
  ** From MMOBugs.com
  ** Original Author: PeteSampras 
@@ -4952,9 +4952,17 @@ Sub BuffList(int TNameID, int iB)
 		/if (${Spawn[id ${TNameID}].ID}) /squelch /tar id ${TNameID}
 		/delay 1s ${Target.ID}==${TNameID}
 		/call ${EchoSub} "${Pink} ${BuffSpellName${iB}} --> ${White} ${Target.CleanName}"
-    	/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${BuffSpellName${iB}} --> ${Target.CleanName}
+			/if (${Target.ID}) {
+    		/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${BuffSpellName${iB}} --> ${Target.CleanName}
+    	} else {
+    		/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${BuffSpellName${iB}}
+    	}
 		/if (!${Defined[BuffListAnnounce]}) /declare BuffListAnnounce bool outer FALSE
-    	/if (${BuffListAnnounce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${BuffSpellName${iB}} --> ${Target.CleanName}
+			/if (${Target.ID}) {
+	    	/if (${BuffListAnnounce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${BuffSpellName${iB}} --> ${Target.CleanName}
+    	} else {
+	    	/if (${BuffListAnnounce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${BuffSpellName${iB}}
+	    }
     	/if (${Spell[${BuffSpellName${iB}}].TargetType.Find[group]} && ${Me.AltAbilityReady[Tranquil Blessings]} && (${Me.CombatState.Equal[Active]}||${Me.CombatState.Equal[RESTING]})) /alt act ${Me.AltAbility[Tranquil Blessings].ID}
 		/call Cast "${BuffSpellName${iB}}" "${BuffSpellGem${iB}}" 0 CheckStuff NULL
 		/delay 30s !${Me.Casting.ID}
