@@ -1,4 +1,4 @@
-|** bot40.mac
+|** bot40.mac 
  **
  ** From MMOBugs.com
  ** Original Author: PeteSampras 
@@ -172,7 +172,7 @@
 #define MobIni Camps.ini
 #define LootIni Loot.ini
 #define ThisMac bot40
-#define ThisBotVersion v2018.11291230
+#define ThisBotVersion v2018.12201500
 
 #include spell_routines.inc
 #include bot_custom_events.inc
@@ -580,7 +580,8 @@ Sub Rest
 	/if (${UseSelos}) {
 		/if (!${Me.Buff[${SelosSong}].ID}) {
 			/if (${Me.AltAbility[${SelosSong}]}) {
-				/alt act ${Me.AltAbility[${SelosSong}].ID}
+				|/alt act ${Me.AltAbility[${SelosSong}].ID}
+				/casting "${Me.AltAbility[${SelosSong}].Name}" alt
 			} else /if (${Me.Gem[${SelosSong}]} && ${Plugin[MQ2Twist].Name.Length}) {
 				/twist once ${Me.Gem[${SelosSong}]}
 			}
@@ -798,7 +799,7 @@ Sub NeedLoad
 	/declare AABuff string outer  Perfected Dead Men Floating|Perfected Dead Man Floating|Spirit of Eagles|Marr's Salvation|Group Pact of the Wolf|Communion of the Cheetah|Talisman of Celerity|Selo's Sonata|Group Perfected Levitation|Perfected Levitation|Spirit of Eagle|Spirit Walk|Group Spirit Walk|Dead Man Floating|Flight of Eagles|Voice of Thule|
 	/declare AAIgnore string outer Mass Group Buff|Tranquil Blessings|Origin|Harmonic Dissonance|Harmonious Arrow|Gate|Group Shrink|Shrink|Spiritual Channeling|Turn Undead|Summon Remains|Act of Valor|Forceful Rejuvenation|Sense the Dead|Fog of Memories|Project Illusion|Aspect of Zomm|Turn Summoned|Summon Tome of the Hero's Journey|Banestrike|Flesh to Bone|Wake the dead|Call to Corpse|Fear Storm|Blood Magic|Blanket of Forgetfulness|Mark of Travel|Tertiary Recall|Languid Bite|Call of the Herald|Vainglorious Shout|Bind Affinity|Tireless Sprint|Cry of Battle|Untamed Rage|Identify|Scout's Mastery of Ice|Crippling Strike|Eye Gouge|Destructive Force|Appraisal|Rampage|War Cry|Friendly Stasis|Hand of Disruption|Dragon Punch|
 	/declare AAEnchant string outer Mass Enchant Palladium|Enchant Palladium|Enchant Palladium Trio|
-	/declare AAInvis string outer Shared Camouflage|Innate Camouflage|Cover Tracks|Silent Presence|Spirit Walk|Group Silent Presence|Group Spirit Walk|Cloak of Shadows|Shauri's Sonorious Clouding|Group Perfect Invisibility|Gather Shadows|Improved Natural Invisibility|
+	/declare AAInvis string outer Shared Camouflage|Innate Camouflage|Cover Tracks|Silent Presence|Spirit Walk|Group Silent Presence|Group Spirit Walk|Cloak of Shadows|Shauri's Sonorious Clouding|Group Perfected Invisibility|Gather Shadows|Improved Natural Invisibility|
 	/declare AAImHit string outer Improved Sanctuary|Sanctuary|Outrider's Evasion|Shield of Notes|Hymn of the Last Stand|Doppelganger|Mind Crash|Host in the Shell|Companion of Necessity|Hold the Line|Divine Retribution|Blessing of Sanctuary|Embalmer's Carapace|Improved Death Peace|Lyrical Prankster|Ancestral Guard|Armor of Ancestral Spirits|Uncanny Resilience|Protection of the Spirit Wolf|Tumble|Warlord's Bravery|Mark of the Mage Hunter|Blade Guardian|Brace For Impact|
 	/declare AAVeteran string outer Lesson of the Devoted|Infusion of the Faithful|Chaotic Jester|Expedient Recovery|Steadfast Servant|Staunch Recovery|Intensity of the Resolute|Throne of Heroes|Armor of Experience|Summon Resupply Agent|Summon Clockwork Banker|Summon Permutation Peddler|Summon Personal Tribute Master|Glyph of Indeterminable Reward|
 	/declare AAInvisUndead string outer Group Perfected Invisibility to Undead|Innate Invis to Undead|Cloak of Light|Fool the Fallen|
@@ -1148,7 +1149,8 @@ Sub Event_Emergency
 		/call ClearTarget
 		/call ClearAttack
 		/if (${Me.AbilityReady[${EmergencySkill}]}) /doability "${EmergencySkill}"
-		/if (${Me.AltAbilityReady[${EmergencySkill}]}) /alt act ${Me.AltAbility[${EmergencySkill}].ID}
+		|/if (${Me.AltAbilityReady[${EmergencySkill}]}) /alt act ${Me.AltAbility[${EmergencySkill}].ID}
+		/if (${Me.AltAbilityReady[${EmergencySkill}]}) /casting "${Me.AltAbility[${EmergencySkill}].Name}" alt
 		/if (${Me.CombatAbilityReady[${EmergencySkill}]}) /disc ${EmergencySkill}
 		/if (${Me.Gem[${EmergencySkill}]}) /call Cast "${EmergencySkill}" gem${Me.Gem[${EmergencySkill}]} NULL NULL NULL
 		/if (${FindItem[${EmergencySkill}].ItemSlot} && !${FindItem[${EmergencySkill}].Timer} && ${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${EmergencySkill}].ItemSlot} ${FindItem[=${EmergencySkill}].ItemSlot2}
@@ -2499,7 +2501,8 @@ Sub Pull(int spawnid)
       	/if ((${Int[${Target.Distance}]}>${PullCastRange}||!${Target.LineOfSight} && ${PullSkillRequiresLineOfSight1}||!${Target.LineOfSight} && ${PullSkillRequiresLineOfSight1} && ${PullSkillRequiresLineOfSight2} && ${PullingTotal}==2) && !${Stick.Distance} && !${MoveUtils.Command.Equal[MOVETO]}) /moveto id ${spawnid} loose
         /call PullCheck
       	/if (${UseLeap} && ${LeapName.NotEqual[NULL]} && ${Me.AltAbilityReady[${LeapName}]} && ${Target.Distance}>350) {
-			/alt act ${Me.AltAbility[${LeapName}].ID}
+					|/alt act ${Me.AltAbility[${LeapName}].ID}
+					/casting "${Me.AltAbility[${LeapName}].Name}" alt
 			/delay 2
       	}
       	/if (${Int[${Target.Distance}]}>${PullCastRange} && !${Me.XTarget}) /goto :move
@@ -2762,7 +2765,8 @@ Sub ReturnCamp
 	/doevents
 	/delay 1
     /if (${UseLeap} && ${LeapName.NotEqual[NULL]} && ${Me.AltAbilityReady[${LeapName}]} && (${Math.Distance[${Me.X},${Me.Y}:${XLOC},${YLOC}]}>250 && ${Math.Distance[${Target.X},${Target.Y}:${XLOC},${YLOC}]}<=600||${Debuff.Snared} && ${Math.Distance[${Me.X},${Me.Y}:${XLOC},${YLOC}]}>=120)) {
-    	/alt act ${Me.AltAbility[${LeapName}].ID}
+    	|/alt act ${Me.AltAbility[${LeapName}].ID}
+    	/casting "${Me.AltAbility[${LeapName}].Name}" alt
     	/delay 2
     	/if (${PullingMethod.Find[nav]}) /nav locxyz ${XLOC} ${YLOC} ${ZLOC}
     	/if (${PullingMethod.Find[standard]}) /moveto loc ${YLOC} ${XLOC} loose
@@ -3956,12 +3960,14 @@ Sub AA
 				|/if (${Me.AltAbilityReady[Banestrike]} && !${Banestrike.Find[|${Target.Race}|]} && ${Target.Distance}<${Me.AltAbility[Banestrike].Spell.Range}) {
 				|	/call ${EchoSub} "${Purple} Banestrike --> ${White} ${Target}"
 				|	/alt act ${Me.AltAbility[Banestrike].ID}
+				|	/casting "${Me.AltAbility[Banestrike].Name}" alt
 				|	/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} Banestrike --> ${Target.CleanName}
 				|	/if (${${CurrentSub}Announce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} Banestrike --> ${Target.CleanName}
 				|	/doevents
 				|}
   				/call ${EchoSub} "${Purple} ${${CurrentSub}SpellName${i}} --> ${White} ${Target}"
-				/alt act ${Me.AltAbility[${${CurrentSub}SpellName${i}}].ID}
+				|/alt act ${Me.AltAbility[${${CurrentSub}SpellName${i}}].ID}
+				/casting "${Me.AltAbility[${${CurrentSub}SpellName${i}}].Name}" alt
 				/delay 2
 				/delay 5 !${Me.Casting.ID}
 				/varset ${CurrentSub}Recast${i} ${${CurrentSub}Recast${i}.OriginalValue}
@@ -4671,7 +4677,8 @@ Sub BardMezAdd(int mezid)
 			/squelch /tar id ${mezid}
 			/delay 1s ${Target.ID}==${mezid}
 			/if (${BardMezSpellName${i}.Equal[Dirge of the Sleepwalker]}) {
-				/alt act ${Me.AltAbility[Dirge of the Sleepwalker].ID}
+				|/alt act ${Me.AltAbility[Dirge of the Sleepwalker].ID}
+				/casting "${Me.AltAbility[Dirge of the Sleepwalker].Name}" alt
 				/call ${EchoSub} "${Pink} ${BardMezSpellName${i}} ${White} --> ${Target.CleanName}"
 				/varset BardMez${mezid} ${BardMezTimer${i}.OriginalValue}
 				/return
@@ -4755,6 +4762,7 @@ Sub BuffLoad
 	/if (!${Defined[BuffLoaded]}) /declare BuffLoaded bool outer FALSE
 	/if (${BuffLoaded}) /return
 	/call Debug 3 "Entering ${CurrentSub}Load"
+	|/echo In ${CurrentSub}Load (BuffLoad)
 	/varset BuffLoaded TRUE
 	/declare i int local 3
 	/declare b int local
@@ -4771,6 +4779,7 @@ Sub BuffLoad
 		/varset i 1
 	}
 	
+	|/echo i is ${i}
 	/if (!${Defined[BuffXTargets]}) /declare BuffXTargets bool outer ${Ini[MyIni,Buff,BuffXTargets,FALSE]}
 	/if (!${BuffXTargets}) /mmoini "MyIni" "Buff" "BuffXTargets" "FALSE"
 	/if (!${Defined[BuffPets]}) /declare BuffPets bool outer ${Ini[MyIni,Buff,BuffPets,FALSE]}
@@ -4784,6 +4793,7 @@ Sub BuffLoad
 	
 	/if (${NeedLoad} && !${tempsubtotal}) {
 		/for b 1 to ${AAInvis.Count[|]} 
+			|/echo Sub ${CurrentSub} Checking ${AAInvis.Arg[${b},|]} result of aa check ${Me.AltAbility[${AAInvis.Arg[${b},|]}]} and group check ${Spell[${x}].TargetType.Find[group]}
 			/if (${Me.AltAbility[${AAInvis.Arg[${b},|]}]} && !${Spell[${x}].TargetType.Find[group]}) /varset x ${AAInvis.Arg[${b},|]}
 		/next b
 		/if (${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisSpell" "${x}"
@@ -4840,8 +4850,16 @@ Sub BuffLoad
 	/if (!${Defined[ChatSenderHold]}) /declare ChatSenderHold string outer
 	/if (!${Defined[SpellHold]}) /declare SpellHold string outer
 	/if (!${Defined[timehold]}) /declare timehold timer outer
-	/if (!${Defined[InvisSpell]}) /declare InvisSpell string outer ${Ini[MyIni,${CurrentSub},InvisSpell]}
-	/if (!${Defined[InvisSpellGem]}) /declare InvisSpellGem string outer ${Ini[MyIni,${CurrentSub},InvisSpellGem]}
+	/if (!${Defined[InvisSpell]}) {
+		|/echo Reading InvisSpell for sub ${CurrentSub} from MyIni section Buff
+		/declare InvisSpell string outer ${Ini[MyIni,Buff,InvisSpell]}
+		|/echo InvisSpell is ${InvisSpell}
+	}
+	/if (!${Defined[InvisSpellGem]}) {
+		|/echo Reading InvisSpellGem for sub ${CurrentSub} from MyIni section Buff
+		/declare InvisSpellGem string outer ${Ini[MyIni,Buff,InvisSpellGem]}
+		|/echo InvisSpellGem is ${InvisSpellGem}
+	}
 	/if (!${Defined[InvisUndeadSpell]}) /declare InvisUndeadSpell string outer ${Ini[MyIni,${CurrentSub},InvisUndeadSpell]}
 	/if (!${Defined[InvisUndeadSpellGem]}) /declare InvisUndeadSpellGem string outer ${Ini[MyIni,${CurrentSub},InvisUndeadSpellGem]}
 	/if (!${Defined[LevitateSpell]}) /declare LevitateSpell string outer ${Ini[MyIni,${CurrentSub},LevitateSpell]}
@@ -4952,10 +4970,19 @@ Sub BuffList(int TNameID, int iB)
 		/if (${Spawn[id ${TNameID}].ID}) /squelch /tar id ${TNameID}
 		/delay 1s ${Target.ID}==${TNameID}
 		/call ${EchoSub} "${Pink} ${BuffSpellName${iB}} --> ${White} ${Target.CleanName}"
-    	/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${BuffSpellName${iB}} --> ${Target.CleanName}
+			/if (${Target.ID}) {
+    		/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${BuffSpellName${iB}} --> ${Target.CleanName}
+    	} else {
+    		/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${BuffSpellName${iB}}
+    	}
 		/if (!${Defined[BuffListAnnounce]}) /declare BuffListAnnounce bool outer FALSE
-    	/if (${BuffListAnnounce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${BuffSpellName${iB}} --> ${Target.CleanName}
-    	/if (${Spell[${BuffSpellName${iB}}].TargetType.Find[group]} && ${Me.AltAbilityReady[Tranquil Blessings]} && (${Me.CombatState.Equal[Active]}||${Me.CombatState.Equal[RESTING]})) /alt act ${Me.AltAbility[Tranquil Blessings].ID}
+			/if (${Target.ID}) {
+	    	/if (${BuffListAnnounce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${BuffSpellName${iB}} --> ${Target.CleanName}
+    	} else {
+	    	/if (${BuffListAnnounce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${BuffSpellName${iB}}
+	    }
+    	|/if (${Spell[${BuffSpellName${iB}}].TargetType.Find[group]} && ${Me.AltAbilityReady[Tranquil Blessings]} && (${Me.CombatState.Equal[Active]}||${Me.CombatState.Equal[RESTING]})) /alt act ${Me.AltAbility[Tranquil Blessings].ID}
+    	/if (${Spell[${BuffSpellName${iB}}].TargetType.Find[group]} && ${Me.AltAbilityReady[Tranquil Blessings]} && (${Me.CombatState.Equal[Active]}||${Me.CombatState.Equal[RESTING]})) /casting "${Me.AltAbility[Tranquil Blessings].Name}" alt
 		/call Cast "${BuffSpellName${iB}}" "${BuffSpellGem${iB}}" 0 CheckStuff NULL
 		/delay 30s !${Me.Casting.ID}
 		/if (!${Defined[${TNameID}_Buff${iB}]}) {
@@ -5202,8 +5229,13 @@ Sub Event_InvisOn
   			/delay 3s ${Target.ID}==${Me.ID}
   		}
 
-		/if (${InvisSpellGem.Equal[alt]}) /alt act ${Me.AltAbility[${InvisSpell}].ID}
-  	  	/if (!${InvisSpellGem.Equal[alt]}) /call Cast "${InvisSpell}" ${InvisSpellGem} 5s NULL NULL
+		|/if (${InvisSpellGem.Equal[alt]}) /alt act ${Me.AltAbility[${InvisSpell}].ID}
+		/if (${InvisSpellGem.Equal[alt]}) {
+			/casting "${Me.AltAbility[${InvisSpell}].Name}" alt
+		}
+    /if (!${InvisSpellGem.Equal[alt]}) {
+    	/call Cast "${InvisSpell}" ${InvisSpellGem} 5s NULL NULL
+    }
   	  	/delay 5
   	}
 /return
@@ -5216,7 +5248,8 @@ Sub Event_InvisUndeadOn
   			/delay 3s ${Target.ID}==${Me.ID}
   		}
 
-		/if (${InvisUndeadSpellGem.Equal[alt]}) /alt act ${Me.AltAbility[${InvisUndeadSpell}].ID}
+			|/if (${InvisUndeadSpellGem.Equal[alt]}) /alt act ${Me.AltAbility[${InvisUndeadSpell}].ID}
+			/if (${InvisUndeadSpellGem.Equal[alt]}) /casting "${Me.AltAbility[${InvisUndeadSpell}].Name}" alt
   	  	/if (!${InvisUndeadSpellGem.Equal[alt]}) /call Cast "${InvisUndeadSpell}" ${InvisUndeadSpellGem} 5s NULL NULL
   	  	/delay 5
   	}
@@ -5257,7 +5290,8 @@ Sub Event_LevitateOn
 			/delay 3s ${Target.ID}==${Me.ID}
 		}
 
-		/if (${LevitateSpellGem.Equal[alt]}) /alt act ${Me.AltAbility[${LevitateSpell}].ID}
+		|/if (${LevitateSpellGem.Equal[alt]}) /alt act ${Me.AltAbility[${LevitateSpell}].ID}
+		/if (${LevitateSpellGem.Equal[alt]}) /casting "${Me.AltAbility[${LevitateSpell}].Name}" alt
 		/if (!${LevitateSpellGem.Equal[alt]}) /call Cast "${LevitateSpell}" ${LevitateSpellGem} 5s NULL NULL
 		/delay 5
   	}
@@ -6573,7 +6607,8 @@ Sub Fade
 			/if (${${CurrentSub}Announce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${${CurrentSub}SpellName${i}} --> FADING
 			/call ClearTarget
 			/call ClearAttack
-			/alt act ${Me.AltAbility[${FadeSpellName${i}}].ID}
+			|/alt act ${Me.AltAbility[${FadeSpellName${i}}].ID}
+			/casting "${Me.AltAbility[${FadeSpellName${i}}].Name}" alt
 			/if (${OptionsCheck.Find[FeignDeath]}) /varset FDAggro TRUE
 		}
 	/next i
@@ -7404,7 +7439,8 @@ Sub Event_ImHit(line, string TargetName)
 				/varset BeamTimer ${BeamTimer.OriginalValue}
 				/face
 			}
-			/if (${Me.AltAbilityReady[${ImHitSpellName${i}}]}) /alt act ${Me.AltAbility[${ImHitSpellName${i}}].ID}
+			|/if (${Me.AltAbilityReady[${ImHitSpellName${i}}]}) /alt act ${Me.AltAbility[${ImHitSpellName${i}}].ID}
+			/if (${Me.AltAbilityReady[${ImHitSpellName${i}}]}) /casting "${Me.AltAbility[${ImHitSpellName${i}}].Name}" alt
 			/if (${Me.SpellReady[${ImHitSpellName${i}}]}) /call Cast "${ImHitSpellName${i}}" gem${Me.Gem[${ImHitSpellName${i}}]} NULL NULL NULL
 			/if (${Me.CombatAbilityReady[${ImHitSpellName${i}}]}) /disc ${ImHitSpellName${i}}
 			/if (${Me.AbilityReady[${ImHitSpellName${i}}]}) /doability "${ImHitSpellName${i}}"
@@ -7719,7 +7755,8 @@ Sub Mana
 		/if (${iItemEffects}>=2) {
 			/if (${Me.AltAbilityReady[Cannibalization]} && ${Me.CurrentHPs}>${Math.Abs[${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[1]}]} && ((${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[2]}||${Me.PctMana}<=${MyManaLessThan}) && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan}))) {
 				/call ${EchoSub} "${Orange} Cannibalization -- ${White} ${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[1]} HP Loss for ${Spell[${Me.AltAbility[Cannibalization].Spell.ID}].Base[2]} Mana Gain"
-				/alt act ${Me.AltAbility[Cannibalization].ID}
+				|/alt act ${Me.AltAbility[Cannibalization].ID}
+				/casting "${Me.AltAbility[Cannibalization].Name}" alt
 			}
 		
 			/if (!${Me.GemTimer[${${CurrentSub}Boost${Me.Class.ShortName}}]} && (${Me.CurrentHPs}>${Math.Abs[${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[1]}]}||${Me.CurrentHPs}>${MyHPMoreThan}) && (${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].Base[2]}||${Me.PctMana}<${MyManaLessThan}) && ${Me.SpellReady[${${CurrentSub}Boost${Me.Class.ShortName}}]} && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan})) {
@@ -7733,7 +7770,8 @@ Sub Mana
 	/if (${Me.Class.ShortName.Equal[WIZ]} && (${Me.PctMana}<=25||${Me.CombatState.NotEqual[COMBAT]}) && !${Me.Casting.ID}) {
 		/if (${Me.AltAbility[Harvest of Druzzil]} && (${Me.AltAbilityReady[Harvest of Druzzil]} && ${Me.PctMana}<=${MyManaLessThan}) && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan})) {
 			/call ${EchoSub} "${Orange} Harvest of Druzzil -- ${White} Mana Gain"
-			/alt act ${Me.AltAbility[Harvest of Druzzil].ID}
+			|/alt act ${Me.AltAbility[Harvest of Druzzil].ID}
+			/casting "${Me.AltAbility[Harvest of Druzzil].Name}" alt
 			/delay 5s !${Me.Casting.ID}
 		}	
 	
@@ -7752,7 +7790,8 @@ Sub Mana
 		/if (${iItemEffects}>=7) {
 			/if (${Me.AltAbility[Mana Draw]} && ${Me.AltAbilityReady[Mana Draw]} && ${Me.PctMana}<=5) {
 				/call ${EchoSub} "${Orange} Mana Draw -- ${White} ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[1]} Instant Mana Gain - ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[7]} per tick for ${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Duration} ticks (${Math.Calc[${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Base[7]}*${Spell[${Me.AltAbility[Mana Draw].Spell.ID}].Duration}].Int} total)"
-				/alt act ${Me.AltAbility[Mana Draw].ID}
+				|/alt act ${Me.AltAbility[Mana Draw].ID}
+				/casting "${Me.AltAbility[Mana Draw].Name}" alt
 				/delay 5s !${Me.Casting.ID}
 			}	
 		}
@@ -7761,7 +7800,8 @@ Sub Mana
 		/if (${iItemEffects}>=1) {
 			/if (${Me.AltAbility[Gather Mana]} && !${Me.AltAbility[Mana Draw]} && ${Me.AltAbilityReady[Gather Mana]} && ${Me.PctMana}<=5) {
 				/call ${EchoSub} "${Orange} Gather Mana -- ${White} ${Spell[${Me.AltAbility[Gather Mana].Spell.ID}].Base[1]} Instant Mana Gain"
-				/alt act ${Me.AltAbility[Gather Mana].ID}
+				|/alt act ${Me.AltAbility[Gather Mana].ID}
+				/casting "${Me.AltAbility[Gather Mana].Name}" alt
 				/delay 5s !${Me.Casting.ID}
 			}	
 		}
@@ -7771,7 +7811,8 @@ Sub Mana
 			/if (${Me.PctMana}<${MyManaLessThan} && ${Me.AltAbilityReady[Fundament: Second Spire of Enchantment]} && ${Spell[Second Spire of Enchantment].Stacks}) {
 				/call ${EchoSub} "${Orange} Fundament: Second Spire of Enchantment -- ${White} ${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Base[9]} Mana Gain per tick for ${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Duration} ticks (${Math.Calc[${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Duration}*${Me.AltAbility[Fundament: Second Spire of Enchantment].Spell.Base[9]}].Int} total)"
 				/if (${Target.ID}) /squelch /tar clear
-				/alt act ${Me.AltAbility[Fundament: Second Spire of Enchantment].ID}
+				|/alt act ${Me.AltAbility[Fundament: Second Spire of Enchantment].ID}
+				/casting "${Me.AltAbility[Fundament: Second Spire of Enchantment].Name}" alt
 				/delay 5s !${Me.Casting.ID}
 			}
 		}
@@ -7780,7 +7821,8 @@ Sub Mana
 			/if (!${Select[${Group.Member[${i}].Class.ShortName},BRD,WAR,MNK,ROG,BER,SHM,NEC]} && ${Me.AltAbilityReady[Fundament: Second Spire of Enchantment]} && !${Me.Song[Fundament: Second Spire of Enchantment].ID} && !${Me.Buff[Fundament: Second Spire of Enchantment].ID} && ${Group.Member[${i}].PctMana}<=${TheirManaLessThan} && ${Group.Member[${i}].PctMana}>0 && !${SpawnCount[${Group.Member[${i}]} corpse]}) {
 				/squelch /tar ${Group.Member[${i}]}
 				/delay 1s ${Target.ID}==${Group.Member[${i}].ID}
-				/alt act ${Me.AltAbility[Fundament: Second Spire of Enchantment].ID}
+				|/alt act ${Me.AltAbility[Fundament: Second Spire of Enchantment].ID}
+				/casting "${Me.AltAbility[Fundament: Second Spire of Enchantment].Name}" alt
 				/call ${EchoSub} "${Orange} Fundament: Second Spire of Enchantment --> ${White} ${Target.CleanName}"
 				/delay 2
 				/squelch /tar clear
@@ -7788,12 +7830,14 @@ Sub Mana
 		/next i
 	
 		/if (${Me.PctMana}>95 && ${Me.AltAbilityReady[Sanguine Mind Crystal]} && !${FindItemCount[Sanguine Mind Crystal]}) {
-			/alt act ${Me.AltAbility[Sanguine Mind Crystal].ID}
+			|/alt act ${Me.AltAbility[Sanguine Mind Crystal].ID}
+			/casting "${Me.AltAbility[Sanguine Mind Crystal].Name}" alt
 			/call ${EchoSub} "${Teal} Sanguine Mind Crystal --> ${White} ${Me.CleanName}"
 		}
 	
 		/if (${Me.PctMana}>95 && ${Me.AltAbilityReady[Azure Mind Crystal]} && !${FindItemCount[Azure Mind Crystal]}) {
-			/alt act ${Me.AltAbility[Azure Mind Crystal].ID}
+			|/alt act ${Me.AltAbility[Azure Mind Crystal].ID}
+			/casting "${Me.AltAbility[Azure Mind Crystal].Name}" alt
 			/call ${EchoSub} "${Orange} Azure Mind Crystal --> ${White} ${Me.CleanName}"
 		}
 	
@@ -7819,9 +7863,9 @@ Sub Mana
 	}
 
 	/if (${Me.Class.ShortName.Equal[MAG]} && (${Me.PctMana}<=25||${Me.CombatState.NotEqual[COMBAT]}) && !${Me.Casting.ID}) {
-		/if (${Me.PctMana}<20 && ${Me.AltAbilityReady[Mana Reserve]}) {
-			/call ${EchoSub} "${Orange} Mana Reserve -- ${White} 12,000 Mana Gain"
-			/alt act 2065
+		/if (${Me.PctMana}<20 && ${Me.AltAbilityReady[Elemental Conversion]}) {
+			/call ${EchoSub} "${Orange} Elemental Conversion -- ${White} 12,000 Mana Gain"
+			/casting "Elemental Conversion" alt
 		}
 	
 		/varset iItemEffects ${Spell[${${CurrentSub}Boost${Me.Class.ShortName}}].NumEffects}
@@ -7865,14 +7909,14 @@ Sub Mana
 	/if (${Me.Class.ShortName.Equal[NEC]}) {
 		/if (!${Me.Song[Death Blossom].ID} && ${Me.AltAbility[Death Bloom]} && ${Me.AltAbilityReady[Death Bloom]} && ${Me.PctHPs}>=${MyHPMoreThan} && ${Me.PctMana}<=${MyManaLessThan} && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan})) {
 			/call ${EchoSub} "${Orange} Death Bloom -- ${White} 28000 HP Loss over time for 16800 Mana Gain"
-			/alt act ${Me.AltAbility[Death Bloom].ID}
+			/casting "${Me.AltAbility[Death Bloom].Name}" alt
 			/delay 5
 			/delay 4s !${Me.Casting.ID}
 		}
 		
 		/if ((${Me.CombatState.Equal[ACTIVE]}||${Me.CombatState.Equal[RESTING]}) && !${Me.Song[Death Blossom].ID} && ${Me.AltAbilityReady[Death Blossom]} && ${Me.PctHPs}>=${MyHPMoreThan} && ${Me.PctMana}<=${MyManaLessThan} && (${Me.PctMana}<=${DontUnlessMyManaLessThan}||!${DontUnlessMyManaLessThan})) {
 			/call ${EchoSub} "${Orange} Death Blossom -- ${White} 3700 HP Loss over time for 2400 Mana Gain per tick"
-			/alt act ${Me.AltAbility[Death Blossom].ID}
+			/casting "${Me.AltAbility[Death Blossom].Name}" alt
 			/delay 5
 			/delay 4s !${Me.Casting.ID}
 		}
@@ -7880,7 +7924,7 @@ Sub Mana
 		|**
 		/for i 0 to 5
 			/if ((${Me.CombatState.Equal[ACTIVE]}||${Me.CombatState.Equal[RESTING]}) && !${Select[${Group.Member[${i}].Class.ShortName},BRD,WAR,MNK,ROG,BER,NEC]} && ${Me.AltAbilityReady[Death Blossom]} && !${Me.Song[Death Bloom].ID} && !${Me.Song[Death Blossom].ID} && ${Group.Member[${i}].PctMana}<=${TheirManaLessThan} && ${Group.Member[${i}].PctMana}>0 && !${SpawnCount[${Group.Member[${i}]} corpse]}) {
-				/alt act ${Me.AltAbility[Death Blossom].ID}
+				/casting "${Me.AltAbility[Death Blossom].Name}" alt
 				/call ${EchoSub} "${Orange} Death Blossom --> ${White} 3700 HP for 2300 mana per tick to group"
 				/delay 5
 				/delay 4s !${Me.Casting.ID}
@@ -7895,7 +7939,7 @@ Sub Mana
 			/if (${Me.PctMana}<${MyManaLessThan} && ${Me.AltAbilityReady[Paragon of Spirit]} && ${Spell[Paragon of Spirit].Stacks} && !${Me.Song[Paragon of Spirit].ID} && !${Me.Song[Focused Paragon of Spirits].ID}) {
 				/call ${EchoSub} "${Orange} Paragon of Spirit -- ${White} ${Me.AltAbility[Paragon of Spirit].Spell.Base[9]} HP Gain and ${Me.AltAbility[Paragon of Spirit].Spell.Base[10]} Mana Gain per tick for ${Me.AltAbility[Paragon of Spirit].Spell.Duration} ticks (${Math.Calc[${Me.AltAbility[Paragon of Spirit].Spell.Duration}*${Me.AltAbility[Paragon of Spirit].Spell.Base[9]}].Int} hp total - ${Math.Calc[${Me.AltAbility[Paragon of Spirit].Spell.Duration}*${Me.AltAbility[Paragon of Spirit].Spell.Base[10]}].Int} mana total)"
 				/if (${Target.Type.NotEqual[npc]} && ${Target.ID}!=${Me.ID} && ${Target.ID}!=${Me.Pet.ID}) /squelch /tar clear
-				/alt act ${Me.AltAbility[Paragon of Spirit].ID}
+				/casting "${Me.AltAbility[Paragon of Spirit].Name}" alt
 				/delay 5s !${Me.Casting.ID}
 			}
 		}
@@ -7903,7 +7947,7 @@ Sub Mana
 			/if (!${Select[${Group.Member[${i}].Class.ShortName},BRD,WAR,MNK,ROG,BER,SHM,NEC]} && ${Me.AltAbilityReady[Focused Paragon of Spirits]} && !${Me.Song[Paragon of Spirit].ID} && !${Me.Buff[Paragon of Spirit].ID} && ${Group.Member[${i}].PctMana}<=${TheirManaLessThan} && ${Group.Member[${i}].PctMana}>0 && !${SpawnCount[${Group.Member[${i}]} corpse]}) {
 				/squelch /tar ${Group.Member[${i}]}
 				/delay 1s ${Target.ID}==${Group.Member[${i}].ID}
-				/alt act ${Me.AltAbility[Focused Paragon of Spirits].ID}
+				/casting "${Me.AltAbility[Focused Paragon of Spirits].Name}" alt
 				/call ${EchoSub} "${Orange} Focused Paragon of Spirits --> ${White} ${Target.CleanName}"
 				/delay 2
 				/squelch /tar clear
@@ -7913,7 +7957,7 @@ Sub Mana
 	
 	/if (${Me.Class.ShortName.Equal[CLR]}) {
 		/if (${Me.AltAbilityReady[Veturika's Perseverance]} && ${Me.PctMana}<=${MyManaLessThan} && !${SpawnCount[${Me.CleanName} pccorpse]}) {
-			/alt act ${Me.AltAbility[Veturika's Perseverance].ID}
+			/casting "${Me.AltAbility[Veturika's Perseverance].Name}" alt
 			/call ${EchoSub} "${Orange} Veturika's Perseverance --> ${White} Me"
 			/delay 3
 		}
@@ -7922,7 +7966,7 @@ Sub Mana
 			/if (!${Select[${Group.Member[${i}].Class.ShortName},BRD,WAR,MNK,ROG,BER,SHM]} && ${Me.AltAbilityReady[Quiet Miracle]} && (${Group.Member[${i}].PctMana}<=${TheirManaLessThan} && ${i}>0||${i}==0 && ${Me.PctMana}<=${MyManaLessThan} && !${Me.Buff[Shroud of the Miracle].ID}) && ${Group.Member[${i}].PctMana}>0 && !${SpawnCount[${Group.Member[${i}]} corpse]}) {
 				/squelch /tar ${Group.Member[${i}]}
 				/delay 1s ${Target.ID}==${Group.Member[${i}].ID}
-				/alt act ${Me.AltAbility[Quiet Miracle].ID}
+				/casting "${Me.AltAbility[Quiet Miracle].Name}" alt
 				/call ${EchoSub} "${Orange} Quiet Miracle --> ${White} ${Target.CleanName}"
 				/delay 2
 				/squelch /tar clear
@@ -8674,7 +8718,7 @@ Sub PetBuffs
   	/if (${Me.Pet.ID} && ${Me.Pet.Name.Find[familiar]}) /pet get lost 
   	/if (${Me.Invis} && !${AutoBreakInvis} && !${AutoInvis}|| ${Me.Moving} || ${PetBuffRecheck}||${Me.Feigning}) /return
   	/if (!${Me.Pet.ID} && ${UsePet} && (${Spell[${PetSpell}].ReagentID[1]}>0 && ${FindItemCount[${Spell[${PetSpell}].ReagentID[1]}]}>=${Spell[${PetSpell}].ReagentCount[1]}||${Spell[${PetSpell}].ReagentID[1]}<0||${Spell[${PetSpell}].ReagentID[1]}==NULL) && ${Me.CurrentMana}>${Spell[${PetSpell}].Mana}) {
-  		/if (${Me.AltAbility[Suspended Minion]}) /alt activate 176
+  		/if (${Me.AltAbility[Suspended Minion]}) /casting "Suspended Minion" alt
         /delay 1s
 		
 		:petcasting
@@ -9654,7 +9698,7 @@ Sub Leap
 	/if (${Target.ID} && ${Target.ID}==${Spawn[${LeapTarget}].ID} && ${Target.Distance}<=${Math.Calc[${Target.MaxRange}+${LeapRange}]}) {
 		/if (${Melee.Sticking}) /stick off
 		/if (${Target.ID}  && ${Target.ID}) /face
-		/if (${Me.AltAbilityReady[${LeapSkill}]}) /alt act ${Me.AltAbility[${LeapSkill}].ID}
+		/if (${Me.AltAbilityReady[${LeapSkill}]}) /casting "${Me.AltAbility[${LeapSkill}].Name}" alt
 		/delay 2
 		/if (${Target.ID}  && ${Target.ID}) /face
 		/if (!${Range.Between[0,5:${Math.Abs[${Math.Calc[${Target.HeadingTo.Degrees}-${Me.Heading.Degrees}]}]}]}) /face
