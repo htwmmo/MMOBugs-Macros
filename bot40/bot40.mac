@@ -2503,7 +2503,7 @@ Sub Pull(int spawnid)
       	/if (${UseLeap} && ${LeapName.NotEqual[NULL]} && ${Me.AltAbilityReady[${LeapName}]} && ${Target.Distance}>350) {
 					|/alt act ${Me.AltAbility[${LeapName}].ID}
 					/casting "${Me.AltAbility[${LeapName}].Name}" alt
-			/delay 2
+					/delay 2
       	}
       	/if (${Int[${Target.Distance}]}>${PullCastRange} && !${Me.XTarget}) /goto :move
 	}
@@ -5223,11 +5223,11 @@ Sub Event_CastSpell(string line,string ChatSender,string SName,string TName)
 
 Sub Event_InvisOn
 	/if (!${Defined[BuffLoaded]}) /call BuffLoad
-  	/if (${Me.Book[${InvisSpell}]} || ${InvisSpellGem.Equal[alt]} && ${Me.AltAbilityReady[${InvisSpell}]} || ${InvisSpellGem.Equal[item]} && !${FindItem[${InvisSpell}].Timer}) {
-  		/if (${Spell[${InvisSpell}].TargetType.Equal[Single]}) {
+ 	/if (${Me.Book[${InvisSpell}]} || ${InvisSpellGem.Equal[alt]} && ${Me.AltAbilityReady[${InvisSpell}]} || ${InvisSpellGem.Equal[item]} && !${FindItem[${InvisSpell}].Timer}) {
+ 		/if (${Spell[${InvisSpell}].TargetType.Equal[Single]}) {
 			/squelch /target myself
-  			/delay 3s ${Target.ID}==${Me.ID}
-  		}
+  		/delay 3s ${Target.ID}==${Me.ID}
+  	}
 
 		|/if (${InvisSpellGem.Equal[alt]}) /alt act ${Me.AltAbility[${InvisSpell}].ID}
 		/if (${InvisSpellGem.Equal[alt]}) {
@@ -5236,8 +5236,8 @@ Sub Event_InvisOn
     /if (!${InvisSpellGem.Equal[alt]}) {
     	/call Cast "${InvisSpell}" ${InvisSpellGem} 5s NULL NULL
     }
-  	  	/delay 5
-  	}
+    /delay 5
+  }
 /return
 
 Sub Event_InvisUndeadOn
@@ -5250,8 +5250,8 @@ Sub Event_InvisUndeadOn
 
 			|/if (${InvisUndeadSpellGem.Equal[alt]}) /alt act ${Me.AltAbility[${InvisUndeadSpell}].ID}
 			/if (${InvisUndeadSpellGem.Equal[alt]}) /casting "${Me.AltAbility[${InvisUndeadSpell}].Name}" alt
-  	  	/if (!${InvisUndeadSpellGem.Equal[alt]}) /call Cast "${InvisUndeadSpell}" ${InvisUndeadSpellGem} 5s NULL NULL
-  	  	/delay 5
+  	  /if (!${InvisUndeadSpellGem.Equal[alt]}) /call Cast "${InvisUndeadSpell}" ${InvisUndeadSpellGem} 5s NULL NULL
+  	  /delay 5
   	}
 /return
 
