@@ -1,0 +1,189 @@
+|Summon Food and Drink Macro - hacked together from some unknown public authors by htw 12-03-18
+|  Was in a hurry and not thouroughly tested but it should get the job done!
+|Usage:  /mac summonfd [stacks [food|drink]]
+|  stacks = # stacks to summon (default to 1)
+|  no addtional parameters will do food and drink, otherwise specify which one (if you want to specify food or drink then provide stacks also, even if it's 1)
+|
+| /mac summonfd           -> summons 1 stack of food and drink (includes checking inventory for any existing items)
+| /mac summonfd 3         -> summons 3 stacks of food and drink (includes checking inventory for any existing items)
+| /mac summonfd 2 drink   -> summons 2 stack of drink (includes checking inventory for any existing items)
+|
+| Example ini:
+|		[Settings]
+|		Quiet=FALSE
+|		[Food]
+|		Name=Summon Food
+|		Type=gem
+|		Item=Summoned: Black Bread
+|		Gem=gem1
+|		[Drink]
+|		Name=Summon Drink
+|		Type=gem
+|		Item=Summoned: Globe of Water
+|		Gem=gem2
+
+|Configuration file to store character specific spells and items
+#define MyIni SummonFD_${Me.CleanName}_${MacroQuest.Server}.ini
+
+Sub Main(int iStacks, string sSummonType)
+	/declare Dummy1 int outer 0
+	/if (!${Plugin[MQ2Cecho].Name.Length}) {
+		/squelch /plugin mq2cecho noauto
+	}
+	/if (!${Plugin[MQ2Cast].Name.Length}) {
+		/squelch /plugin mq2cast noauto
+	}
+	/declare QuietMode bool outer FALSE
+	/declare OldSpell1 string outer
+	/declare OldSpell2 string outer
+	/declare DrinkSpell string outer
+	/declare DrinkType  string outer
+	/declare DrinkItem string outer
+	/declare DrinkGem string outer
+	/declare FoodSpell string outer
+	/declare FoodType  string outer
+	/declare FoodItem string outer
+	/declare FoodGem string outer
+	/declare SummonType string outer both
+	/declare Stacks int outer 1
+	/if (${iStacks}>0) {
+		/varset Stacks ${iStacks}
+	}
+	/if (${sSummonType.Length}) {
+		/varset SummonType ${sSummonType}
+	}
+	/varset FoodSpell ${Ini[MyIni,Food,Name,"Put Spell or AA or Item Name To Cast Here"]}
+	/varset FoodType ${Ini[MyIni,Food,"Type","gem or aa or item"]}
+	/varset FoodItem ${Ini[MyIni,Food,Item,"Food item name in inventory"]}
+	/varset FoodGem ${Ini[MyIni,Food,Gem,"Gem number to use if spell"]}
+	/varset DrinkSpell ${Ini[MyIni,Drink,Name,"Put Spell or AA or Item Name To Cast Here"]}
+	/varset DrinkType ${Ini[MyIni,Drink,"Type","gem or aa or item"]}
+	/varset DrinkItem ${Ini[MyIni,Drink,Item,"Drink item name in inventory"]}
+	/varset DrinkGem ${Ini[MyIni,Drink,Gem,"Gem number to use if spell"]}
+	/varset QuietMode ${Bool[${Ini[MyIni,Settings,Quiet,FALSE]}]}
+	/if (${FoodSpell.Equal[Put Spell or AA or Item Name To Cast Here]} && ${DrinkSpell.Equal[Put Spell or AA or Item Name To Cast Here]})	{
+		/mmoini "MyIni" "Settings" "Quiet" "FALSE"
+		/mmoini "MyIni" "Food" "Name" "Put Spell or AA or Item Name To Cast Here"
+		/mmoini "MyIni" "Food" "Type" "spell or aa or item"
+		/mmoini "MyIni" "Food" "Item" "Food item name in inventory"
+		/mmoini "MyIni" "Food" "Gem" "Gem number to use if spell"
+		/mmoini "MyIni" "Drink" "Name" "Put Spell or AA or Item Name To Cast Here"
+		/mmoini "MyIni" "Drink" "Type" "spell or aa or item"
+		/mmoini "MyIni" "Drink" "Item" "Drink item name in inventory"
+		/mmoini "MyIni" "Drink" "Gem" "Gem number to use if spell"
+		/echo \arMyIni created, please edit it to configure your macro before running again.
+		/return
+	}
+	/if (${Stacks}<1 || ${Stacks}>20) {
+		/call EchoSub "\ayInvalid # stacks:  ${Stacks} (needs to be 1-20)"
+		/return
+	}
+	/if (${SummonType.NotEqual[food]} && ${SummonType.NotEqual[drink]} && ${SummonType.NotEqual[both]}) {
+		/call EchoSub "\arUnknown type specified:  ${SummonType}"
+		/return
+	}
+	/call EchoSub "\arStarting summoning!"
+	/declare i int local
+  /for i 1 to ${Stacks}
+  	/if (${SummonType.Equal[food]}) {
+			/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${FoodItem}\at."
+  		/call SummonFood
+  	}
+  	/if (${SummonType.Equal[drink]}) {
+			/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${DrinkItem}\at."
+  		/call SummonDrink
+  	}
+		/if (${SummonType.Equal[both]}) {
+			/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${FoodItem} \atand \ag${DrinkItem}\at."
+			/call SummonFood
+			/call SummonDrink
+		}
+	/next i
+	/if (${OldSpell1.Length}) {
+		/call EchoSub "\atMemorizing \au${DrinkGem} \aw-> \ag${OldSpell1}"
+		/memspell ${DrinkGem.Replace[gem,]} "${OldSpell1}"
+	}
+	/if (${OldSpell2.Length}) {
+		/call EchoSub "\atMemorizing \au${FoodGem} \aw-> \ag${OldSpell2}"
+		/memspell ${FoodGem.Replace[gem,]} "${OldSpell2}"
+	}
+	/call EchoSub "\arFinished summoning!"
+/return
+
+Sub SummonDrink
+	/declare mycount int local
+	/declare count int local
+	/if (${FindItemCount[=${DrinkItem}]} < ${Math.Calc[20*${Stacks}]}) {
+		/if (!${Me.Gem[${DrinkSpell}]} && ${DrinkType.Find[gem]} && ${Me.Book[${DrinkSpell}]}) {
+			/varset OldSpell1 ${Me.Gem[${DrinkGem.Replace[gem,]}]}
+			/call EchoSub "\atMemorizing \au${DrinkGem} \aw-> \ag${DrinkSpell}"
+			/memspell ${DrinkGem.Replace[gem,]} "${DrinkSpell}"
+			/delay 5s ${Me.SpellReady[${DrinkSpell}]}
+		}
+		:BigDrinkLoop
+		/if (${Me.SpellReady[${DrinkSpell}]} || !${FindItem[${DrinkSpell}].TimerReady} ) {
+			/call EchoSub "\atSummoning \ay${DrinkItem} \aw(\agInventory\aw=\ao${FindItemCount[=${DrinkItem}]}\aw)\at..."
+			:DrinkLoop
+			/if (${Me.CombatState.Equal[COMBAT]} || ${Me.Moving} || !${Me.State.Equal[STAND]} || ${Cursor.ID} || ${Me.Casting.ID}) {
+				/delay 2s
+				/autoinv
+				/goto :DrinkLoop
+			}
+			/call Summon "${DrinkSpell}" ${DrinkType}
+			/autoinv
+			/delay 2s !${Cursor.ID}
+		}
+		/if (${Math.Calc[20*${Stacks}]}>${Math.Calc[${FindItemCount[=${DrinkItem}]}]}) /goto :BigDrinkLoop
+	}
+	/call EchoSub "\atFinished summoning \ay${DrinkItem} \aw(\agInventory\aw=\ao${FindItemCount[=${DrinkItem}]}\aw)\at!"
+/return
+
+Sub SummonFood
+	/declare mycount int local
+	/declare count int local
+	/if (${FindItemCount[=${FoodItem}]} < ${Math.Calc[20*${Stacks}]}) {
+		/if (!${Me.Gem[${FoodSpell}]} && ${FoodType.Find[gem]} && ${Me.Book[${FoodSpell}]}) {
+			/varset OldSpell2 ${Me.Gem[${FoodGem.Replace[gem,]}]}
+			/call EchoSub "\atMemorizing \au${FoodGem} \aw-> \ag${FoodSpell}"
+			/memspell ${FoodGem.Replace[gem,]} "${FoodSpell}"
+			/delay 5s ${Me.SpellReady[${FoodSpell}]}
+		}
+		:BigFoodLoop
+		/if (${Me.SpellReady[${FoodSpell}]} || !${FindItem[${FoodSpell}].TimerReady} ) {
+			/call EchoSub "\atSummoning \ay${FoodItem} \aw(\agInventory\aw=\ao${FindItemCount[=${FoodItem}]}\aw)\at..."
+			:FoodLoop
+			/if (${Me.CombatState.Equal[COMBAT]} || ${Me.Moving} || !${Me.State.Equal[STAND]} || ${Cursor.ID} || ${Me.Casting.ID}) {
+				/delay 2s
+				/autoinv
+				/goto :FoodLoop
+			}
+			/call Summon "${FoodSpell}" ${FoodType}
+			/autoinv
+			/delay 2s !${Cursor.ID}
+		}
+		/if (${Math.Calc[20*${Stacks}]}>${Math.Calc[${FindItemCount[=${FoodItem}]}]}) /goto :BigFoodLoop
+	}
+	/call EchoSub "\atFinished summoning \ay${FoodItem} \aw(\agInventory\aw=\ao${FindItemCount[=${FoodItem}]}\aw)\at!"
+/return
+
+Sub Summon(string what, string castType)
+	/if (!${Defined[GemNum]}) /declare GemNum int local
+	/varset GemNum ${Me.Gem[${what}]}
+	/if ( ${castType.Equal[item]} ) {
+		/useitem ${FindItem[=${what}].ItemSlot} ${FindItem[=${what}].ItemSlot2}
+		/delay 1s ${Cursor.ID}
+		/autoinv
+		/delay 2s !${Cursor.ID}
+	}
+	/if ( ${castType.Find[gem]} ) {
+		/casting "${what}" ${castType}
+		/delay ${Math.Calc[${Me.Gem[${GemNum}].CastTime.Seconds}+1]}s ${Cursor.ID}
+		/autoinv
+		/delay ${Me.Gem[${GemNum}].RecoveryTime.Seconds}s
+	}
+/return
+
+Sub EchoSub(string what)
+	/if (!${Defined[QuietMode]}) /declare QuietMode bool outer FALSE
+	/if (!${QuietMode}) /cecho ${what}
+/return
