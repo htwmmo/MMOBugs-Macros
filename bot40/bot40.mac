@@ -172,7 +172,7 @@
 #define MobIni Camps.ini
 #define LootIni Loot.ini
 #define ThisMac bot40
-#define ThisBotVersion v2018.12201500
+#define ThisBotVersion v2018.12021100
 
 #include spell_routines.inc
 #include bot_custom_events.inc
@@ -304,7 +304,10 @@ Sub Main(string Param0, string Param1)
 		/if (${Select[${Zone.ID},344,202,151,345]} && ${AutoUseCampfire}) /call AutoUseCampfire
 		/doevents
 		
-		/if (!${Defined[RestrictedZones]}) /declare RestrictedZones string outer
+		/if (!${Defined[RestrictedZones]}) {
+			/declare RestrictedZones string outer
+		}
+		/varset RestrictedZones ${Ini[MyIni,Settings,RestrictedZones,"344,202,151,345"]}
 		/if (!${Defined[NeedLoad]}) /declare NeedLoad bool outer FALSE
 		/if (${Me.Hovering} || ${Window[tradewnd].Open} || ${Window[lootwnd].Open} || ${Me.State.Equal[BIND]} || ${Select[${Zone.ID},${RestrictedZones}]} && !${NeedLoad}) {
 			| do nothing
@@ -525,7 +528,7 @@ Sub Rest
 	/declare i int local
 	/if (${Me.Standing} && !${sitTimer} && !${Me.Mount.ID} && !${Me.Casting.ID} && !${Me.Moving} && !${Stick.Active} && !${MoveTo.Moving} && !${Me.CombatState.Equal[COMBAT]} && ${Me.Class.ShortName.NotEqual[BRD]}) {
 		
-		/varset sitTimer ${Ini[MyIni,General,SitTimer]}
+		/varset sitTimer ${Ini[MyIni,Settings,SitTimer]}
 	}
 	/for i 1 to ${RestRoutines.Count[|]}
 		/if (${Math.Max[${AddListPriority}]}) /return
@@ -614,13 +617,13 @@ Sub Load
 	/if (!${Defined[sitTimer]}) {
 		/declare sitTimer timer outer
 	}
-	/if (!${Bool[${Ini[MyIni,General,SitTimer]}]}) {
-		/ini "MyIni" "General" "SitTimer" "2s"
-		/varset sitTimer ${Ini[MyIni,General,SitTimer]}
+	/if (!${Bool[${Ini[MyIni,Settings,SitTimer]}]}) {
+		/ini "MyIni" "Settings" "SitTimer" "2s"
+		/varset sitTimer ${Ini[MyIni,Settings,SitTimer]}
 	} else {
-		/varset sitTimer ${Ini[MyIni,General,SitTimer]}
+		/varset sitTimer ${Ini[MyIni,Settings,SitTimer]}
 	}
-	/cechob \arYou will sit ${Ini[MyIni,General,SitTimer]} after previous sit. 
+	/cechob \arYou will sit ${Ini[MyIni,Settings,SitTimer]} after previous sit. 
 	/declare SyntaxError string outer NULL
 	/declare Error string outer NULL
 	/declare MQ2DataError string outer NULL
@@ -824,7 +827,7 @@ Sub NeedLoad
 	/declare AAMana string outer Harvest of Druzzil|Quiet Miracle|Cannibalization|Gather Mana|Mana Draw|Death Bloom|Mana Reserve|Fundament: Second Spire of Enchantment|Veturika's Perseverance|Death Blossom|Paragon of Spirit|Thought Leech|Marr's Gift|
 	/declare AAHarvest string outer Harvest of Druzzil|Quiet Miracle|Cannibalization|Gather Mana|Mana Draw|Death Bloom|Mana Reserve|Fundament: Second Spire of Enchantment|Veturika's Perseverance|Death Blossom|Paragon of Spirit|
 	/declare AAClickyNuke string outer Aurora, the Heartwood Blade|Blade of Vesagran|Blessed Spiritstaff of the Heyokah|Champion's Sword of Eternal Power|Crafted Talisman of Fates|Deathwhisper|Fatestealer|Fistwraps of Celestial Discipline|Heartwood Blade|Innoruuk's Dark Blessing|Innoruuk's Voice|Kreljnok's Sword of Eternal Power|Nightbane, Sword of the Valiant|Nightshade, Blade of Entropy|Prismatic Dragon Blade|Raging Taelosian Alloy Axe|Redemption|Soulwhisper|Staff of Everliving Brambles|Staff of Living Brambles|Staff of Phenomenal Power|Staff of Prismatic Power|Transcended Fistwraps of Immortality|Vengeful Taelosian Blood Axe|
-	/declare AAAura string outer Twincast Aura|Holy Aura|Disciple's Aura|Aura of Rage|Champion's Aura|
+	/declare AAAura string outer Twincast Aura|Holy Aura|Disciple's Aura|Aura of Rage|Champion's Aura|Baffler's Aura
 	/declare AAPulling string outer Throw Stone|Boastful Bellow|
 	/declare AABattleLeap string outer Furious Leap|Stomping Leap|Battle Leap|
 	/declare AAEndurance string outer Communion of Blood|
@@ -1153,8 +1156,8 @@ Sub Event_Emergency
 		/if (${Me.AltAbilityReady[${EmergencySkill}]}) /casting "${Me.AltAbility[${EmergencySkill}].Name}" alt
 		/if (${Me.CombatAbilityReady[${EmergencySkill}]}) /disc ${EmergencySkill}
 		/if (${Me.Gem[${EmergencySkill}]}) /call Cast "${EmergencySkill}" gem${Me.Gem[${EmergencySkill}]} NULL NULL NULL
-		/if (${FindItem[${EmergencySkill}].ItemSlot} && !${FindItem[${EmergencySkill}].Timer} && ${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${EmergencySkill}].ItemSlot} ${FindItem[=${EmergencySkill}].ItemSlot2}
-		/if (${FindItem[${EmergencySkill}].ItemSlot} && !${FindItem[${EmergencySkill}].Timer} && !${Me.HaveExpansion[Veil of Alaris]}) /casting "${EmergencySkill}"|item
+		/if (${FindItem[${EmergencySkill}].ItemSlot} && !${FindItem[${EmergencySkill}].Timer} && ${Me.Level}>=${FindItem[${EmergencySkill}].RequiredLevel} && ${Me.HaveExpansion[Veil of Alaris]}) /useitem "${FindItem[=${EmergencySkill}].Name}"
+		/if (${FindItem[${EmergencySkill}].ItemSlot} && !${FindItem[${EmergencySkill}].Timer} && ${Me.Level}>=${FindItem[${EmergencySkill}].RequiredLevel} && !${Me.HaveExpansion[Veil of Alaris]}) /casting "${EmergencySkill}"|item
 	}
 /return
 
@@ -1839,7 +1842,7 @@ Sub CheckTarget3
 		/call ClearTarget
    	}
 	/if (${FindItemCount[=Ethereal Arrow]}<=1 && ${FindItem[Huntsman's Ethereal Quiver].ItemSlot} && ${UseArchery} && !${Cursor.Name.Equal[Ethereal Arrow]} && !${Me.AltAbility[Endless Quiver]}) {
-		/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=Huntsman's Ethereal Quiver].ItemSlot} ${FindItem[=Huntsman's Ethereal Quiver].ItemSlot2}
+		/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem "Huntsman's Ethereal Quiver"
 		/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Huntsman's Ethereal Quiver"|item
 		/delay 1s
 		/delay 10s !${Me.Casting.ID}
@@ -2210,8 +2213,14 @@ Sub PullingLoad
 			/echo Loaded MQ2Nav because your [Pulling] PullingMethod=${PullingMethod}
 		}
 		/delay 2s ${Plugin[MQ2Nav].Name.Length}
-		/if (!${Navigation.MeshLoaded} && ${AmIPuller}) {
-			/if (${Plugin[MQ2Nav].Name.Equal[MQ2Nav]} && !${Navigation.MeshLoaded}) /cechob \arMesh not created for this zone, MQ2Nav pulling cannot function.
+		/if (${Plugin[MQ2Nav].Name.Length}) {
+			/if (!${Navigation.MeshLoaded} && ${AmIPuller}) {
+				/if (${Plugin[MQ2Nav].Name.Equal[MQ2Nav]} && !${Navigation.MeshLoaded}) /cechob \arMesh not created for this zone, MQ2Nav pulling cannot function.
+				/echo [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
+				/mqlog ${Me.Class} -  [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
+				/varset PullingMethod standard
+			}
+		} else {
 			/echo [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
 			/mqlog ${Me.Class} -  [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
 			/varset PullingMethod standard
@@ -2523,17 +2532,19 @@ Sub Pull(int spawnid)
 
 	|MQ2Nav Pulling
 	/if (${PullingMethod.Find[nav]}) {
-		/if (!${Navigation.Active}) {
-			/nav id ${spawnid}
-			/echo Nav to ${Spawn[${spawnid}]}
-			/if (${Plugin[MQ2Twist].Name.Length}) {
-				/if (${Twist.Twisting}) {
-					/varset twisting TRUE
-					/squelch /twist off
+		/if (${Plugin[MQ2Nav].Name.Length}) {
+			/if (!${Navigation.Active}) {
+				/nav id ${spawnid}
+				/echo Nav to ${Spawn[${spawnid}]}
+				/if (${Plugin[MQ2Twist].Name.Length}) {
+					/if (${Twist.Twisting}) {
+						/varset twisting TRUE
+						/squelch /twist off
+					}
 				}
+				/call PullCheck
+				/if (${Int[${Target.Distance}]}>${PullCastRange} && !${Me.XTarget}) /goto :move
 			}
-			/call PullCheck
-			/if (${Int[${Target.Distance}]}>${PullCastRange} && !${Me.XTarget}) /goto :move
 		}
 	}
 
@@ -2555,9 +2566,11 @@ Sub PullCheck
 	/if ((${Me.CombatState.Equal[COMBAT]}||${Me.XTarget}) && ${Pulling}) /call ReturnCamp
 	|/echo is MoveUtils Sutck: ${MoveUtils.Stuck}
 	/if (${MoveUtils.Stuck}) /call MoveCheck
-    /if (${Me.Casting.ID}||${Int[${Target.Distance}]}>${PullCastRange}||!${Target.LineOfSight} && ${PullSkillRequiresLineOfSight1}||!${Target.LineOfSight} && ${PullSkillRequiresLineOfSight1} && ${PullSkillRequiresLineOfSight2} && ${PullingTotal}==2) /return
-	/if (${PullingMethod.Find[nav]}) {
-		/if (${Navigation.Active}) /nav stop
+  /if (${Me.Casting.ID}||${Int[${Target.Distance}]}>${PullCastRange}||!${Target.LineOfSight} && ${PullSkillRequiresLineOfSight1}||!${Target.LineOfSight} && ${PullSkillRequiresLineOfSight1} && ${PullSkillRequiresLineOfSight2} && ${PullingTotal}==2) /return
+	/if (${Plugin[MQ2Nav].Name.Length}) {
+		/if (${PullingMethod.Find[nav]}) {
+			/if (${Navigation.Active}) /nav stop
+		}
 	}
 	/if (${MoveUtils.Command.Equal[MOVETO]}) /moveto off
 	/if (${Me.Moving}) /keypress back
@@ -2791,14 +2804,18 @@ Sub Hunt
 	/if (!${Defined[PullingLoaded]}) /call PullingLoad
 	/if (${Me.XTarget[1].ID} && ${UseMelee} && !${Me.Combat}) /docommand ${AttackCommand}
 	/if (${Me.CombatState.NotEqual[COMBAT]} && (${Target.LineOfSight}||!${PullSkillRequiresLineOfSight1}) && ${Target.Distance}<=${PullSkillDistance1} && (${Me.AltAbilityReady[${PullSkillName1}]}||${Me.SpellReady[${PullSkillName1}]}||${FindItem[${PullSkillName1}].ItemSlot} && !${FindItem[${PullSkillName1}].Timer}||${Me.CombatAbilityReady[${PullSkillName1}]}||${Me.AbilityReady[${PullSkillName1}]})) {
-		/if (${Navigation}) {
-			/if (${Navigation.Active}) /nav stop
+		/if (${Plugin[MQ2Nav].Name.Length}) {
+			/if (${Navigation}) {
+				/if (${Navigation.Active}) /nav stop
+			}
 		}
 		/call Cast "${PullSkillName1}" ${PullSkillGem1} NULL NULL NULL
 	} else {
 		/if (${Me.CombatState.NotEqual[COMBAT]} && (${Target.LineOfSight}||!${PullSkillRequiresLineOfSight2}) && ${Target.Distance}<=${PullSkillDistance2} && (${Me.AltAbilityReady[${PullSkillName2}]}||${Me.SpellReady[${PullSkillName2}]}||${FindItem[${PullSkillName2}].ItemSlot} && !${FindItem[${PullSkillName2}].Timer}||${Me.CombatAbilityReady[${PullSkillName2}]}||${Me.AbilityReady[${PullSkillName2}]})) {
-			/if (${Navigation}) {
-				/if (${Navigation.Active}) /nav stop
+			/if (${Plugin[MQ2Nav].Name.Length}) {
+				/if (${Navigation}) {
+					/if (${Navigation.Active}) /nav stop
+				}
 			}
 			/call Cast "${PullSkillName2}" ${PullSkillGem2} NULL NULL NULL
 		}
@@ -2808,16 +2825,20 @@ Sub Hunt
 		/nav locxyz ${XLOC} ${YLOC} ${ZLOC}
 		/varset MovePullTimer 1m
 	}
-	/if (${Navigation}) {
-		/if (${Navigation.Active} && (${Me.CombatState.Equal[COMBAT]}||${Me.XTarget})) {
-			/nav stop
-			/call CheckTarget2
+	/if (${Plugin[MQ2Nav].Name.Length}) {
+		/if (${Navigation}) {
+			/if (${Navigation.Active} && (${Me.CombatState.Equal[COMBAT]}||${Me.XTarget})) {
+				/nav stop
+				/call CheckTarget2
+			}
 		}
 	}
 	/declare i int local
 
-	/if (${Navigation}) {
-		/if (${Me.XTarget[1].ID} && ${Navigation.Active}) /nav stop
+	/if (${Plugin[MQ2Nav].Name.Length}) {
+		/if (${Navigation}) {
+			/if (${Me.XTarget[1].ID} && ${Navigation.Active}) /nav stop
+		}
 	}
 	/if (${Me.XTarget[1].ID}||${Me.Feigning}) /return
 	/for i 1 to ${SpawnCount[npc]}
@@ -4276,7 +4297,6 @@ Sub Aura
 	}
   	
 	/if (${Bool[${Me.Aura[1]}]} && !${Me.AltAbility[Spirit Mastery]} && !${Me.AltAbility[Auroria Mastery]}||${Bool[${Me.Aura[2]}]}||${AuraDelay}||${NeedLoad}) /return
-	
 	/if (${${CurrentSub}Total}) {
 		/if (${${CurrentSub}Use1}) {
 			/if (${Me.Aura[1].Find[${AuraSpellName1}]}) /varset NeedAura FALSE
@@ -4326,7 +4346,7 @@ Sub AutoClickies
 	/if (${NeedLoad}) /return
 	/call DoClickies
 	/if (${FindItem[Chalandria's Fang].ItemSlot} && !${FindItem[Chalandria's Fang].Timer}) {
-		/if (${Me.HaveExpansion[Veil of Alaris]} && ${Me.Subscription.Equal[GOLD]}) /useitem ${FindItem[=Chalandria's Fang].ItemSlot} ${FindItem[=Chalandria's Fang].ItemSlot2}
+		/if (${Me.HaveExpansion[Veil of Alaris]} && ${Me.Subscription.Equal[GOLD]}) /useitem "Chalandria's Fang""
 		/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Chalandria's Fang"|item
 		/delay 1s
 		/autoinventory
@@ -4477,7 +4497,7 @@ Sub DoClickies
 					/delay 2
 				}
 			}
-			/if (${FindItem[${ClickyArray[${i},3]}].EffectType.Equal[Click Inventory]} && ${Me.HaveExpansion[Veil of Alaris]} && (${Me.Subscription.Equal[GOLD]}||${FindItem[=${ClickyArray[${i},3]}].InvSlot}<33)) /useitem ${FindItem[=${ClickyArray[${i},3]}].ItemSlot} ${FindItem[=${ClickyArray[${i},3]}].ItemSlot2}
+			/if (${FindItem[${ClickyArray[${i},3]}].EffectType.Equal[Click Inventory]} && ${Me.HaveExpansion[Veil of Alaris]} && (${Me.Subscription.Equal[GOLD]}||${FindItem[=${ClickyArray[${i},3]}].InvSlot}<33) && ${Me.Level}>=${FindItem[=${ClickyArray[${i},3]}].RequiredLevel}) /useitem "${FindItem[=${ClickyArray[${i},3]}].Name}"
 			/if (${FindItem[${ClickyArray[${i},3]}].EffectType.Equal[Click Worn]}||!${Me.HaveExpansion[Veil of Alaris]}||${Me.Subscription.NotEqual[GOLD]}) /casting "${ClickyArray[${i},3]}"|item
 			/delay 1s ${Me.Casting.ID}
 			/echo ${ClickyArray[${i},3]} --> ${ClickyArray[${i},2]}
@@ -5070,6 +5090,7 @@ Sub BuffCheck(int iID)
 	 **|
 	/for i 1 to ${BuffTotal}
 		/for x 1 to ${BuffType${i}.Count[|]}
+			/if (!${Defined[${Target.ID}BuffString]}) /declare ${Target.ID}BuffString string outer
 			/if (${${Target.ID}BuffString.Find[${BuffType${i}.Arg[${x},|]}]}) /goto :skip 
 		/next x
 		/if (!${Defined[${Target.ID}_Buff${i}]}) /declare ${Target.ID}_Buff${i} timer outer
@@ -5110,6 +5131,7 @@ Sub BuffArray(buffarrayname,int buffarrayicon,int buffarrayslot,int myarraybuff)
 	/if (!${myarraybuff}) {
 		/if (!${Defined[${Target.ID}_${Spell[${BuffParsePH}].ID}]}) /declare ${Target.ID}_${Spell[${BuffParsePH}].ID} string outer
 		/varset ${Target.ID}_${Spell[${BuffParsePH}].ID} ${${Target.ID}_${Spell[${BuffParsePH}].ID}}${buffarrayname}|
+		/if (!${Defined[${Target.ID}BuffString]}) /declare ${Target.ID}BuffString string outer
 		/varset ${Target.ID}BuffString ${${Target.ID}BuffString}${buffarrayname}|
 		/varcalc TargetBuffCount ${TargetBuffCount}+1
 		/varset TargetBuff[${TargetBuffCount},1] ${Target.CleanName}
@@ -5541,7 +5563,7 @@ Sub Campfire
 
 Sub AutoUseCampfire
 	/if (${Me.Fellowship.Campfire} & ${Select[${Zone.ID},344,202,151,345]} && ${AutoUseCampfire} && ${Select[${Me.CombatState.Equal},RESTING,ACTIVE]} && ${If[(${Me.Buff[Revival Sickness].ID}||${Me.Buff[Resurrection Sickness].ID}),1,0]}) {
-		/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=Fellowship Registration Insignia].ItemSlot} ${FindItem[=Fellowship Registration Insignia].ItemSlot2}
+		/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem "Fellowship Registration Insignia"
 		/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Fellowship Registration Insignia"|item
 	}
 /return
@@ -5669,7 +5691,7 @@ Sub ClickyMaintenance
 				}
 			}
 			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.Equal[Click Worn]}||!${Me.HaveExpansion[Veil of Alaris]}) /casting "${click${loopid}}"|item
-			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.NotEqual[Click Worn]} && ${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${click${loopid}}].ItemSlot} ${FindItem[=${click${loopid}}].ItemSlot2}
+			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.NotEqual[Click Worn]} && ${Me.HaveExpansion[Veil of Alaris]} && ${Me.Level}>=${FindItem[=${click${loopid}}].RequiredLevel}) /useitem "${FindItem[=${click${loopid}}].Name}"
 			/delay 1s ${Me.Casting.ID}
 			/delay 10s !${Me.Casting.ID}
 			/if (${temptwist}) /twist start
@@ -5687,11 +5709,11 @@ Sub ClickyMaintenance
 				}
 			}
 			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.Equal[Click Worn]}||!${Me.HaveExpansion[Veil of Alaris]}||${Me.Subscription.NotEqual[GOLD]}) /casting "${click${loopid}}"|item
-			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.NotEqual[Click Worn]} && ${Me.HaveExpansion[Veil of Alaris]} && (${Me.Subscription.Equal[GOLD]}||${FindItem[=${click${loopid}}].InvSlot}<33)) /useitem ${FindItem[=${click${loopid}}].ItemSlot} ${FindItem[=${click${loopid}}].ItemSlot2}
+			/if (${casttype} && ${FindItem[${click${loopid}}].EffectType.NotEqual[Click Worn]} && ${Me.HaveExpansion[Veil of Alaris]} && (${Me.Subscription.Equal[GOLD]}||${FindItem[=${click${loopid}}].InvSlot}<33) && ${Me.Level}>=${FindItem[=${click${loopid}}].RequiredLevel}) /useitem "${FindItem[=${click${loopid}}].Name}"
 			/delay 1s ${Me.Casting.ID}
 			/delay 10s !${Me.Casting.ID}
 			/if (${temptwist}) /twist start
-			|/if (${casttype}) /useitem ${FindItem[=${click${loopid}}].ItemSlot} ${FindItem[=${click${loopid}}].ItemSlot2}
+			|/if (${casttype} && ${Me.Level}>=${FindItem[=${click${loopid}}].RequiredLevel}) /useitem "${FindItem[=${click${loopid}}].Name}"
 			|/if (!${casttype}) /call Cast "${click${loopid}}" item NULL NULL NULL
 			/goto :bottomloop
 		}
@@ -5819,7 +5841,7 @@ Sub ClickyNuke
 					/return
 				}
 				/if (${FindItem[${${CurrentSub}Name${i}}].EffectType.Equal[Click Worn]}||!${Me.HaveExpansion[Veil of Alaris]}) /casting "${${CurrentSub}Name${i}}"|item
-				/if (${FindItem[${${CurrentSub}Name${i}}].EffectType.NotEqual[Click Worn]} && ${Me.HaveExpansion[Veil of Alaris]} && ${Me.Subscription.Equal[GOLD]}) /useitem ${FindItem[=${${CurrentSub}Name${i}}].ItemSlot} ${FindItem[=${${CurrentSub}Name${i}}].ItemSlot2}
+				/if (${FindItem[${${CurrentSub}Name${i}}].EffectType.NotEqual[Click Worn]} && ${Me.HaveExpansion[Veil of Alaris]} && ${Me.Subscription.Equal[GOLD]} && ${Me.Level}>=${FindItem[=${${CurrentSub}Name${i}}].RequiredLevel}) /useitem "${FindItem[=${${CurrentSub}Name${i}}].Name}"
 				/delay 3s !${Me.Casting.ID}
 				
 				:bard2
@@ -6560,7 +6582,7 @@ Sub Endurance
 	/if (${Me.PctEndurance}<${SitAt} && !${SitTimer} && !${sitTimer} && !${Me.Mount.ID} && ${Me.State.Equal[STAND]} && (${Me.CombatState.Equal[ACTIVE]}||${Me.CombatState.Equal[DEBUFFED]} && !${Debuff.Count}) && !${Me.Class.ShortName.NotEqual[BRD]}) {
 		
 		/varset SitTimer ${SitTimer.OriginalValue}
-		/varset sitTimer ${Ini[MyIni,General,SitTimer]}
+		/varset sitTimer ${Ini[MyIni,Settings,SitTimer]}
 	}
   	:SitToFull
   	/if (${Me.CombatState.Equal[RESTING]} && ${SitToFull} && ${Me.PctEndurance}<95) /goto :SitToFull
@@ -6741,8 +6763,10 @@ Sub Follow
 	/if (!${Spawn[id ${MoveID}].ID}||!${Following}) /return
 	/if (${Spawn[id ${MoveID}].Distance}>${DistanceToFollow}) {
 		/if (${Me.Casting.ID} && !${Me.Class.ShortName.Equal[BRD]}) /delay 15s !${Me.Casting.ID}
-		/if (${Navigation}) {
-			/if (${FollowMethod.Find[nav]} && !${Navigation.Active}) /nav  name "${NameToFollow}"
+		/if (${Plugin[MQ2Nav].Name.Length}) {
+			/if (${Navigation}) {
+				/if (${FollowMethod.Find[nav]} && !${Navigation.Active}) /nav  name "${NameToFollow}"
+			}
 		}
 		/if (${FollowMethod.Find[stick]} && !${Stick.Distance}) /stick id ${MoveID} ${FollowMethod.Arg[2,|]}
 		/if (${FollowMethod.Find[adv]}) {
@@ -6767,8 +6791,10 @@ Sub FollowCheck
 		
 		/echo Following ${NameToFollow} - ID: ${MoveID}
 		/if (${Me.Casting.ID} && !${Me.Class.ShortName.Equal[BRD]}) /delay 5s !${Me.Casting.ID}
-		/if (${Navigation}) {
-			/if (${FollowMethod.Find[nav]} && !${Navigation.Active}) /nav spawn pc ${NameToFollow}
+		/if (${Plugin[MQ2Nav].Name.Length}) {
+			/if (${Navigation}) {
+				/if (${FollowMethod.Find[nav]} && !${Navigation.Active}) /nav spawn pc ${NameToFollow}
+			}
 		}
 		/if (${FollowMethod.Find[stick]} && !${Stick.Distance}) /stick id ${MoveID} ${FollowMethod.Arg[2,|]}
 		/if (${FollowMethod.Find[adv]}) {
@@ -6791,8 +6817,10 @@ Sub Event_Follow(followname,int moveup)
 	/if (!${moveup}) /varset Following 1
 	
 	/varset UseCamp FALSE
-	/if (${Navigation}) {
-		/if (${FollowMethod.Find[nav]} && !${Navigation.Active}) /nav spawn pc ${NameToFollow}
+	/if (${Plugin[MQ2Nav].Name.Length}) {
+		/if (${Navigation}) {
+			/if (${FollowMethod.Find[nav]} && !${Navigation.Active}) /nav spawn pc ${NameToFollow}
+		}
 	}
 	/if (${moveup}) {
 		/moveto loc ${Spawn[id ${MoveID}].Y} ${Spawn[id ${MoveID}].X} ${Spawn[id ${MoveID}].Z} loose
@@ -7090,7 +7118,7 @@ Sub HealBalance
 					/click left center
 					/keypress f10
 				}
-				/if (${${CurrentSub}SpellGem${i}.Equal[item]} && ${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${${CurrentSub}SpellName${i}}].ItemSlot} ${FindItem[=${${CurrentSub}SpellName${i}}].ItemSlot2}
+				/if (${${CurrentSub}SpellGem${i}.Equal[item]} && ${Me.HaveExpansion[Veil of Alaris]} && ${Me.Level}>=${FindItem[=${${CurrentSub}SpellName${i}}].RequiredLevel}) /useitem "${FindItem[=${${CurrentSub}SpellName${i}}].Name}"
 				/if (${${CurrentSub}SpellGem${i}.Equal[item]} && !${Me.HaveExpansion[Veil of Alaris]}) /casting "${${CurrentSub}SpellName${i}}"|item		
 			}
 		/next g
@@ -7444,7 +7472,7 @@ Sub Event_ImHit(line, string TargetName)
 			/if (${Me.SpellReady[${ImHitSpellName${i}}]}) /call Cast "${ImHitSpellName${i}}" gem${Me.Gem[${ImHitSpellName${i}}]} NULL NULL NULL
 			/if (${Me.CombatAbilityReady[${ImHitSpellName${i}}]}) /disc ${ImHitSpellName${i}}
 			/if (${Me.AbilityReady[${ImHitSpellName${i}}]}) /doability "${ImHitSpellName${i}}"
-			/if (${FindItem[${ImHitSpellName${i}}].InvSlot} && !${FindItem[${ImHitSpellName${i}}].Timer} && ${Me.HaveExpansion[Veil of Alaris]})  /useitem ${FindItem[=${ImHitSpellName${i}}].ItemSlot} ${FindItem[=${ImHitSpellName${i}}].ItemSlot2}
+			/if (${FindItem[${ImHitSpellName${i}}].InvSlot} && !${FindItem[${ImHitSpellName${i}}].Timer} && ${Me.HaveExpansion[Veil of Alaris]} && ${Me.Level}>=${FindItem[=${ImHitSpellName${i}}].RequiredLevel})  /useitem "${FindItem[=${ImHitSpellName${i}}].Name}"
 			/if (${FindItem[${ImHitSpellName${i}}].InvSlot} && !${FindItem[${ImHitSpellName${i}}].Timer} && !${Me.HaveExpansion[Veil of Alaris]})  /casting "${ImHitSpellName${i}}"|item
 		}
 	:skip
@@ -7717,7 +7745,7 @@ Sub ModRodLoad
 Sub ModRod
 	/if (${Me.Hovering}) /return
 	|update alert
-	/if (!${Defined[ModRodList]}) /declare ModRodList string outer |Summoned: Giant Modulation Shard|Summoned: Large Modulation Shard|Summoned: Medium Modulation Shard|Summoned: Small Modulation Shard|Rod of Arcane Transvergence|Rod of Spectral Transvergence|Rod of Ethereal Transvergence|Rod of Prime Transvergence|Wand of Elemental Transvergence|Rod of Mystical Transvergence|Summoned: Modulating Rod|Wand of Phantasmal Modulation|
+	/if (!${Defined[ModRodList]}) /declare ModRodList string outer |Summoned: Glowing Modulation Shard|Summoned: Giant Modulation Shard|Summoned: Large Modulation Shard|Summoned: Medium Modulation Shard|Summoned: Small Modulation Shard|Rod of Arcane Transvergence|Rod of Spectral Transvergence|Rod of Ethereal Transvergence|Rod of Prime Transvergence|Wand of Elemental Transvergence|Rod of Mystical Transvergence|Summoned: Modulating Rod|Wand of Phantasmal Modulation|Wand of Phantasmal Transvergence|Wand of Pelagic Modulation|Wand of Pelagic Transvergence|
 	/declare i int local
 	/declare iItemEffects int local 0
 
@@ -7725,8 +7753,13 @@ Sub ModRod
 		/varset iItemEffects ${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].NumEffects}]}
 		/if (${iItemEffects}>=2) {
 			/if (${FindItem[${ModRodList.Arg[${i},|]}].ItemSlot} && !${FindItem[${ModRodList.Arg[${i},|]}].Timer} && ${Me.CurrentHPs}>${Math.Abs[${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[1]}]} && ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[2]}) {
-				/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${ModRodList.Arg[${i},|]}].ItemSlot} ${FindItem[=${ModRodList.Arg[${i},|]}].ItemSlot2}
-				/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "${ModRodList.Arg[${i},|]}"|item
+				/if (${Me.HaveExpansion[Veil of Alaris]} && ${Me.Level}>=${FindItem[=${ModRodList.Arg[${i},|]}].RequiredLevel}) {
+					/echo Level req: ${FindItem[=${ModRodList.Arg[${i},|]}].RequiredLevel}
+					/useitem "${FindItem[=${ModRodList.Arg[${i},|]}].Name}"
+				}
+				/if (!${Me.HaveExpansion[Veil of Alaris]}) {
+					/casting "${ModRodList.Arg[${i},|]}"|item
+				}
 				/call ${EchoSub} "${Green} ${ModRodList.Arg[${i},|]} -- ${White} ${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[1]} HP Loss for ${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[2]} Mana Gain"
 		}
 	}
@@ -7844,7 +7877,7 @@ Sub Mana
 		/varset iItemEffects ${FindItem[Azure Mind Crystal].Spell.NumEffects}
 		/if (${iItemEffects}>=1) {
 			/if (${Me.PctMana}<=20 && ${FindItemCount[Azure Mind Crystal]}) {
-				/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=Azure Mind Crystal].ItemSlot} ${FindItem[=Azure Mind Crystal].ItemSlot2}
+				/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem "Azure Mind Crystal"
 			 	/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Azure Mind Crystal"|item
 				/call ${EchoSub} "${Orange} Azure Mind Crystal --> ${White} ${Math.Calc[${FindItem[Azure Mind Crystal].Spell.Base[1]} - 5 + ${Me.Level}*5].Int} mana gain"
 			}
@@ -7853,7 +7886,7 @@ Sub Mana
 		/varset iItemEffects ${FindItem[Sanguine Mind Crystal].Spell.NumEffects}
 		/if (${iItemEffects}>=1) {
 			/if (${Me.PctHPs}<=50 && ${FindItemCount[Sanguine Mind Crystal]}) {
-				/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=Sanguine Mind Crystal].ItemSlot} ${FindItem[=Sanguine Mind Crystal].ItemSlot2}
+				/if (${Me.HaveExpansion[Veil of Alaris]}) /useitem "Sanguine Mind Crystal"
 			 	/if (!${Me.HaveExpansion[Veil of Alaris]}) /casting "Sanguine Mind Crystal"|item
 				/call ${EchoSub} "${Teal} Sanguine Mind Crystal --> ${White} [${FindItem[Sanguine Mind Crystal].Spell.Base[1]} hp gain"
 			}
@@ -7980,7 +8013,7 @@ Sub Mana
 			/if (${Twist.Twisting}) /twist stop
 		}
   		
-		/varset sitTimer ${Ini[MyIni,General,SitTimer]}
+		/varset sitTimer ${Ini[MyIni,Settings,SitTimer]}
 		/varset MedTimer ${MedTimer.OriginalValue}
 		/delay 5
     }
@@ -8776,8 +8809,8 @@ Sub PetBuffs
 					/call ${EchoSub} "${Pink} ${PetBuffSpell${p}} --> ${White} ${Me.Pet.CleanName}"
 					/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${PetBuffSpell${p}} --> ${Me.Pet.CleanName}
 				}
-				/if (${PetBuffGem${p}.Equal[item]} && ${Cast.Ready[${PetBuffSpell${p}}]} && ${Me.HaveExpansion[Veil of Alaris]}) {
-					/useitem ${FindItem[=${PetBuffSpell${p}}].ItemSlot} ${FindItem[=${PetBuffSpell${p}}].ItemSlot2}
+				/if (${PetBuffGem${p}.Equal[item]} && ${Cast.Ready[${PetBuffSpell${p}}]} && ${Me.HaveExpansion[Veil of Alaris]} && ${Me.Level}>=${FindItem[=${PetBuffSpell${p}}].RequiredLevel}) {
+					/useitem "${FindItem[=${PetBuffSpell${p}}].Name}"
 				} else {
 					/casting "${PetBuffSpell${p}}"|item
 				}
@@ -8794,7 +8827,7 @@ Sub PetBuffs
   	/if (${ShrinkPet} && ${Me.Pet.ID} && (${Me.Pet.Height}>${ShrinkPetIfHeightAbove})) {
 		/if (${Target.ID}!=${Me.Pet.ID}) /squelch /target id ${Me.Pet.ID}
 		/delay 3s ${Target.ID}==${Me.Pet.ID}
-		/if (${ShrinkPetSpellGem.Equal[item]} && ${Me.HaveExpansion[Veil of Alaris]}) /useitem ${FindItem[=${ShrinkPetSpell}].ItemSlot} ${FindItem[=${ShrinkPetSpell}].ItemSlot2}
+		/if (${ShrinkPetSpellGem.Equal[item]} && ${Me.HaveExpansion[Veil of Alaris]} && ${Me.Level}>=${FindItem[=${ShrinkPetSpell}].RequiredLevel}) /useitem "${FindItem[=${ShrinkPetSpell}].Name}"
 		/if (${ShrinkPetSpellGem.Equal[item]} && !${Me.HaveExpansion[Veil of Alaris]})	/casting "${ShrinkPetSpell}"|item
 		/if (${ShrinkPetSpellGem.NotEqual[item]})   /call Cast "${ShrinkPetSpell}" ${ShrinkPetSpellGem} 3s NULL NULL
 		/if (${ShrinkPetSpellGem.Equal[item]}) {
@@ -8908,7 +8941,7 @@ Sub SummonPetGear(int PetGearID)
 	:clearcursor
 	/if (${Cursor.ID}) /autoinv
 	/if (${FindItem[Pouch of Quellious].ItemSlot} && ${PetGearID}==${Me.ID}) {
-		/useitem ${FindItem[=Pouch of Quellious].ItemSlot} ${FindItem[=Pouch of Quellious].ItemSlot2}
+		/useitem "Pouch of Quellious""
 		/delay 5s ${Cursor.Name.Equal[Pouch of Quellious]}
 		/if (${Cursor.Name.Equal[Pouch of Quellious]}) /destroy
 	}

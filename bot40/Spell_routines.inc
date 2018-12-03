@@ -169,16 +169,16 @@ Sub Cast(spellName,spellType,giveUpValue,mySub,int ResistTotal)
 /if (!${Defined[spellType]}) /declare spellType string local spell
 /if (!${Defined[spellRecastTime1]}) {
   /if (!${Defined[noInterrupt]}) /declare noInterrupt int outer 0
-  /declare ResistCounter int outer
-  /declare moveBack bool outer false
-  /declare selfResist int outer
-  /declare selfResistSpell string outer
-  /declare giveUpTimer timer outer
-  /declare castEndTime timer outer
-  /declare refreshTime timer outer
-  /declare itemRefreshTime float outer
-  /declare i int local
-  /declare spellNotHold int outer
+  /if (!${Defined[ResistCounter]}) /declare ResistCounter int outer
+  /if (!${Defined[moveBack]}) /declare moveBack bool outer false
+  /if (!${Defined[selfResist]}) /declare selfResist int outer
+  /if (!${Defined[selfResistSpell]}) /declare selfResistSpell string outer
+  /if (!${Defined[giveUpTimer]}) /declare giveUpTimer timer outer
+  /if (!${Defined[castEndTime]}) /declare castEndTime timer outer
+  /if (!${Defined[refreshTime]}) /declare refreshTime timer outer
+  /if (!${Defined[itemRefreshTime]}) /declare itemRefreshTime float outer
+  /if (!${Defined[i]}) /declare i int local
+  /if (!${Defined[spellNotHold]}) /declare spellNotHold int outer
   /delay 5
   |---- Spell Gem Slots
   /for i 1 to 12
