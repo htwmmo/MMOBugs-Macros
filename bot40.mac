@@ -697,6 +697,17 @@ Sub Load
 	/noparse /declare Twincast string outer (${Me.Song[Twincast].ID}||${Me.Song[Twincast Rk. II].ID}||${Me.Song[Twincast Rk. III].ID}||${Me.Song[Improved Twincast].ID}||${Me.Buff[Twincast].ID}||${Me.Buff[Improved Twincast].ID})
 	/noparse /declare Facing string outer ${Range.Between[0,30:${Math.Abs[${Math.Calc[${Target.HeadingTo.Degrees}-${Me.Heading.Degrees}]}]}]}
 	/noparse /declare FacingMe string outer ${Range.Between[175,180:${Math.Abs[${Math.Calc[${Target.HeadingTo.Degrees}-${Target.Heading.Degrees}]}]}]}
+	/if (!${Defined[PrismaticImmuneList]}) /declare PrismaticImmuneList string outer
+	/if (!${Defined[CorruptionImmuneList]}) /declare CorruptionImmuneList string outer
+	/if (!${Defined[PhysicalImmuneList]}) /declare PhysicalImmuneList string outer
+	/if (!${Defined[ChromaticImmuneList]}) /declare ChromaticImmuneList string outer
+	/if (!${Defined[DiseaseImmuneList]}) /declare DiseaseImmuneList string outer
+	/if (!${Defined[PoisonImmuneList]}) /declare PoisonImmuneList string outer
+	/if (!${Defined[ColdImmuneList]}) /declare ColdImmuneList string outer
+	/if (!${Defined[FireImmuneList]}) /declare FireImmuneList string outer
+	/if (!${Defined[MagicImmuneList]}) /declare MagicImmuneList string outer
+	/if (!${Defined[UnresistableImmuneList]}) /declare UnresistableImmuneList string outer
+	/if (!${Defined[UnknownImmuneList]}) /declare UnknownImmuneList string outer
 	/if (${NeedLoad}) /call NeedLoad
 	/call OptionsLoad
 	
@@ -5582,8 +5593,10 @@ Sub CheckStuff
     /for z 0 to 5
 		/if (${Group.Member[${z}].ID} && ${Range.Between[1,${InterruptToHealAt}:${Group.Member[${z}].PctHPs}]} && ${OptionsCheck.Find[|Heal]}) {
 			/for y 1 to 5
+				/if (!${Defined[${Heals.Arg[${y},|]}Total]}) /declare ${Heals.Arg[${y},|]}Total int outer 0
 				/for t 1 to ${${Heals.Arg[${y},|]}Total}
 					/if (!${Defined[${Heals.Arg[${y},|]}Recast${t}]}) /declare ${Heals.Arg[${y},|]}Recast${t} int outer 1
+					/if (!${Defined[${Heals.Arg[${y},|]}Use${t}]}) /declare ${Heals.Arg[${y},|]}Use${t} bool outer TRUE
 					/if (${${Heals.Arg[${y},|]}Use${t}} && !${${Heals.Arg[${y},|]}Recast${t}} && (${Me.SpellReady[${${Heals.Arg[${y},|]}SpellName${t}}]}||${Me.AltAbilityReady[${${Heals.Arg[${y},|]}SpellName${t}}]}||${FindItem[${${Heals.Arg[${y},|]}SpellName${t}}].ItemSlot} && !${FindItem[${${Heals.Arg[${y},|]}SpellName${t}}].Timer})) {
 						/call Interrupt
 						/call Heal
@@ -6365,6 +6378,7 @@ Sub Dot
 			/if (!${Defined[${CurrentSub}IgnoreRecast${i}]}) /Declare ${CurrentSub}IgnoreRecast${i} bool outer FALSE
 			
     		/if (${ValidSpellType} && ${ValidSpell} && ${CanCastOnMob} && ${ShouldCastOnMob} && ${CastIsReady} && ${DotConditions${i}} && ${Target.ID}==${TarID}) {
+    		/if (!${Defined[ResistCheck]}) /declare ResistCheck string outer
  				/if (${ResistCheck}) {
 					/call ${EchoSub} "${Yellow} ${${CurrentSub}SpellName${i}} --> ${White} ${Target}"
    					/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${${CurrentSub}SpellName${i}} --> ${Target.CleanName}
@@ -7292,6 +7306,7 @@ Sub HealPet
 			/if (!${${CurrentSub}Use${i}}) /continue
 			/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset HealPetConditions${i} ${Ini[MyIni,HealPet,HealPetConditions${i},123456]}
 			/if (${HealPetConditions${i}} && (${Range.Between[1,${${CurrentSub}UseAt${i}}:${Group.Member[${gmember}].Pet.PctHPs}]} && (${Spawn[id ${Group.Member[${gmember}].ID}].Pet.Distance}<${Spell[${${CurrentSub}SpellName${i}}].MyRange}||${Spawn[id ${Group.Member[${gmember}].ID}].Pet.Distance}<${Spell[${${CurrentSub}SpellName${i}}].AERange} && ${Spell[${${CurrentSub}SpellName${i}}].AERange}))||${gmember}==0 && ${Range.Between[1,${${CurrentSub}UseAt${i}}:${Me.Pet.PctHPs}]}) {
+				/if (!${Defined[HealPetRecast${i}${Me.Pet.ID}]}) /declare HealPetRecast${i}${Me.Pet.ID} int outer 0
 				/if (${gmember} && ${HealPetRecast${i}${Group.Member[${gmember}].Pet.ID}}||!${gmember} && ${HealPetRecast${i}${Me.Pet.ID}}) /continue
 				/if (!${CastIsReady}) {
 					/memspell ${${CurrentSub}SpellGem${i}.Right[1]} "${${CurrentSub}SpellName${i}}"
@@ -7636,6 +7651,7 @@ Sub Lifetap
 					/memspell ${${CurrentSub}SpellGem${i}.Right[1]} "${${CurrentSub}SpellName${i}}"
 				}
 			/if (${ValidSpell} && ${CanCastOnMob} && ${ShouldCastOnMob} && ${CastIsReady} && ${Me.PctHPs}<=${${CurrentSub}UseAtMyHP${i}} && ${${CurrentSub}Conditions${i}}) {
+    		/if (!${Defined[ResistCheck]}) /declare ResistCheck string outer
 				/if (${ResistCheck}) {
 					/call ${EchoSub} "${Green} ${${CurrentSub}SpellName${i}} --> ${White} ${Target}"
     				/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${${CurrentSub}SpellName${i}} --> ${Target.CleanName}
@@ -8522,6 +8538,7 @@ Sub Nuke
 				/memspell ${${CurrentSub}SpellGem${i}.Right[1]} "${${CurrentSub}SpellName${i}}"
 			}
     		/if (${ValidSpellType} && ${ValidSpell} && ${CanCastOnMob} && ${ShouldCastOnMob} && ${CastIsReady} && ${NukeConditions${i}}) {
+    		/if (!${Defined[ResistCheck]}) /declare ResistCheck string outer
 				/if (${ResistCheck}) {
 					/call ${EchoSub} "${Red} ${${CurrentSub}SpellName${i}} --> ${White} ${Target}"
     				/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${${CurrentSub}SpellName${i}} --> ${Target.CleanName}
@@ -9457,6 +9474,7 @@ Sub Snare
 				/memspell ${${CurrentSub}SpellGem${i}.Right[1]} "${${CurrentSub}SpellName${i}}"
 			}
       		/if (${ValidSpell} && ${CanCastOnMob} && ${ShouldCastOnMob} && ${CastIsReady}) {
+    		/if (!${Defined[ResistCheck]}) /declare ResistCheck string outer
 				/if (${ResistCheck}) {
 					/call ${EchoSub} "${Green} ${${CurrentSub}SpellName${i}} --> ${White} ${Target}"
     				/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${${CurrentSub}SpellName${i}} --> ${Target.CleanName}
@@ -9563,6 +9581,7 @@ Sub Stun
 			/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset StunConditions${i} ${Ini[MyIni,Stun,StunConditions${i},123456]}
      		/if (${ValidEnemy}  && !${StunImmuneList.Find[${Target.CleanName}]} && ${StunConditions${i}} && ${ShouldCastOnMob} && ${CanCastOnMob}) {
       			/if ((${Me.AltAbilityReady[${${CurrentSub}SpellName${i}}]}||${Me.SpellReady[${${CurrentSub}SpellName${i}}]}) && ${Me.FeetWet}==${Target.FeetWet} && ${CanCastOnMob} && ${ShouldCastOnMob}) {
+    		/if (!${Defined[ResistCheck]}) /declare ResistCheck string outer
       			/if (${ResistCheck}) {
 					/call ${EchoSub} "${Orange} ${${CurrentSub}SpellName${i}} --> ${White} ${Target}"
     				/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${${CurrentSub}SpellName${i}} --> ${Target.CleanName}

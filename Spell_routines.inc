@@ -274,7 +274,7 @@ Sub SpellCast(spellType,spellName,mySub,int spellID,giveUpValue)
 }
 /if (!${castReturn.Equal[CAST_CANNOTSEE]} && !${castReturn.Equal[CAST_OUTOFRANGE]} && !${castReturn.Equal[CAST_OUTOFMANA]} && !${castReturn.Equal[CAST_NOTARGET]} && !${castReturn.Equal[CAST_INTERRUPTED]}) {
   /varcalc refreshTime 10*${Spell[${spellID}].RecoveryTime}
-  /varcalc spellRecastTime${Me.Gem[${spellName}]} 10*${Spell[${spellID}].RecastTime}
+  /if (${Me.Gem[${spellName}]}) /varcalc spellRecastTime${Me.Gem[${spellName}]} 10*${Spell[${spellID}].RecastTime}
 }
 /return
 
