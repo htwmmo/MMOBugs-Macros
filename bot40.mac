@@ -79,7 +79,7 @@
  **   - Added Giant Modulation Shard to autoinventory list
  **
  ** 2017-02-03 - 40oz
- **   - Fix logic bug related to entering combat in a rare instance involving netbots assist type (islandgirl671)
+ **   - Fix logic bug related to entering combat in a rare instance involving netbots assist type (islandgirl671) 
  **
  ** 2017-02-02 - 40oz
  **   - Fixed AEMezzing Max NPC Level detection
