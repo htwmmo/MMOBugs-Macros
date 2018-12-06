@@ -5597,6 +5597,7 @@ Sub CheckStuff
 				/for t 1 to ${${Heals.Arg[${y},|]}Total}
 					/if (!${Defined[${Heals.Arg[${y},|]}Recast${t}]}) /declare ${Heals.Arg[${y},|]}Recast${t} int outer 1
 					/if (!${Defined[${Heals.Arg[${y},|]}Use${t}]}) /declare ${Heals.Arg[${y},|]}Use${t} bool outer TRUE
+					/if (!${Defined[${Heals.Arg[${y},|]}SpellName${t}]}) /declare ${Heals.Arg[${y},|]}SpellName${t} string outer
 					/if (${${Heals.Arg[${y},|]}Use${t}} && !${${Heals.Arg[${y},|]}Recast${t}} && (${Me.SpellReady[${${Heals.Arg[${y},|]}SpellName${t}}]}||${Me.AltAbilityReady[${${Heals.Arg[${y},|]}SpellName${t}}]}||${FindItem[${${Heals.Arg[${y},|]}SpellName${t}}].ItemSlot} && !${FindItem[${${Heals.Arg[${y},|]}SpellName${t}}].Timer})) {
 						/call Interrupt
 						/call Heal
@@ -9110,7 +9111,10 @@ Sub RezNow(int RezID)
 	/varset CurrentSub Rez
 	/declare i int local
 	/for i 1 to ${RezTotal}
+		/if (!${Defined[RezConditions${i}]}) /declare RezConditions${i} string outer
+		/if (!${Defined[RezSpellName${i}]}) /declare RezSpellName${i} string outer
 		/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset RezConditions${i} ${Ini[MyIni,Rez,RezConditions${i},123456]}
+		/if (!${Defined[RezDuringCombat${i}]}) /declare RezDuringCombat${i} string outer
 		/if (!${RezConditions${i}}) /continue
 		/if (${RezUse${i}} && ((!${Me.GemTimer[${RezSpellName${i}}]} && ${Me.Gem[${RezSpellName${i}}]}||${Me.AltAbilityReady[${RezSpellName${i}}]}||${Me.Book[${RezSpellName${i}}]} && ${ForceMemRez}) || (${FindItemCount[${RezSpellName${i}}]})) && ${RezSpellName${i}.NotEqual[Divine Resurrection]} && (${RezDuringCombat${i}}||!${Me.CombatState.Equal[COMBAT]})) {
 			/squelch /tar id ${RezID}
