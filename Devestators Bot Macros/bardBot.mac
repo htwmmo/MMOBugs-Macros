@@ -194,7 +194,7 @@ Sub main(string iniNameStr)
 	/declare oocSongsCount							int local 0
 	:mainLoop
 		/doevents
-		/if (${Me.Aura[1].Name.Equal[${auraSong}]} || ${Me.Aura[2].Name.Equal[${auraSong}]} || ${Me.Aura[1].Name.Equal[${auraText}]} || ${Me.Aura[2].Name.Equal[${auraText}]}) {
+		/if (${Me.Aura[1].Equal[${auraSong}]} || ${Me.Aura[2].Equal[${auraSong}]} || ${Me.Aura[1].Equal[${auraText}]} || ${Me.Aura[2].Equal[${auraText}]}) {
 			| Work around for MQ2 aura bug
 		} else {
 			/if (${auraSong.NotEqual[NULL]} && ${auraGem} && (${castWhileInvis} || !${Me.Invis})) /call CastSong "${auraSong}" ${auraGem}
