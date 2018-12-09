@@ -4626,8 +4626,10 @@ Sub BardLoad
 		/declare RestTwist string outer ${Ini[MyIni,Bard,RestTwist,NULL]}
 		/declare CombatTwist string outer ${Ini[MyIni,Bard,CombatTwist,NULL]}
 		/declare StopSongsIfPullerIsThisDistanceOrMore int outer ${Ini[MyIni,Bard,StopSongsIfPullerIsThisDistanceOrMore,0]}
-		/if (${RestTwist.Equal[NULL]} && ${Plugin[MQ2Twist].Name.Length}) /mmoini "MyIni" "Bard" "RestTwist" "${Twist.List}"
-		/if (${CombatTwist.Equal[NULL]} && ${Plugin[MQ2Twist].Name.Length}) /mmoini "MyIni" "Bard" "CombatTwist" "${Twist.List}"
+		/if (${Plugin[MQ2Twist].Name.Length}) {
+			/if (${RestTwist.Equal[NULL]} && ${Plugin[MQ2Twist].Name.Length}) /mmoini "MyIni" "Bard" "RestTwist" "${Twist.List}"
+			/if (${CombatTwist.Equal[NULL]} && ${Plugin[MQ2Twist].Name.Length}) /mmoini "MyIni" "Bard" "CombatTwist" "${Twist.List}"
+		}
 		/if (!${StopSongsIfPullerIsThisDistanceOrMore}) /mmoini "MyIni" "Bard" "StopSongsIfPullerIsThisDistanceOrMore" "0"
 		/declare BardTimer timer outer
 		/declare BardMezList string outer
