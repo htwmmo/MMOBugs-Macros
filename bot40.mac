@@ -6791,7 +6791,7 @@ Sub Follow
 		/if (${Me.Casting.ID} && !${Me.Class.ShortName.Equal[BRD]}) /delay 15s !${Me.Casting.ID}
 		/if (${Plugin[MQ2Nav].Name.Length}) {
 			/if (${Navigation}) {
-				/if (${FollowMethod.Find[nav]} && !${Navigation.Active}) /nav  name "${NameToFollow}"
+				/if (${FollowMethod.Find[nav]} && !${Navigation.Active}) /nav spawn pc ${NameToFollow}
 			}
 		}
 		/if (${FollowMethod.Find[stick]} && !${Stick.Distance}) /stick id ${MoveID} ${FollowMethod.Arg[2,|]}
@@ -9903,9 +9903,13 @@ Sub AABuyLoad
 /return
 	
 Sub Event_AASpew(line,int AASpew)
+	/if (!${Defined[AABuyPageOrder]}) /return
 	/if (${AASpew}) /echo Building AAtoBuy INI, wait to finish.
 	/declare i int local
 
+	/if (!${Defined[AACount]}) /declare AACount int outer 0
+	/if (!${Defined[AABuyMode]}) /declare AABuyMode string outer
+	/if (!${Defined[AAActivatedOnly]}) /declare AAActivatedOnly bool outer FALSE
 	/if (${AACount} && ${AABuyMode.Equal[classic]} && !${AASpew}) {
 		/declare AA[${AACount},4] string outer 100
       	/for i 1 to ${AACount}
@@ -9922,7 +9926,7 @@ Sub Event_AASpew(line,int AASpew)
 		/if (${Defined[AA]}) /deletevar AA
 		/declare AA[400,4] string outer 100
 		/for i 1 to 4
-			/declare AABuyPage${i} string outer ${AABuyPageOrder.Arg[${i},|]}
+			/if (!${Defined[AABuyPage${i}]}) /declare AABuyPage${i} string outer ${AABuyPageOrder.Arg[${i},|]}
 			|/echo AABuyPage${i} ${AABuyPage${i}}
 			/declare AABuyList${i} string outer ${AABuyPageOrder.Arg[${i},|]}
 			/declare AABuyPageNum${i}
@@ -9938,6 +9942,7 @@ Sub Event_AASpew(line,int AASpew)
 		/declare x int local
 		/declare a int local
 		/for a 1 to 4
+	/if (!${Defined[Limited${AABuyPage${a}}]}) /declare Limited${AABuyPage${a}} string outer NULL
 			|/echo ${Window[AAWindow].Child[AAW_Subwindows].Child[AAW_${AABuyPage${a}}Page].Child[AAW_${AABuyList${a}}List].List[1,3].Length} && ${AABuyPage${a}} (${Limited${AABuyPage${a}}.Equal[NULL]}||${Limited${AABuyPage${a}}.Find[${Window[AAWindow].Child[AAW_Subwindows].Child[AAW_${AABuyPage${a}}Page].Child[AAW_${AABuyList${a}}List].List[1,1]}]})
 			/if (${AABuyPageNum${a}}==1) /varset x 50
 			/if (${AABuyPageNum${a}}==2) /varset x 100
