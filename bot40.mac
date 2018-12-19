@@ -172,7 +172,7 @@
 #define MobIni Camps.ini
 #define LootIni Loot.ini
 #define ThisMac bot40
-#define ThisBotVersion v2018.12021100
+#define ThisBotVersion v2018.12181800
 
 #include spell_routines.inc
 #include bot_custom_events.inc
