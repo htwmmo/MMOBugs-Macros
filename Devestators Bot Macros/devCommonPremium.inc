@@ -1705,7 +1705,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 				/if (${autoBuff[${nArray}].NotEqual[NULL]} && ${autoBuffEnabled[${nArray}]} && ${autoBuffAuto[${nArray}]} && ${autoBuffCombat[${nArray}]}==${combatBuff}) {
 					/if (${Spell[${autoBuff[${nArray}]}].Stacks} || ${Spell[${autoBuffText[${nArray}]}].Stacks}) {
 						/if (${autoBuffText[${nArray}].NotEqual[NULL]}) {
-							/if (${Me.Aura[1].Name.Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[1].Name.Equal[${autoBuff[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuff[${nArray}]}]}) {
+							/if (${Me.Aura[1].Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[1].Equal[${autoBuff[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuff[${nArray}]}]}) {
 								| Work around for MQ2 aura bug
 							} else {
 								/if ((!${Me.Buff[${autoBuffText[${nArray}]}].ID} || ${Me.Buff[${autoBuffText[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${autoBuff[${nArray}]}].Duration.TotalSeconds}/10]}) && !${Me.Song[${autoBuffText[${nArray}]}].ID}) {
@@ -1717,7 +1717,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 								}
 							}
 						} else {
-							/if (${Me.Aura[1].Name.Equal[${autoBuff[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuff[${nArray}]}]}) {
+							/if (${Me.Aura[1].Equal[${autoBuff[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuff[${nArray}]}]}) {
 								| Work around for MQ2 aura bug
 							} else {
 								/if ((!${Me.Buff[${autoBuff[${nArray}]}].ID} ||  ${Me.Buff[${autoBuff[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${autoBuff[${nArray}]}].Duration.TotalSeconds}/10]})) {
@@ -1995,13 +1995,13 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 				/call buffCheckStacking buff ${nArray} Me.Buff
 				/if (${Macro.Return.Equal[TRUE]}) {
 					/if (${buffText[${nArray}].NotEqual[NULL]}) {
-						/if (${Me.Aura[1].Name.Equal[${buffText[${nArray}]}]} || ${Me.Aura[1].Name.Equal[${buffName[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${buffText[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${buffName[${nArray}]}]}) {
+						/if (${Me.Aura[1].Equal[${buffText[${nArray}]}]} || ${Me.Aura[1].Equal[${buffName[${nArray}]}]} || ${Me.Aura[2].Equal[${buffText[${nArray}]}]} || ${Me.Aura[2].Equal[${buffName[${nArray}]}]}) {
 							| Work around for MQ2 aura bug
 						} else {
 							/if ((!${Me.Buff[${buffText[${nArray}]}].ID} || ${Me.Buff[${buffText[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${buffName[${nArray}]}].Duration.TotalSeconds}/10]}) && !${Me.Song[${buffText[${nArray}]}].ID}) /call CastBuff ${Me.ID} ${nArray} SELF
 						}
 					} else {
-						/if (${Me.Aura[1].Name.Equal[${buffName[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${buffName[${nArray}]}]}) {
+						/if (${Me.Aura[1].Equal[${buffName[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${buffName[${nArray}]}]}) {
 							| Work around for MQ2 aura bug
 						} else {
 							/if ((!${Me.Buff[${buffName[${nArray}]}].ID} ||  ${Me.Buff[${buffName[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${buffName[${nArray}]}].Duration.TotalSeconds}/10]})) /call CastBuff ${Me.ID} ${nArray} SELF
