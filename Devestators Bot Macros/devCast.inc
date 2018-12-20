@@ -285,7 +285,7 @@ Sub Cast(string castName, string castSlot, timer castMaxTryTime, string castCall
 	/varset castingStartResult ${CastResult}
 	/if (${Me.Casting.ID}) {
 		:castingLoop
-			/call ${castCallRoutine}
+			/if (${castCallRoutine.Length}) /call ${castCallRoutine}
 			/doevents devCastResult
 		/if (${Me.Casting.ID} && !${interruptFlag}) /goto :castingLoop
 	}

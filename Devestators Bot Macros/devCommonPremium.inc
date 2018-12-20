@@ -1474,7 +1474,9 @@ Sub CastBuff(int buffTargID, int buffNum, string buffType, string singGroup, boo
 		/squelch /target id ${buffTargID}
 		/delay 1s ${Target.ID}
 	}
-	/if (${buffType.Equal[Group]} && !${silentMode}) /call Announce "${${buffString}Announce[${buffNum}]}"
+	/if (${Defined[${buffString}Announce[${buffNum}]]}) {
+		/if (${buffType.Equal[Group]} && !${silentMode}) /call Announce "${${buffString}Announce[${buffNum}]}"
+	}
 	/if (${${shortBuffString}Slot[${buffNum}].Equal[Item]}) {
 		/call FindPotionBelt "${${buffString}[${buffNum}]}"
 		/varset pbItem ${Macro.Return}
@@ -1573,7 +1575,7 @@ Sub CastPotionBelt(string PotionName, string CallRoutine) {
 				/varset PBCasting TRUE
 				:potionCasting
 					/doevents PBCastFail
-					/if (${CallRoutine.NotEqual[NULL]}) /call ${CallRoutine}
+					/if (${CallRoutine.NotEqual[NULL]} && ${CallRoutine.Length}) /call ${CallRoutine}
 				/if (${Me.Casting.ID}) /goto :potionCasting
 				/delay 1
 				/doevents PBCastFail
@@ -1705,8 +1707,31 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 				/if (${autoBuff[${nArray}].NotEqual[NULL]} && ${autoBuffEnabled[${nArray}]} && ${autoBuffAuto[${nArray}]} && ${autoBuffCombat[${nArray}]}==${combatBuff}) {
 					/if (${Spell[${autoBuff[${nArray}]}].Stacks} || ${Spell[${autoBuffText[${nArray}]}].Stacks}) {
 						/if (${autoBuffText[${nArray}].NotEqual[NULL]}) {
-							/if (${Me.Aura[1].Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[1].Equal[${autoBuff[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuff[${nArray}]}]}) {
-								| Work around for MQ2 aura bug
+
+							/if (${Me.AuraCount}==2) {
+								/if (${Me.Aura[1].Name.Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[1].Name.Equal[${autoBuff[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuff[${nArray}]}]}) {
+									| Work around for MQ2 aura bug
+								} else {
+									/if ((!${Me.Buff[${autoBuffText[${nArray}]}].ID} || ${Me.Buff[${autoBuffText[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${autoBuff[${nArray}]}].Duration.TotalSeconds}/10]}) && !${Me.Song[${autoBuffText[${nArray}]}].ID}) {
+										/call CastBuff ${Me.ID} ${nArray} AUTO
+										/if (${Macro.Return.Equal[CAST_COMPONENTS]}) {
+											/call EchoLog "Disabling auto buff ${autoBuff[${nArray}]} because you either don't have the subscription status for it, or don't have the components for it." TRUE
+											/varset autoBuffEnabled[${nArray}] FALSE
+										}
+									}
+								}
+							} else /if (${Me.AuraCount}==1) {
+								/if (${Me.Aura[1].Name.Equal[${autoBuffText[${nArray}]}]} || ${Me.Aura[1].Name.Equal[${autoBuff[${nArray}]}]}) {
+									| Work around for MQ2 aura bug
+								} else {
+									/if ((!${Me.Buff[${autoBuffText[${nArray}]}].ID} || ${Me.Buff[${autoBuffText[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${autoBuff[${nArray}]}].Duration.TotalSeconds}/10]}) && !${Me.Song[${autoBuffText[${nArray}]}].ID}) {
+										/call CastBuff ${Me.ID} ${nArray} AUTO
+										/if (${Macro.Return.Equal[CAST_COMPONENTS]}) {
+											/call EchoLog "Disabling auto buff ${autoBuff[${nArray}]} because you either don't have the subscription status for it, or don't have the components for it." TRUE
+											/varset autoBuffEnabled[${nArray}] FALSE
+										}
+									}
+								}
 							} else {
 								/if ((!${Me.Buff[${autoBuffText[${nArray}]}].ID} || ${Me.Buff[${autoBuffText[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${autoBuff[${nArray}]}].Duration.TotalSeconds}/10]}) && !${Me.Song[${autoBuffText[${nArray}]}].ID}) {
 									/call CastBuff ${Me.ID} ${nArray} AUTO
@@ -1716,9 +1741,32 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 									}
 								}
 							}
+							
 						} else {
-							/if (${Me.Aura[1].Equal[${autoBuff[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${autoBuff[${nArray}]}]}) {
-								| Work around for MQ2 aura bug
+							/if (${Me.AuraCount}==2) {
+								/if (${Me.Aura[1].Equal[${autoBuff[${nArray}]}]} || ${Me.Aura[2].Equal[${autoBuff[${nArray}]}]}) {
+									| Work around for MQ2 aura bug
+								} else {
+									/if ((!${Me.Buff[${autoBuff[${nArray}]}].ID} ||  ${Me.Buff[${autoBuff[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${autoBuff[${nArray}]}].Duration.TotalSeconds}/10]})) {
+										/call CastBuff ${Me.ID} ${nArray} AUTO
+										/if (${Macro.Return.Equal[CAST_COMPONENTS]}) {
+											/call EchoLog "Disabling auto buff ${autoBuff[${nArray}]} because you either don't have the subscription status for it, or don't have the components for it." TRUE
+											/varset autoBuffEnabled[${nArray}] FALSE
+										}									
+									}
+								}
+							} else /if (${Me.AuraCount}==1) {
+								/if (${Me.Aura[1].Equal[${autoBuff[${nArray}]}]}) {
+									| Work around for MQ2 aura bug
+								} else {
+									/if ((!${Me.Buff[${autoBuff[${nArray}]}].ID} ||  ${Me.Buff[${autoBuff[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${autoBuff[${nArray}]}].Duration.TotalSeconds}/10]})) {
+										/call CastBuff ${Me.ID} ${nArray} AUTO
+										/if (${Macro.Return.Equal[CAST_COMPONENTS]}) {
+											/call EchoLog "Disabling auto buff ${autoBuff[${nArray}]} because you either don't have the subscription status for it, or don't have the components for it." TRUE
+											/varset autoBuffEnabled[${nArray}] FALSE
+										}									
+									}
+								}
 							} else {
 								/if ((!${Me.Buff[${autoBuff[${nArray}]}].ID} ||  ${Me.Buff[${autoBuff[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${autoBuff[${nArray}]}].Duration.TotalSeconds}/10]})) {
 									/call CastBuff ${Me.ID} ${nArray} AUTO
@@ -1795,7 +1843,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 									/call CastBuff ${Group.Member[${gArray}].ID} ${nArray} Group Group FALSE ${onCallRoutine}
 									/if (${Macro.Return.Equal[ABORT_AGGRO]}) /goto :exitBuffRoutine
 									/varset needBuffCount[${nArray}] 0
-									/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]}) /call ${onCallRoutine}
+									/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]} && ${onCallRoutine.Length}) /call ${onCallRoutine}
 									/goto :nextBuff
 								}
 							} else /if (${needsSingleBuff}) {
@@ -1805,7 +1853,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 
 								/call CastBuff ${Group.Member[${gArray}].ID} ${nArray} Group Single FALSE ${onCallRoutine}
 								/if (${Macro.Return.Equal[ABORT_AGGRO]}) /goto :exitBuffRoutine
-								/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]}) /call ${onCallRoutine}
+								/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]} && ${onCallRoutine.Length}) /call ${onCallRoutine}
 							}
 						}
 					}
@@ -1819,7 +1867,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 							/if (${Macro.Return.Equal[ABORT_AGGRO]}) /goto :exitBuffRoutine
 						}
 					/next bArray
-					/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]}) /call ${onCallRoutine}
+					/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]} && ${onCallRoutine.Length}) /call ${onCallRoutine}
 				}
 			}
 			/doevents flush spellFade
@@ -1876,7 +1924,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 									/call CastBuff ${Group.Member[${gArray}].Pet.ID} ${nArray} Group Group FALSE ${onCallRoutine}
 									/if (${Macro.Return.Equal[ABORT_AGGRO]}) /goto :exitBuffRoutine
 									/varset needBuffCount[${nArray}] 0
-									/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]}) /call ${onCallRoutine}
+									/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]} && ${onCallRoutine.Length}) /call ${onCallRoutine}
 									/goto :nextGroupPetBuff
 							} else /if (${needsSingleBuff}) {
 									/call EchoLog "${Group.Member[${gArray}].Pet.CleanName} is missing ${groupBuffSingle[${nArray}]}" TRUE
@@ -1885,7 +1933,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 
 									/call CastBuff ${Group.Member[${gArray}].Pet.ID} ${nArray} Group Single FALSE ${onCallRoutine}
 									/if (${Macro.Return.Equal[ABORT_AGGRO]}) /goto :exitBuffRoutine
-									/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]}) /call ${onCallRoutine}
+									/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]} && ${onCallRoutine.Length}) /call ${onCallRoutine}
 							}
 						}
 					}
@@ -1945,7 +1993,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 
 										/call CastBuff ${Spawn[${watchList[${gArray}]}].ID} ${nArray} Group Group FALSE ${onCallRoutine}
 										/if (${Macro.Return.Equal[ABORT_AGGRO]}) /goto :exitBuffRoutine
-										/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]}) /call ${onCallRoutine}
+										/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]} && ${onCallRoutine.Length}) /call ${onCallRoutine}
 										/goto :nextWBuff
 									| }
 								} else /if (${needsSingleBuff}) {
@@ -1957,7 +2005,7 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 
 										/call CastBuff ${Spawn[${watchList[${gArray}]}].ID} ${nArray} Group Single FALSE ${onCallRoutine}
 										/if (${Macro.Return.Equal[ABORT_AGGRO]}) /goto :exitBuffRoutine
-										/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]}) /call ${onCallRoutine}
+										/if (${combatBuff} && ${onCallRoutine.NotEqual[NULL]} && ${onCallRoutine.Length}) /call ${onCallRoutine}
 									| }							
 								}						
 							}
@@ -1994,17 +2042,33 @@ Sub buffCheckRoutine(string checkTypes, bool combatBuff, string onCallRoutine)
 			/if (${buffName[${nArray}].NotEqual[NULL]} && ${buffEnabled[${nArray}]} && ${buffAuto[${nArray}]} && ${buffCombat[${nArray}]}==${combatBuff}) {
 				/call buffCheckStacking buff ${nArray} Me.Buff
 				/if (${Macro.Return.Equal[TRUE]}) {
-					/if (${buffText[${nArray}].NotEqual[NULL]}) {
-						/if (${Me.Aura[1].Equal[${buffText[${nArray}]}]} || ${Me.Aura[1].Equal[${buffName[${nArray}]}]} || ${Me.Aura[2].Equal[${buffText[${nArray}]}]} || ${Me.Aura[2].Equal[${buffName[${nArray}]}]}) {
-							| Work around for MQ2 aura bug
+					/if (${Me.AuraCount}==1) {
+						/if (${buffText[${nArray}].NotEqual[NULL]}) {
+							/if (${Me.Aura[1].Name.Equal[${buffText[${nArray}]}]} || ${Me.Aura[1].Name.Equal[${buffName[${nArray}]}]}) {
+								| Work around for MQ2 aura bug
+							} else {
+								/if ((!${Me.Buff[${buffText[${nArray}]}].ID} || ${Me.Buff[${buffText[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${buffName[${nArray}]}].Duration.TotalSeconds}/10]}) && !${Me.Song[${buffText[${nArray}]}].ID}) /call CastBuff ${Me.ID} ${nArray} SELF
+							}
 						} else {
-							/if ((!${Me.Buff[${buffText[${nArray}]}].ID} || ${Me.Buff[${buffText[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${buffName[${nArray}]}].Duration.TotalSeconds}/10]}) && !${Me.Song[${buffText[${nArray}]}].ID}) /call CastBuff ${Me.ID} ${nArray} SELF
+							/if (${Me.Aura[1].Name.Equal[${buffName[${nArray}]}]}) {
+								| Work around for MQ2 aura bug
+							} else {
+								/if ((!${Me.Buff[${buffName[${nArray}]}].ID} ||  ${Me.Buff[${buffName[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${buffName[${nArray}]}].Duration.TotalSeconds}/10]})) /call CastBuff ${Me.ID} ${nArray} SELF
+							}
 						}
-					} else {
-						/if (${Me.Aura[1].Equal[${buffName[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${buffName[${nArray}]}]}) {
-							| Work around for MQ2 aura bug
+					} else /if (${Me.AuraCount}==2) {
+						/if (${buffText[${nArray}].NotEqual[NULL]}) {
+							/if (${Me.Aura[1].Name.Equal[${buffText[${nArray}]}]} || ${Me.Aura[1].Name.Equal[${buffName[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${buffText[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${buffName[${nArray}]}]}) {
+								| Work around for MQ2 aura bug
+							} else {
+								/if ((!${Me.Buff[${buffText[${nArray}]}].ID} || ${Me.Buff[${buffText[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${buffName[${nArray}]}].Duration.TotalSeconds}/10]}) && !${Me.Song[${buffText[${nArray}]}].ID}) /call CastBuff ${Me.ID} ${nArray} SELF
+							}
 						} else {
-							/if ((!${Me.Buff[${buffName[${nArray}]}].ID} ||  ${Me.Buff[${buffName[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${buffName[${nArray}]}].Duration.TotalSeconds}/10]})) /call CastBuff ${Me.ID} ${nArray} SELF
+							/if (${Me.Aura[1].Name.Equal[${buffName[${nArray}]}]} || ${Me.Aura[2].Name.Equal[${buffName[${nArray}]}]}) {
+								| Work around for MQ2 aura bug
+							} else {
+								/if ((!${Me.Buff[${buffName[${nArray}]}].ID} ||  ${Me.Buff[${buffName[${nArray}]}].Duration} <= ${Math.Calc[${Spell[${buffName[${nArray}]}].Duration.TotalSeconds}/10]})) /call CastBuff ${Me.ID} ${nArray} SELF
+							}
 						}
 					}
 					/if (${gotAggro}) /goto :exitBuffRoutine

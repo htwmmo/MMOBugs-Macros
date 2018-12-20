@@ -340,12 +340,30 @@ Sub PullCheckBuffs
 	/declare pbArray						int local 0
 	
 	/for pbArray 1 to 20
-		/if (${requiredPullBuffs[${pbArray}].NotEqual[NULL]} && !${Me.Buff[${requiredPullBuffs[${pbArray}]}].ID} && !${Me.Song[${requiredPullBuffs[${pbArray}]}].ID} && ${Me.Aura[1].NotEqual[${requiredPullBuffs[${pbArray}]}]} && ${Me.Aura[2].NotEqual[${requiredPullBuffs[${pbArray}]}]}) {
-			/if (!${pullMsgTimer}) {
-				HIGHERDEBUG ".....Not pulling because we are missing a required buff: ${requiredPullBuffs[${pbArray}]}" TRUE 2
-				/varset pullMsgTimer 30s
+		/if (${Me.AuraCount}==1) {
+			/if (${requiredPullBuffs[${pbArray}].NotEqual[NULL]} && !${Me.Buff[${requiredPullBuffs[${pbArray}]}].ID} && !${Me.Song[${requiredPullBuffs[${pbArray}]}].ID} && ${Me.Aura[1].Name.NotEqual[${requiredPullBuffs[${pbArray}]}]}) {
+				/if (!${pullMsgTimer}) {
+					HIGHERDEBUG ".....Not pulling because we are missing a required buff: ${requiredPullBuffs[${pbArray}]}" TRUE 2
+					/varset pullMsgTimer 30s
+				}
+				/return FALSE
 			}
-			/return FALSE
+		} else /if (${Me.AuraCount}==2) {
+			/if (${requiredPullBuffs[${pbArray}].NotEqual[NULL]} && !${Me.Buff[${requiredPullBuffs[${pbArray}]}].ID} && !${Me.Song[${requiredPullBuffs[${pbArray}]}].ID} && ${Me.Aura[1].Name.NotEqual[${requiredPullBuffs[${pbArray}]}]} && ${Me.Aura[2].Name.NotEqual[${requiredPullBuffs[${pbArray}]}]}) {
+				/if (!${pullMsgTimer}) {
+					HIGHERDEBUG ".....Not pulling because we are missing a required buff: ${requiredPullBuffs[${pbArray}]}" TRUE 2
+					/varset pullMsgTimer 30s
+				}
+				/return FALSE
+			}
+		} else {
+			/if (${requiredPullBuffs[${pbArray}].NotEqual[NULL]} && !${Me.Buff[${requiredPullBuffs[${pbArray}]}].ID} && !${Me.Song[${requiredPullBuffs[${pbArray}]}].ID}) {
+				/if (!${pullMsgTimer}) {
+					HIGHERDEBUG ".....Not pulling because we are missing a required buff: ${requiredPullBuffs[${pbArray}]}" TRUE 2
+					/varset pullMsgTimer 30s
+				}
+				/return FALSE
+			}
 		}
 	/next pbArray
 /return TRUE
@@ -584,12 +602,16 @@ Sub PullMob(int pullID)
 						/call EchoLog "Attempting to lull potential add, ${Target.CleanName} | ${Target.ID}" TRUE
 						:waitLullReady
 							/doevents
+							/call EchoLog "Calling PullAggroCheck..."
 							/call PullAggroCheck
 							/if (${gotAggro}) /goto :skipLull
 						/if (${lullSlot.Equal[DISC]} && !${Me.CombatAbilityReady[${lullSpell}]}) /goto :waitLullReady
 						
 						| Not close enough to lull, move in range first
-						/if (${Target.Distance} > ${maxLRange}) /call MoveToSpawn ${Target.ID} ${maxLRange} ${Me.CombatState.Equal[Combat]} FALSE TRUE
+						/if (${Target.Distance} > ${maxLRange}) {
+							/call EchoLog "Calling MoveToSpawn..."
+							/call MoveToSpawn ${Target.ID} ${maxLRange} ${Me.CombatState.Equal[Combat]} FALSE TRUE
+						}
 
 						/if (${lullSlot.Equal[DISC]}) {
 							/doability "${lullSpell}"
@@ -599,8 +621,10 @@ Sub PullMob(int pullID)
 									/stop
 									/melody
 								}
+								/call EchoLog "Calling MQ2Cast..."
 								/call MQ2Cast "${lullSpell}" ${lullSlot}
 							} else {
+								/call EchoLog "Calling CastSong..."
 								/call CastSong "${lullSpell}" ${lullGem} 2 TRUE PullAggroCheck
 							}
 						}

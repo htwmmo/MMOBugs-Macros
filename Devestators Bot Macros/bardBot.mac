@@ -129,7 +129,7 @@
 |  -Some minor bug fixes here and there
 | 
 | ==================================================================================================
-
+#warning
 #include devCommonPremium.inc
 |#include bardBotSettings.ini
 
@@ -165,7 +165,7 @@ Sub main(string iniNameStr)
 	/declare meVersion									float outer 1.30
 	/declare myName											string outer bardbot
 	/declare myClass										string outer BRD
-	
+	/declare Debugging bool outer TRUE	
 	/squelch /mqlog clear
 	
 	/call CommonInit
@@ -177,13 +177,11 @@ Sub main(string iniNameStr)
 	/call EchoLog "BardBot Initialized" true
 	/call EchoLog "Loading variables..." true
 	/if (${Defined[iniNameStr]}) {
-		/if (${iniNameStr.Equal[NULL]} || ${iniNameStr.Equal[default]}) {
+		/if (!${iniNameStr.Length} || ${iniNameStr.Equal[default]}) {
 			/varset iniName bardBotSettings.ini
 		} else {
 			/varset iniName bardBotSettings_${iniNameStr}.ini
 		}
-	
-	/echo Using settings from ${iniName}
 	
 	/call LoadSettings
 	
@@ -199,10 +197,22 @@ Sub main(string iniNameStr)
 	/declare oocSongsCount							int local 0
 	:mainLoop
 		/doevents
-		/if (${Me.Aura[1].Equal[${auraSong}]} || ${Me.Aura[1].Equal[${auraText}]}) {
-				| Work around for MQ2 aura bug
-		} else {
-				/if (${auraSong.NotEqual[NULL]} && ${auraGem} && (${castWhileInvis} || !${Me.Invis})) /call CastSong "${auraSong}" ${auraGem}
+		/if (!${Defined[auraSong]}) /declare auraSong string outer
+		/if (!${Defined[auraText]}) /declare auraText string outer
+		/if (!${Defined[auraGem]}) /declare auraGem int outer
+		/varset auraSong ${Ini[${iniName},Songs,AuraSong,NULL]}
+		/varset auraText ${Ini[${iniName},Songs,AuraText,NULL]}
+		/varset auraGem ${Ini[${iniName},Songs,AuraGem,0]}
+		/if (${Me.AuraCount}) {
+			/if (${Me.Aura[1].ID}) {
+				/if (${Me.Aura[1].Name.NotEqual[${auraSong}]} || ${Me.Aura[1].Name.NotEqual[${auraText}]}) {
+					/if (${auraSong.Length} && ${auraGem} && (${castWhileInvis} || !${Me.Invis})) /call CastSong "${auraSong}" ${auraGem}
+				}
+			} else {
+				/if (${auraSong.Length} && ${auraGem} && (${castWhileInvis} || !${Me.Invis})) {
+					/call CastSong "${auraSong}" ${auraGem}
+				}
+			}
 		}
 		/call BardCombatCheck
 		/if (!${inCombat} && !${followMode}) {
@@ -383,7 +393,7 @@ Sub CastSong(string songName, int songGem, int maxTries, bool endSong, string on
 	/declare resAttempts				int local 1
 	/declare castTimeout				timer local 0s
 	
-	/if (!${castWhileInivis} && ${Me.Invis}) /return ABORT_INVIS
+	/if (!${castWhileInvis} && ${Me.Invis}) /return ABORT_INVIS
 	
 	/if (${Me.Casting.ID} && ${immediateInterrupt}) {
 		/stop
@@ -466,11 +476,22 @@ Sub Combat
 		/call BardCombatCheck
 		/if (${inCombat}) {
 			/if (${totalMezzed} < 3 && !${combatSongOnAssist} && !${combatSongDelay}) {
+				/if (!${Defined[combatGem1]}) /declare combatGem1 int outer 1
+				/if (!${Defined[combatGem2]}) /declare combatGem1 int outer 0
+				/if (!${Defined[combatGem3]}) /declare combatGem1 int outer 0
+				/if (!${Defined[combatGem4]}) /declare combatGem1 int outer 0
+				/if (!${Defined[combatGem5]}) /declare combatGem1 int outer 0
+				/if (!${Defined[twistPos]}) {
+					/declare twistPos int outer 1
+				} else {
+					/varset twistPos 1
+				}
+				
 				/if (${useMelody} && !${Me.Casting.ID}) {
 					/melody ${combatGem1} ${combatGem2} ${combatGem3} ${combatGem4}
 				} else /if (${useTwist} && !${Twist.Twisting}) {
  					/squelch /twist ${combatGem1} ${combatGem2} ${combatGem3} ${combatGem4}					
-				} else /if ((${combatSong${twistPos}.NotEqual[NULL]} || ${combatGem${twistPos}}) && !${twistTimer} && !${Me.GemTimer[${combatGem[${twistPos}]}]}) {
+				} else /if ((${combatSong${twistPos}.NotEqual[NULL]} || ${combatGem${twistPos}}) && !${twistTimer} && !${Me.GemTimer[${combatGem${twistPos}}]}) {
 					| /call CastSong "${combatSong${twistPos}}" ${combatGem${twistPos}} 2 TRUE
 					/if (${Me.Casting.ID}==${twistID}) {
 						/stop
@@ -482,7 +503,7 @@ Sub Combat
 					/varset twistTimer ${Math.Calc[${Spell[${Me.Gem[${combatGem${twistPos}}]}].MyCastTime.Float} + .1]}s
 					/varcalc twistPos ${twistPos} + 1
 					/if (${twistPos}>5) /varset twistPos 1
-				} else /if (((${combatSong${twistPos}.Equal[NULL]} && !${combatGem${twistPos}}) || ${Me.GemTimer[${combatGem[${twistPos}]}]}) && !${twistTimer}) {
+				} else /if (((${combatSong${twistPos}.Equal[NULL]} && !${combatGem${twistPos}}) || ${Me.GemTimer[${combatGem${twistPos}}]}) && !${twistTimer}) {
 					/varcalc twistPos ${twistPos} + 1
 					/if (${twistPos}>5) /varset twistPos 1						
 				}
@@ -508,7 +529,7 @@ Sub Combat
 						/melody ${combatGem1} ${combatGem2} ${combatGem3} ${combatGem4}
 					} else /if (${useTwist} && !${Twist.Twisting}) {
 	 					/squelch /twist ${combatGem1} ${combatGem2} ${combatGem3} ${combatGem4}					
-					} else /if ((${combatSong${twistPos}.NotEqual[NULL]} || ${combatGem${twistPos}}) && !${twistTimer} && !${Me.GemTimer[${combatGem[${twistPos}]}]}) {
+					} else /if ((${combatSong${twistPos}.NotEqual[NULL]} || ${combatGem${twistPos}}) && !${twistTimer} && !${Me.GemTimer[${combatGem${twistPos}}]}) {
 						| /call CastSong "${combatSong${twistPos}}" ${combatGem${twistPos}} 2 TRUE
 						/if (${Me.Casting.ID}==${twistID}) {
 							/stop
@@ -520,7 +541,7 @@ Sub Combat
 						/varset twistTimer ${Math.Calc[${Spell[${Me.Gem[${combatGem${twistPos}}]}].MyCastTime.Float} + .1]}s
 						/varcalc twistPos ${twistPos} + 1
 						/if (${twistPos}>5) /varset twistPos 1
-					} else /if (((${combatSong${twistPos}.Equal[NULL]} && !${combatGem${twistPos}}) || ${Me.GemTimer[${combatGem[${twistPos}]}]}) && !${twistTimer}) {
+					} else /if (((${combatSong${twistPos}.Equal[NULL]} && !${combatGem${twistPos}}) || ${Me.GemTimer[${combatGem${twistPos}}]}) && !${twistTimer}) {
 						/varcalc twistPos ${twistPos} + 1
 						/if (${twistPos}>5) /varset twistPos 1						
 					}
@@ -850,6 +871,7 @@ Sub Mez(int mezTargID)
 
 Sub MezList(string Action, int AddID, string setTimer) 
 	/if (${Action.Equal[NULL]}) /varset Action UPDATE
+	/if (!${Defined[singleMez]}) /declare singleMez string outer
 	/if (${setTimer.Equal[NULL]}) /varset setTimer ${Spell[${singleMez}].Duration.Float}s
 	/declare mlArray							int local 0
 	/declare hReturn							string local FALSE
@@ -996,3 +1018,8 @@ Sub MezVerify(int vID)
 		/varset retValue TRUE
 	}
 /return ${retValue}
+
+Sub DebugOut(string Text)
+	/if (!${Debugging}) /return
+	/echo ${Text}
+/return
