@@ -19,7 +19,9 @@
 |  PLUGIN: MQ2Debuffs													
 |  PLUGIN: MQ2Exchange
 |  PLUGIN: MQ2MoveUtils
-| 
+
+| v1.30 Update Notes
+|  - Working on underined var issues| 
 | v1.29 Update Notes
 |  -Updated for 09082017 MQ2 Patch that makes a lot of changes with undefined variables and breaks function calls relying on Not defined to set defaults
 | 
@@ -160,7 +162,7 @@
 #event MezBroke "#1#has been awakened by#2#"
 
 Sub main(string iniNameStr)
-	/declare meVersion									float outer 1.29
+	/declare meVersion									float outer 1.30
 	/declare myName											string outer bardbot
 	/declare myClass										string outer BRD
 	
@@ -174,11 +176,14 @@ Sub main(string iniNameStr)
 	
 	/call EchoLog "BardBot Initialized" true
 	/call EchoLog "Loading variables..." true
-	/if (${iniNameStr.Equal[NULL]} || ${iniNameStr.Equal[default]}) {
-		/varset iniName bardBotSettings.ini
-	} else {
-		/varset iniName bardBotSettings_${iniNameStr}.ini
-	}
+	/if (${Defined[iniNameStr]}) {
+		/if (${iniNameStr.Equal[NULL]} || ${iniNameStr.Equal[default]}) {
+			/varset iniName bardBotSettings.ini
+		} else {
+			/varset iniName bardBotSettings_${iniNameStr}.ini
+		}
+	
+	/echo Using settings from ${iniName}
 	
 	/call LoadSettings
 	
@@ -194,10 +199,10 @@ Sub main(string iniNameStr)
 	/declare oocSongsCount							int local 0
 	:mainLoop
 		/doevents
-		/if (${Me.Aura[1].Equal[${auraSong}]} || ${Me.Aura[2].Equal[${auraSong}]} || ${Me.Aura[1].Equal[${auraText}]} || ${Me.Aura[2].Equal[${auraText}]}) {
-			| Work around for MQ2 aura bug
+		/if (${Me.Aura[1].Equal[${auraSong}]} || ${Me.Aura[1].Equal[${auraText}]}) {
+				| Work around for MQ2 aura bug
 		} else {
-			/if (${auraSong.NotEqual[NULL]} && ${auraGem} && (${castWhileInvis} || !${Me.Invis})) /call CastSong "${auraSong}" ${auraGem}
+				/if (${auraSong.NotEqual[NULL]} && ${auraGem} && (${castWhileInvis} || !${Me.Invis})) /call CastSong "${auraSong}" ${auraGem}
 		}
 		/call BardCombatCheck
 		/if (!${inCombat} && !${followMode}) {
