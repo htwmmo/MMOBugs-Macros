@@ -6,8 +6,6 @@
 |- Notes: If you don't wish to move to PoK, use /macro tutorial nopok    -|
 |-        Run this macro immediatly after making a new character         -|
 |-------------------------------------------------------------------------|
-|- Special Note: The only 'cheat' in this macro is the /gank command     -|
-|-------------------------------------------------------------------------|
 
 
 #Event BoxChange "Your task 'Jail Break!' has been updated."
