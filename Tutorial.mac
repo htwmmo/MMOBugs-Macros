@@ -1,0 +1,236 @@
+|---------------------- Coded by Taron @ MMOBugs.com ---------------------|
+|-------------------------------------------------------------------------|
+|- What: Runs the tutorial to get the Kobold Charm                       -|
+|- Where: Tutorial A                                                     -|
+|- How: /macro Tutorial                                                  -|
+|- Notes: If you don't wish to move to PoK, use /macro tutorial nopok    -|
+|-        Run this macro immediatly after making a new character         -|
+|-------------------------------------------------------------------------|
+|- Special Note: The only 'cheat' in this macro is the /gank command     -|
+|-------------------------------------------------------------------------|
+
+
+#Event BoxChange "Your task 'Jail Break!' has been updated."
+#Event TutB "Your task 'Basic Training' has been updated."
+
+Sub Main
+  /declare OldBox int outer 1
+  /declare TutB int outer 0
+
+  /if (${Zone.ID}!=188) {
+    /echo This isn't the tutorial...no macro for joo!
+    /squelch /endmacro
+  }
+  /tar npc Arias
+  /delay 10s (${Target.CleanName.Equal[Arias]})
+  /say escape
+  /delay 10s (${Window[TaskSelectWnd].Open})
+  /notify TaskSelectWnd TSEL_AcceptButton leftmouseup
+:BoxChange
+  /doevents
+  /if (${OldBox}==1) /goto :BoxChange
+  /notify LargeDialogWindow LDW_OkButton leftmouseup
+  /face heading 265
+  /keypress up hold
+:Moving
+  /if (${Me.X}>35) /goto :Moving
+  /keypress up
+  /tar npc jailor
+  /delay 10s (${Target.CleanName.Equal[The Gloomingdeep Jailor]})
+  /face fast
+  /keypress up hold
+:MovingB
+  /if (${Target.Distance}>14) /goto :MovingB
+  /keypress up
+  /attack on
+  /delay 5m (!${Target.ID})
+  /tar corpse
+  /delay 10s (${Target.Type.Equal[Corpse]})
+  /delay 2s (${Window[advancedlootwnd]})
+  /if (${Window[advancedlootwnd]}) /notify advancedlootwnd ADLW_PLL_LootAllBtn leftmouseup
+  /delay 2s (!${Window[advancedlootwnd]})
+  /itemnotify "The Gloomingdeep Jailor's Key" leftmouseup
+  /delay 2s ${Cursor.ID}
+  /tar pet
+  /delay 10s (${Target.CleanName.Equal[Arias]})
+  /click left target
+  /delay 10s (${Window[GiveWnd].Child[GVW_MyItemSlot0].Tooltip.Length}>1)
+  /delay 1s
+  /notify GiveWnd GVW_Give_Button leftmouseup
+  /delay 10s (!${Window[GiveWnd].Open})
+  /notify LargeDialogWindow LDW_OkButton leftmouseup
+  /tar pet
+  /delay 10s (${Target.CleanName.Equal[Arias]})
+  /hail
+
+
+|----- ZONING -----|
+
+:Zoning
+  /if (${Zone.ID}!=189) /goto :Zoning
+  /tar myself
+  /delay 5s
+  /if (${Target.ID}!=${Me.ID}) /goto :Zoning
+  /tar npc Arias
+  /delay 10s (${Target.CleanName.Equal[Arias]})
+  /hail
+  /call Updating
+  :Absor
+  /tar npc Absor
+  /delay 10s (${Target.CleanName.Equal[Absor]})
+  /moveto loc -90 -198
+  /delay 1s
+  /delay 15s ${Me.Moving}
+  /if (${Target.Distance}>30) /goto :Absor
+  /hail
+  /delay 10s (${Window[LargeDialogWindow].Text.Equal[Weapons]})
+  /itemnotify 13 leftmouseup
+  /delay 10s (${Cursor.ID})
+  /click left target
+  /delay 10s (${Window[GiveWnd].Child[GVW_MyItemSlot0].Tooltip.Length}>1)
+  /delay 1s
+  /notify GiveWnd GVW_Give_Button leftmouseup
+  /delay 10s (!${Window[GiveWnd].Open})
+  /call Updating
+  :Vahlara
+  /tar npc Vahlara
+  /delay 10s (${Target.CleanName.Equal[Vahlara]})
+  /moveto loc -82 -51
+  /delay 1s
+  /delay 15s ${Me.Moving}
+  /if (${Target.Distance}>30) /goto :Vahlara
+  /keypress up
+  /hail
+  /delay 10s (${Cursor.ID})
+  /delay 1s
+  /autoinv
+  /delay 10s (${InvSlot[arms].Item.ID})
+  /delay 1s
+  /say others
+  /call Updating
+  /moveto loc -183.26 -69.78
+  /delay 1s
+  /delay 15s ${Me.Moving}
+  /if (${GroundItemCount[*Blue Mushroom]} > 0) {
+	/moveto loc ${Ground[*Blue Mushroom].Y} ${Ground[*Blue Mushroom].X}
+	/delay 15s (${Ground[*Blue Mushroom].Distance3D} < 20)
+	/itemtarget
+	/delay 1s
+	/grab
+	} else {
+		/echo Couldnt find ground item}
+		/end
+	}
+  /delay 1s
+  /if (${Cursor.ID}) /autoinventory
+  :Xenaida
+  /tar npc Xenaida
+  /delay 10s (${Target.CleanName.Equal[Xenaida]})
+  /moveto loc -109 -199
+  /delay 1s
+  /delay 15s ${Me.Moving}
+  /if (${Target.Distance}>30) /goto :Xenaida
+  /hail
+  /itemnotify "Gloomingdeep Mushrooms" leftmouseup
+  /delay 2s ${Cursor.ID}
+  /tar npc Xenaida
+  /delay 7s (${Target.CleanName.Equal[Xenaida]})
+  /click left target
+  /delay 10s (${Window[GiveWnd].Child[GVW_MyItemSlot0].Tooltip.Length}>1)
+  /delay 1s
+  /notify GiveWnd GVW_Give_Button leftmouseup
+  /delay 10s (!${Window[GiveWnd].Open})
+  /call Updating
+  /tar npc Rytan
+  /delay 10s (${Target.CleanName.Equal[Rytan]})
+  /face fast
+  /keypress up hold
+:Rytan
+  /if (${Target.Distance}>15) /goto :Rytan
+  /keypress up
+  /say blessing
+  /delay 1s
+  :dialogagain
+  /if (${Window[LargeDialogWindow]}) {
+  	/notify LargeDialogWindow LDW_OkButton leftmouseup
+  	/delay 2s ${Window[LargeDialogWindow]}
+  	/goto :dialogagain
+  	}
+  /if (${Cursor.ID}) /autoinv
+  /call Updating
+  :Prathun
+  /tar npc Prathun
+  /moveto loc -34 -129
+  /delay 1s
+  /delay 15s ${Me.Moving}
+  /if (${Cursor.ID}) /autoinv
+  /if (${Target.Distance}>30) /goto :Prathun
+  /keypress up
+  /hail
+  /delay 1s
+  :DialogWindowHell
+  /if (${Window[LargeDialogWindow]}) { 
+  	/notify LargeDialogWindow LDW_OkButton leftmouseup
+  	/delay 5
+  	/delay 2s (${Window[LargeDialogWindow]})
+  	/goto :DialogWindowHell
+  	}
+  /if (${Cursor.ID}) /autoinventory
+  /call Updating
+  /tar npc Alga
+  /delay 10s (${Target.CleanName.Equal[Basher Alga]})
+  /face fast
+  /keypress up hold
+:Alga
+  /if (${Target.Distance}>15) /goto :Alga
+  /keypress up
+  /hail
+  /delay 1s
+  /if (${Window[TaskSelectWnd]}) /notify TaskSelectWnd TSEL_AcceptButton leftmouseup
+  /delay 1s
+  /hail
+  :DialogStuff
+  /delay 1s
+   /if (${Window[LargeDialogWindow]}) { 
+  	/notify LargeDialogWindow LDW_OkButton leftmouseup
+  	/delay 5
+  	/delay 2s (${Window[LargeDialogWindow]})
+  	/goto :DialogStuff
+  	}
+  /call Updating
+  /tar npc Arias
+  /delay 10s (${Target.CleanName.Equal[Arias]})
+  /face fast
+  /keypress up hold
+:Arias
+  /if (${Me.X}<-15) /goto :Arias
+  /keypress up
+  /hail
+  /delay 10s (${Cursor.Name.Equal[Kobold Skull Charm]})
+  /delay 1s
+  /autoinv
+  /echo All Done!
+  /if (${Param0.Equal[nopok]}) /return
+  /tar npc Arias
+  /delay 10s (${Target.CleanName.Equal[Arias]})
+  /say ready to leave
+  /echo Ending Macro
+  /end
+
+/return
+
+Sub Updating
+  /declare Checker int local ${TutB}
+:Loop
+  /doevents
+  /delay 5
+  /if (${Checker}==${TutB}) /goto :Loop
+/return
+
+Sub Event_BoxChange
+  /varset OldBox 0
+/return
+
+Sub Event_TutB
+  /varcalc TutB ${TutB}+1
+/return
