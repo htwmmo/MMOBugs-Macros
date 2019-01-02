@@ -9487,6 +9487,14 @@ Sub Snare
   	/if (${ImNotReady}||(${SnareImmuneList.Find[${Target.CleanName}]} && ${Spell[${SnareSpellName1}].ResistType.NotEqual[Unresistable]})||${Snared}||!${SnareTotal}) /return
  	/declare i int local
  	/for i 1 to ${${CurrentSub}Total}
+ 		/if (!${Defined[${CurrentSub}Use${i}]}) /declare ${CurrentSub}Use${i} bool outer FALSE
+ 		/if (!${Defined[${CurrentSub}SpellGem${i}]}) /declare ${CurrentSub}SpellGem${i} string outer ----
+ 		/if (!${Defined[${CurrentSub}SpellName${i}]}) /declare ${CurrentSub}SpellName${i} string outer ----
+ 		/if (!${Defined[${CurrentSub}Recast${i}]}) /declare ${CurrentSub}Recast${i} bool outer FALSE
+ 		/if (!${Defined[${CurrentSub}IgnoreRecast${i}]}) /declare ${CurrentSub}IgnoreRecast${i} bool outer FALSE
+ 		/if (!${Defined[${CurrentSub}StopAtMobPctHP${i}]}) /declare ${CurrentSub}StopAtMobPctHP${i} int outer 3
+ 		/if (!${Defined[${CurrentSub}On${i}]}) /declare ${CurrentSub}On${i} bool outer FALSE
+ 		/if (!${Defined[${CurrentSub}Resisted${i}]}) /declare ${CurrentSub}Resisted${i} bool outer FALSE
  		/if (!${${CurrentSub}Use${i}}) /continue
     	/if (${ValidEnemy}) {
 			/if (!${CastIsReady}) {
