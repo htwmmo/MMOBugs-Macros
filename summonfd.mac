@@ -100,12 +100,24 @@ Sub Main(int iStacks, string sSummonType)
 		}
 	/next i
 	/if (${OldSpell1.Length}) {
-		/call EchoSub "\atMemorizing \au${DrinkGem} \aw-> \ag${OldSpell1}"
-		/memspell ${DrinkGem.Replace[gem,]} "${OldSpell1}"
+		/if (${OldSpell1.Equal[NULL]})
+		{
+			/call EchoSub "\atForgetting/clearing \au${DrinkGem}"
+			/notify CastSpellWnd CSPW_Spell${Math.Calc[${DrinkGem.Replace[gem,]}-1]} rightmouseup
+		} else {
+			/call EchoSub "\atMemorizing \au${DrinkGem} \aw-> \ag${OldSpell1}"
+			/memspell ${DrinkGem.Replace[gem,]} "${OldSpell1}"
+		}
 	}
 	/if (${OldSpell2.Length}) {
-		/call EchoSub "\atMemorizing \au${FoodGem} \aw-> \ag${OldSpell2}"
-		/memspell ${FoodGem.Replace[gem,]} "${OldSpell2}"
+		/if (${OldSpell2.Equal[NULL]})
+		{
+			/call EchoSub "\atForgetting/clearing \au${FoodGem}"
+			/notify CastSpellWnd CSPW_Spell${Math.Calc[${FoodGem.Replace[gem,]}-1]} rightmouseup
+		} else {
+			/call EchoSub "\atMemorizing \au${FoodGem} \aw-> \ag${OldSpell2}"
+			/memspell ${FoodGem.Replace[gem,]} "${OldSpell2}"
+		}
 	}
 	/call EchoSub "\arFinished summoning!"
 /return
@@ -124,7 +136,7 @@ Sub SummonDrink
 		/if (${Me.SpellReady[${DrinkSpell}]} || !${FindItem[${DrinkSpell}].TimerReady} ) {
 			/call EchoSub "\atSummoning \ay${DrinkItem} \aw(\agInventory\aw=\ao${FindItemCount[=${DrinkItem}]}\aw)\at..."
 			:DrinkLoop
-			/if (${Me.CombatState.Equal[COMBAT]} || ${Me.Moving} || !${Me.State.Equal[STAND]} || ${Cursor.ID} || ${Me.Casting.ID}) {
+			/if (${Me.CombatState.Equal[COMBAT]} || ${Me.Moving} || (${Me.State.NotEqual[STAND]} && ${Me.State.NotEqual[MOUNT]}) || ${Cursor.ID} || ${Me.Casting.ID}) {
 				/delay 2s
 				/autoinv
 				/goto :DrinkLoop
@@ -152,7 +164,7 @@ Sub SummonFood
 		/if (${Me.SpellReady[${FoodSpell}]} || !${FindItem[${FoodSpell}].TimerReady} ) {
 			/call EchoSub "\atSummoning \ay${FoodItem} \aw(\agInventory\aw=\ao${FindItemCount[=${FoodItem}]}\aw)\at..."
 			:FoodLoop
-			/if (${Me.CombatState.Equal[COMBAT]} || ${Me.Moving} || !${Me.State.Equal[STAND]} || ${Cursor.ID} || ${Me.Casting.ID}) {
+			/if (${Me.CombatState.Equal[COMBAT]} || ${Me.Moving} || (${Me.State.NotEqual[STAND]} && ${Me.State.NotEqual[MOUNT]}) || ${Cursor.ID} || ${Me.Casting.ID}) {
 				/delay 2s
 				/autoinv
 				/goto :FoodLoop
