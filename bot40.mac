@@ -172,7 +172,7 @@
 #define MobIni Camps.ini
 #define LootIni Loot.ini
 #define ThisMac bot40
-#define ThisBotVersion v2018.12181800
+#define ThisBotVersion v2019.01021800
 
 #include spell_routines.inc
 #include bot_custom_events.inc
@@ -4330,7 +4330,6 @@ Sub Aura
 				}
 			}
 		}
-		
 		/if (${dblaura.Find[${Me.Class.ShortName}]}) {
 			/if (!${Defined[${CurrentSub}Use2]}) /declare ${CurrentSub}Use2 bool outer FALSE
 			/if (${${CurrentSub}Use2}) {
@@ -5380,6 +5379,7 @@ Sub Event_Chat(string ChatType,string ChatSender,string ChatText)
 	}
   	/if (${BuffTotal} && ${ChatSender.NotEqual[${Me.CleanName}]} && ${Spawn[pc ${ChatSender}].ID}) {
     	/for b 1 to ${BuffTotal}
+    			/if (!${Defined[BuffAlias${b}]}) /declare BuffAlias${b} string outer
         	/if (${BuffAlias${b}.Find[${ChatText}]}) {
             	/call BuffList "${Spawn[pc ${ChatSender}].ID}" "${b}"
          	}
