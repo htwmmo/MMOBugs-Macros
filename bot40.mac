@@ -158,7 +158,7 @@
  ** Debug Levels:
  ** In general I try to stay consistent with debug levels.  Set DebugLevel at the top of
  ** Sub Main to one of the following as needed:
- **    0 - Standard information and errors only (anything using /echo in the mac)
+ **    0 - Standard information and errors only (anything using /cecho in the mac)
  **    1 - Minor Debugging - basic debugging statements are logged
  **    2 - Major Debugging - most debugging statements are logged
  **    3 - Spam Central    - every debug statement is logged
@@ -172,7 +172,7 @@
 #define MobIni Camps.ini
 #define LootIni Loot.ini
 #define ThisMac bot40
-#define ThisBotVersion v2019.01021800
+#define ThisBotVersion v2019.01022100
 
 #include spell_routines.inc
 #include bot_custom_events.inc
@@ -206,7 +206,7 @@ Sub Main(string Param0, string Param1)
 		/varset NeedLoad TRUE
 		/call Load
 		/if (${NeedLoad}) {
-			/echo Macro INI finished.  Edit MyIni in your macros folder.
+			/cecho \agMacro INI finished.  Edit \ayMyIni \agin your macros folder.
 			/endmac
 			/return
 		}
@@ -238,7 +238,7 @@ Sub Main(string Param0, string Param1)
 
 	/if (!${Defined[AssistType]}) /declare AssistType int outer 3
 	/if (!${Raid.Members} && ${Me.XTarget[1].TargetType.NotEqual[Group Assist Target]} && ${Me.XTarget[1].TargetType.NotEqual[Group Tank's Target]} && ${AssistType}==3) {
-		/echo Setting Xtarget1 to group assist target, be sure to have your group roles set	
+		/cecho \aySetting \atXtarget1 \ayto group assist target, be sure to have your group roles set	
 		/xtarget set 1 groupassisttarget
 	}
 	/if (!${Defined[AssistType]}) /declare AssistType int outer 3
@@ -248,12 +248,12 @@ Sub Main(string Param0, string Param1)
 	/if (!${Defined[AssistPC]}) /declare AssistPC string outer
 	/if (!${Bool[${AssistPC}]}) {
 		/if (!${Bool[${Ini[MyIni,Assist,AssistPC,FALSE]}]}) {
-			/echo \arError: No AssistPC identified. Macro will not function, /ending.
+			/cecho \arError: No AssistPC identified. Macro will not function, /ending.
 			/beep
 			/end
 		} else {
 			/varset AssistPC ${Ini[MyIni,Assist,AssistPC]}
-			/echo \agUsing previous AssistPC.
+			/cecho \agUsing previous AssistPC.
 		}
 	}
 	/if (!${Defined[AssistAt]}) /declare AssistAt int outer
@@ -262,21 +262,21 @@ Sub Main(string Param0, string Param1)
 	} else {
 		/varset AssistAt ${Ini[MyIni,Assist,AssistAt,95]}
 	}
-	/echo \arAssisting: \ag${AssistPC}
-	/echo \arAssisting at: \ag${AssistAt}
-	/echo \arUsing AssistType: \ag${AssistType}
+	/cecho \arAssisting: \ag${AssistPC}
+	/cecho \arAssisting at: \ag${AssistAt}
+	/cecho \arUsing AssistType: \ag${AssistType}
 	
 
 	
 	/if (!${Defined[ErrorFound]}) /declare ErrorFound bool outer
 	/if (${ErrorFound}) {
-		/echo Errors found in MyIni. See messages above or look in your MQ2 Logs directory for ThisMac.mac.log to review errors encountered.
+		/cecho Errors found in MyIni. See messages above or look in your MQ2 Logs directory for ThisMac.mac.log to review errors encountered.
 		/beep
 	}
 	
 	/doevents flush
 	
-	/echo Beginning main bot loop
+	/cecho Beginning main bot loop
 	/while (TRUE) {
 		/if (${EverQuest.GameState.NotEqual[INGAME]}) {
 			/call Debug 3 "Game State no longer 'INGAME', bailing."
@@ -330,7 +330,7 @@ Sub Main(string Param0, string Param1)
 
 Sub Debug(int level, string message)
 	/if (!${Defined[DebugLevel]}) /declare DebugLevel int outer ${Ini[MyIni,Settings,DebugLevel,0]}
-	/if (${DebugLevel} >= ${level}) /echo DBG${level}: ${message}
+	/if (${DebugLevel} >= ${level}) /cecho DBG${level}: ${message}
 /return
 
 |################> Sub Always <#######################
@@ -406,7 +406,7 @@ Sub Combat
 	/if (${Me.Class.ShortName.Equal[BRD]} && ${Plugin[MQ2Twist].Name.Length}) {
 		/if (!${Me.GemTimer[${PBAEMezSpellGem}]} && ${PBAEMezSpellName.NotEqual[NULL]} && ${Me.Gem[${PBAEMezSpellName}]} && ${Spawn[${Me.XTarget[2].ID}].Distance}<35 && ${Me.XTarget[2].ID} && ${Me.CurrentMana}>${Spell[${PBAEMezSpellName}].Mana}) {
 			/twist once ${PBAEMezSpellGem}
-			/echo PBAEMEZ is firing.
+			/cecho PBAEMEZ is firing.
 			/delay 35
 			/call ${EchoSub} "${DarkYellow} ${PBAEMezSpellName} --> ${White} PBAE Mez"
 			/varset BeamUsed 1
@@ -563,14 +563,14 @@ Sub Rest
 	/if (${Defined[RestTwist]} && ${Plugin[MQ2Twist].Name.Length}) {
 		/if (${RestTwist.Equal[NULL]} && ${Twist.Twisting}) {
 			/twist off
-			/echo Turning off Twist RestTwist!= Twist.List and RestTwist is NULL
+			/cecho Turning off Twist RestTwist!= Twist.List and RestTwist is NULL
 		}
 		/if (${StopSongsIfPullerIsThisDistanceOrMore} && ${Group.Puller.Distance} > ${StopSongsIfPullerIsThisDistanceOrMore} && ${Twist.Twisting}) {
 			/twist off
 		}
 		/if (${Defined[RestTwist]}) {
 			/if (${Twist.List} != ${RestTwist} || !${Twist.Twisting} || !${StopSongsIfPullerIsThisDistanceOrMore} || ${Group.Puller.Distance} < ${StopSongsIfPullerIsThisDistanceOrMore}) {
-				/echo Should be firing, past first test. 
+				/cecho Should be firing, past first test. 
 				/if (!${NeedAura} && !${Twist.Twisting} || ${Twist.List} != ${RestTwist} && !${NeedAura}) {
 					/cechob \agRestTwist is firing!
 					/if (${Me.Sitting}) /stand
@@ -768,12 +768,12 @@ Sub ConditionsLoad
 	/if (!${ConditionsTotal}) {
 		/mmoini "MyIni" "Conditions" "ConditionsTotal" "0"
 		/for i 1 to 10
-			/mmoini "MyIni" "Conditions" "Conditions${i}"
+			/mmoini "MyIni" "Conditions" "Conditions${i}" "TRUE"
 		/next i
 	/if (!${ConditionsTotal}) /return
 
 	/for i 1 to ${ConditionsTotal}
-		/docommand /noparse ${Ini[MyIni,Conditions,Conditions${i},/echo Condition${i} is blank]}
+		/docommand /noparse ${Ini[MyIni,Conditions,Conditions${i},/cecho Condition${i} is blank]}
 	/next i
 	/call Debug 3 "Leaving Sub ConditionsLoad"
 /return
@@ -878,7 +878,7 @@ Sub OptionsLoad
 		/if (${Me.Class.ShortName.Equal[BRD]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Bard|Debuff|Disc|Snare|SelfBuff|
 		/if (${Select[${Me.Class.ShortName},MNK,ROG,BER]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Disc|Snare|
 		/if (${Select[${Me.Class.ShortName},WAR]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Disc|Aggro|
-		/if (${Select[${Me.Class.ShortName},DRU,SHM,]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Debuff|Dot|FightBuff|HealSingle|HealGroup|HealSelf|HealPet|MainTankBuff|Nuke|Pet|Rez|Root|SelfBuff|Snare|XHeal|
+		/if (${Select[${Me.Class.ShortName},DRU,SHM]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Debuff|Dot|FightBuff|HealSingle|HealGroup|HealSelf|HealPet|MainTankBuff|Nuke|Pet|Rez|Root|SelfBuff|Snare|XHeal|
 		/if (${Select[${Me.Class.ShortName},CLR]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Debuff|Dot|FightBuff|HealSingle|HealGroup|HealSelf|HealBalance|HealSplash|HealPet|MainTankBuff|Nuke|Rez|Root|SelfBuff|Snare|Stun|XHeal|
 		/if (${Select[${Me.Class.ShortName},PAL]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Aggro|Debuff|Disc|Dot|FightBuff|HealSingle|HealGroup|HealSelf|HealSplash|HealPet|SelfBuff|Nuke|Rez|Root|SelfBuff|Snare|Stun|XHeal|
 		/if (${Select[${Me.Class.ShortName},RNG]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Disc|Dot|FightBuff|HealSingle|HealPet|Jolt|MainTankBuff|Nuke|Root|SelfBuff|Snare|XHeal|
@@ -889,8 +889,8 @@ Sub OptionsLoad
 		/if (${Select[${Me.Class.ShortName},ENC]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Debuff|Dot|FightBuff|Mez|Nuke|Pet|Root|SelfBuff|Stun|
 		/if (${Select[${Me.Class.ShortName},WIZ]}) /varset OptionsCheck |Pulling|Merc|AA|Aura|Buff|ClickyMaintenance|ClickyNuke|Fade|Debuff|FightBuff|Jolt|Nuke|Root|SelfBuff|Snare|Stun|
 		/if (${Select[${Me.Class.ShortName},BST,CLR,DRU,ENC,SHM,PAL,RNG,SHD,NEC,MAG,WIZ]}) /varset OptionsCheck ${OptionsCheck}Mana|ModRod|
-		/if (${Select[${Me.Class.ShortName},PAL,SHD,WAR,BER,ROG,MNK]}) /varset OptionsCheck ${OptionsCheck}Endurance|
-		/mmoini "MyIni" "Settings" "OptionsCheck" "${OptionsCheck}"
+		/if (${Select[${Me.Class.ShortName},PAL,RNG,SHD,WAR,BER,ROG,MNK]}) /varset OptionsCheck ${OptionsCheck}Endurance|
+		/mmoini "MyIni" "Settings" "OptionsCheck" "${OptionsCheck}" 
 	}
 	/declare OptionsCheckRaid string outer ${Ini[MyIni,Settings,OptionsCheckRaid]}
 	/if (${OptionsCheckRaid.Equal[NULL]}) /mmoini "MyIni" "Settings" "OptionsCheckRaid" "${OptionsCheck}"
@@ -918,7 +918,9 @@ Sub IniLoad(ininame,var,vartype,sec,default)
 		}
 	}
 	/if (${vartype.Equal[string]}) {
-		/if (${${var}.Equal[NULL]}) /mmoini "${ininame}" "${sec}" "${var}"
+		/if (${${var}.Equal[NULL]}) {
+			/mmoini "${ininame}" "${sec}" "${var}" "----"
+		}
 	}
 	/if (${vartype.Equal[string]}) {
 			/if (!${${var}.Equal[NULL]}) /mmoini "${ininame}" "${sec}" "${var}" "${${var}}"
@@ -959,8 +961,8 @@ Sub CustomLoad
 	/if (${NeedLoad} && ${CustomCombatTotal}==NULL) /mmoini "MyIni" "Custom" "CustomCombatTotal" "0"
 	/if (${NeedLoad} && ${CustomRestTotal}==NULL) /mmoini "MyIni" "Custom" "CustomRestTotal" "0"
 	/if (${NeedLoad}) {
-		/if (!${CustomCombatTotal}) /mmoini "MyIni" "Custom" "CustomCombat1"
-		/if (!${CustomRestTotal}) /mmoini "MyIni" "Custom" "CustomRest1"
+		/if (!${CustomCombatTotal}) /mmoini "MyIni" "Custom" "CustomCombat1" "----"
+		/if (!${CustomRestTotal}) /mmoini "MyIni" "Custom" "CustomRest1" "----"
 	}
 	/call Debug 3 "Leaving Sub CustomLoad"
 /return
@@ -995,29 +997,29 @@ Sub Event_TimeIn
 #event EndMacro "It will take about 10 more seconds to prepare your camp."
 #event EndMacro "It will take about 5 more seconds to prepare your camp."
 Sub Event_EndMacro
-	/echo You forgot to /end macro
+	/cecho You forgot to /end macro
 	/end
 /return
 
 #event AddAuthorizedUser "#*#AddAuthorizedUser #1#"
 Sub Event_AddAuthorizedUser(line, string addauthname)
-	/echo ${addauthname}
+	/cecho ${addauthname}
 	/if (${AuthorizedUsers.Find[${addauthname}]}) /mmoini "MyIni" "Settings" "AuthorizedUsers" "${AuthorizedUsers.Replace[${addauthname},]}"
 	/if (!${AuthorizedUsers.Find[${addauthname}]}) /mmoini "MyIni" "Settings" "AuthorizedUsers" "${AuthorizedUsers}|${addauthname}"
 	/if (${AuthorizedUsers.Find[||]}) /mmoini "MyIni" "Settings" "AuthorizedUsers" "${AuthorizedUsers.Replace[||,|]}"
 	/varset AuthorizedUsers ${Ini[MyIni,Settings,AuthorizedUsers]}
-	/echo AuthorizedUsers: ${AuthorizedUsers}
+	/cecho AuthorizedUsers: ${AuthorizedUsers}
 /return
 
 #event LootNPCs "[MQ2] Toggle LootNPCs#*#"
 Sub Event_LootNPCs
 	/if (${LootNPCs}) {
 		/mmoini "MyIni" "Settings" "LootNPCs" "FALSE"
-		/echo Looting disabled.
+		/cecho Looting disabled.
 	}
 	/if (!${LootNPCs}) {
 		/mmoini "MyIni" "Settings" "LootNPCs" "TRUE"
-		/echo Looting enabled.
+		/cecho Looting enabled.
 	}
 	/varset LootNPCs ${Ini[MyIni,Settings,LootNPCs]} 
 /return
@@ -1026,93 +1028,93 @@ Sub Event_LootNPCs
 #event BurnMode "#*#|${BurnModeAlias}|#*#"
 Sub Event_BurnMode
 	/varset BurnMode ${If[${BurnMode},FALSE,TRUE]}
-	/if (${BurnMode}) /echo Now in BurnMode
-	/if (!${BurnMode}) /echo No longer in BurnMode
+	/if (${BurnMode}) /cecho Now in BurnMode
+	/if (!${BurnMode}) /cecho No longer in BurnMode
 /return
 
 #event HelpMe "[MQ2] Help guide enabled#*#"
 Sub Event_HelpMe
-	/echo /assisttype [1|2|3|4] <-- toggles assist type. 1 = /assist, 2 = pick own target, 3 = use XTarget1 as your kill target, 4 = use netbots to pick target
-	/echo /toggle option - Toggles "option" on or off, ie. /toggle Nuke, /toggle AA, /toggle Dot
-	/echo /options - shows current options
-	/echo
-	/echo /burn - Toggles BurnMode to TRUE/FALSE
-	/echo
-	/echo Clickies:
-	/echo /addclicky <item link> - adds clicky to maintain
-	/echo /removeclicky <item link> - removes clicky from maintaing
-	/echo /clicky - toggles maintainence of clickies
-	/echo
-	/echo IgnoreList related:
-	/echo /imob1 - adds current target to alert list 1 to temporarily ignore for pulling
-	/echo /imob - adds current target to ignoremob list
-	/echo /cmob - adds current target to coldimmune list
-	/echo /dmob - adds current target to diseaseimmune list
-	/echo /fmob - adds current target to fireimmune list
-	/echo /mmob - adds current target to magicimmune list
-	/echo /pmob - adds current target to poisonimmune list
-	/echo /smob - adds current target to stunimmune list
-	/echo
-	/echo Camp related:
-	/echo /campon - turns leash mode on
-	/echo /campoff - turns leash mode off
-	/echo /ame - anchors you at current spot
-	/echo
-	/echo Follow related:
-	/echo To follow, in any chat channel say: ${FollowCommand}
-	/echo To stop following, in any chat channel say: ${StopFollowCommand}
-	/echo 
-	/echo SummonTank related:
-	/echo /sumtank - toggles summon tanking for current target
-	|/echo 
-	|/echo [Pet] related:
-	|/echo /petgear add|phrase|<link of item> - adds items to ini for later use.  ie. /petgear add|wind|Summoned: Sword of Wind 
-	|/echo /petgear wind|water|belt|hulahoop - would attempt to give your pet gear using those 4 aliases that are defined in your ini
-	/echo
-	/echo Special phrases:
-	/echo invison - uses invis
-	/echo ivuon - uses invis vs undead
-	/echo invisoff - removes invis/ivu
-	/echo levon - uses levitate spell, if defined
-	/echo levoff - removes levitate spells
-	/if (${Me.Class.ShortName.Equal[PAL]}) /echo Use: splashp - splashes with paladin
-	/if (${Me.Class.ShortName.Equal[CLR]}) /echo Use: splashc - splashes with cleric
-	/echo rface - faces a random direction
-	/echo 
-	/echo Special commands:
-	/echo /invis		/bc invison
-	/echo /ivu		/bc ivuon
-	/echo /invisoff	/bc invisoff
-	/echo /ivuoff		/bc ivuoff
-	/echo /invischange	/bc ToggleInvis invis
-	/echo /ivuchange	/bc ToggleInvis ivu
-	/echo /rface   /bc rface
-	/echo /taskget	/bc Taskget '$ {Target}'
-	/echo /lootthis	/bc LootThis $ {Target.ID}
-	/echo /trusted name - Adds name to trusted rez list
-	/echo /LootNPCs - toggles on and off looting
-	/echo /offtank - toggles whether or not you want to offtank mobs in event of no enc/bard or unmezzable mob
-	/echo
-	/echo /puller - toggles whether or not you are puller
-	/echo /pullingmethod [standard|nav|hunt|seek] - toggles pulling method 
-	/echo
-	/echo MQ2Nav camp setup example to add a camp called "center":
-	/echo 1. /addcamp center
-	/echo 2. use the map to target all the mobs you want to kill, in the order you want to kill them, once finished, go to next step
-	/echo 3. /stopcamp
-	/echo 
-	/echo 4. whenever you want to use this camp now, or in the future, just /startcamp center
-	/echo
-	/echo Camps are set in your \mq2\Camps.ini folder if you want to delete camps later or share them.
-	/echo 
-	/echo Loot.ini related:
-	/echo /lootignore - Changes item status on cursor to Ignore
-	/echo /lootkeep - Changes item status on cursor to Keep
-	/echo /lootsell - Changes item status on cursor to Sell
-	/echo /loottradeskills - Changes item status on cursor to Tradeskills
-	/echo /lootdestroy - Changes item status on cursor to Destroy
-	/echo /sell - Sells items listed as Sell to currently targeted vendor
-	/echo /deposit - Deposits items listed as Keep to currently targeted banker/guildbanker
+	/cecho /assisttype [1|2|3|4] <-- toggles assist type. 1 = /assist, 2 = pick own target, 3 = use XTarget1 as your kill target, 4 = use netbots to pick target
+	/cecho /toggle option - Toggles "option" on or off, ie. /toggle Nuke, /toggle AA, /toggle Dot
+	/cecho /options - shows current options
+	/cecho
+	/cecho /burn - Toggles BurnMode to TRUE/FALSE
+	/cecho
+	/cecho Clickies:
+	/cecho /addclicky <item link> - adds clicky to maintain
+	/cecho /removeclicky <item link> - removes clicky from maintaing
+	/cecho /clicky - toggles maintainence of clickies
+	/cecho
+	/cecho IgnoreList related:
+	/cecho /imob1 - adds current target to alert list 1 to temporarily ignore for pulling
+	/cecho /imob - adds current target to ignoremob list
+	/cecho /cmob - adds current target to coldimmune list
+	/cecho /dmob - adds current target to diseaseimmune list
+	/cecho /fmob - adds current target to fireimmune list
+	/cecho /mmob - adds current target to magicimmune list
+	/cecho /pmob - adds current target to poisonimmune list
+	/cecho /smob - adds current target to stunimmune list
+	/cecho
+	/cecho Camp related:
+	/cecho /campon - turns leash mode on
+	/cecho /campoff - turns leash mode off
+	/cecho /ame - anchors you at current spot
+	/cecho
+	/cecho Follow related:
+	/cecho To follow, in any chat channel say: ${FollowCommand}
+	/cecho To stop following, in any chat channel say: ${StopFollowCommand}
+	/cecho 
+	/cecho SummonTank related:
+	/cecho /sumtank - toggles summon tanking for current target
+	|/cecho 
+	|/cecho [Pet] related:
+	|/cecho /petgear add|phrase|<link of item> - adds items to ini for later use.  ie. /petgear add|wind|Summoned: Sword of Wind 
+	|/cecho /petgear wind|water|belt|hulahoop - would attempt to give your pet gear using those 4 aliases that are defined in your ini
+	/cecho
+	/cecho Special phrases:
+	/cecho invison - uses invis
+	/cecho ivuon - uses invis vs undead
+	/cecho invisoff - removes invis/ivu
+	/cecho levon - uses levitate spell, if defined
+	/cecho levoff - removes levitate spells
+	/if (${Me.Class.ShortName.Equal[PAL]}) /cecho Use: splashp - splashes with paladin
+	/if (${Me.Class.ShortName.Equal[CLR]}) /cecho Use: splashc - splashes with cleric
+	/cecho rface - faces a random direction
+	/cecho 
+	/cecho Special commands:
+	/cecho /invis		/bc invison
+	/cecho /ivu		/bc ivuon
+	/cecho /invisoff	/bc invisoff
+	/cecho /ivuoff		/bc ivuoff
+	/cecho /invischange	/bc ToggleInvis invis
+	/cecho /ivuchange	/bc ToggleInvis ivu
+	/cecho /rface   /bc rface
+	/cecho /taskget	/bc Taskget '$ {Target}'
+	/cecho /lootthis	/bc LootThis $ {Target.ID}
+	/cecho /trusted name - Adds name to trusted rez list
+	/cecho /LootNPCs - toggles on and off looting
+	/cecho /offtank - toggles whether or not you want to offtank mobs in event of no enc/bard or unmezzable mob
+	/cecho
+	/cecho /puller - toggles whether or not you are puller
+	/cecho /pullingmethod [standard|nav|hunt|seek] - toggles pulling method 
+	/cecho
+	/cecho MQ2Nav camp setup example to add a camp called "center":
+	/cecho 1. /addcamp center
+	/cecho 2. use the map to target all the mobs you want to kill, in the order you want to kill them, once finished, go to next step
+	/cecho 3. /stopcamp
+	/cecho 
+	/cecho 4. whenever you want to use this camp now, or in the future, just /startcamp center
+	/cecho
+	/cecho Camps are set in your \mq2\Camps.ini folder if you want to delete camps later or share them.
+	/cecho 
+	/cecho Loot.ini related:
+	/cecho /lootignore - Changes item status on cursor to Ignore
+	/cecho /lootkeep - Changes item status on cursor to Keep
+	/cecho /lootsell - Changes item status on cursor to Sell
+	/cecho /loottradeskills - Changes item status on cursor to Tradeskills
+	/cecho /lootdestroy - Changes item status on cursor to Destroy
+	/cecho /sell - Sells items listed as Sell to currently targeted vendor
+	/cecho /deposit - Deposits items listed as Keep to currently targeted banker/guildbanker
 
 	/doevents flush
 /return
@@ -1127,13 +1129,13 @@ Sub Event_Toggle(line, string option_name)
 	/call Debug 3 "Location of option - ${location} | Length of option - ${len} | ToggleList Option: ${ToggleList.Mid[${location}, ${len}]}"
 
 	/if (!${location}) {
-		/echo Not a valid option to toggle.
+		/cecho Not a valid option to toggle.
 		/return
 	}
 
 	/if (${location} && ${ToggleList.Mid[${location}, ${len}].NotEqualCS[|${option_name}|]}) {
-		/echo You entered "${option_name}" but you should have entered "${ToggleList.Mid[${location}, ${len}].Replace[|,]}"
-		/echo I'll fix this for you, to not get this error message, please use proper case.
+		/cecho You entered "${option_name}" but you should have entered "${ToggleList.Mid[${location}, ${len}].Replace[|,]}"
+		/cecho I'll fix this for you, to not get this error message, please use proper case.
 		/varset option_name ${ToggleList.Mid[${location}, ${len}].Replace[|,]}
 		/call Debug 3 "Updated option_name to ${option_name}"
 	} 
@@ -1145,11 +1147,11 @@ Sub Event_Toggle(line, string option_name)
 		|/varset OptionsCheck ${OptionsCheck.Left[${Math.Calc[${OptionsCheck.Find[|${option_name}|]}-1].Int}]}${OptionsCheck.Right[${Math.Calc[${OptionsCheck.Length}-${OptionsCheck.Find[|${option_name}|]}-${option_name.Length}].Int}]}
 		/call Debug 3 "Writing to INI"
 		/mmoini "MyIni" "Settings" "OptionsCheck" "${OptionsCheck}"
-		/echo Disabling ${option_name}
+		/cecho Disabling ${option_name}
 	} else {
 		/varset OptionsCheck ${OptionsCheck}${option_name}|
 		/mmoini "MyIni" "Settings" "OptionsCheck" "${OptionsCheck}"
-		/echo Enabling ${option_name}
+		/cecho Enabling ${option_name}
 	}
 
 	/if (${OptionsCheck.Find[NULL|]}) /varset OptionsCheck ${OptionsCheck.Replace[NULL|,]}
@@ -1161,7 +1163,7 @@ Sub Event_Toggle(line, string option_name)
 Sub Event_Emergency
 	/if (${Defined[EmergencySkill]}) {
 		/if (${EmergencySkill.Equal[NULL]}||!${EmergencySkill.Length}||${EmergencyAlias.Equal[NULL]}||!${EmergencyAlias.Length}) /return
-		/echo Emergency event detected, attempting to use ${EmergencySkill}!
+		/cecho Emergency event detected, attempting to use ${EmergencySkill}!
 		/call ClearTarget
 		/call ClearAttack
 		/if (${Me.AbilityReady[${EmergencySkill}]}) /doability "${EmergencySkill}"
@@ -1272,7 +1274,7 @@ Sub Event_IgnZoned
 		/mmoini "${IniFile}" "Ignores.${Zone.ShortName}" "Ignore" "|"
 		/varset IgnoreList ${Ini[${IniFile},"Ignores.${Zone.ShortName}","Ignore"]}
 	}
-	/echo IgnoreList: ${IgnoreList}
+	/cecho IgnoreList: ${IgnoreList}
 	/declare i int local  		
 	/for i 2 to ${Math.Calc[${ImmuneList.Count[|]}-1]}
 		/varset ${ImmuneList.Arg[${i},|]}ImmuneList ${Ini[${IniFile},"${ImmuneList.Arg[${i},|]}Immunes.${Zone.ShortName}","${ImmuneList.Arg[${i},|]}Immune"]}
@@ -1291,7 +1293,7 @@ Sub ImmuneListAdd(WhichList,WhichMob)
 	/if (!${${WhichList}ImmuneList.Find[${WhichMob}]} && ${WhichMob.NotEqual[NULL]}) {
   		/mmoini "${IniFile}" "${WhichList}Immunes.${Zone.ShortName}" "${WhichList}Immune" "${${WhichList}ImmuneList}${WhichMob}|"
      	/varset ${WhichList}ImmuneList ${Ini[${IniFile},"${WhichList}Immunes.${Zone.ShortName}","${WhichList}Immune"]}
-  		/echo ${WhichList}ImmuneList: ${${WhichList}ImmuneList}
+  		/cecho ${WhichList}ImmuneList: ${${WhichList}ImmuneList}
   	} 
 /return
 
@@ -1304,7 +1306,7 @@ Sub Event_IgnoreMob(string line,string MobName)
 		/varset IgnoreList ${Ini[${IniFile},"Ignores.${Zone.ShortName}","Ignore"]}
 		/if (${IgnoreList.Find[NULL]}) /varset IgnoreList ${IgnoreList.Replace[NULL,]}
 		/if (${IgnoreList.Find[||]}) /varset IgnoreList ${IgnoreList.Replace[||,|]}
-		/echo IgnoreList: ${IgnoreList}
+		/cecho IgnoreList: ${IgnoreList}
 	}
 /return
 
@@ -1384,7 +1386,7 @@ Sub Event_SlowImmune
 /return
 
 Sub EchoPlain(string Texte)
-    /echo ${Texte}
+    /cecho ${Texte}
 /return
 
 Sub EchoColor(string Texte)
@@ -1431,7 +1433,7 @@ Sub EchoHandlerLoad
 #event TaskGet2 "#*#TaskGet2 #0#"
 
 Sub Event_TaskGet2(string keyphrase)
-	/echo Using: ${keyphrase} ---> ${Target}
+	/cecho Using: ${keyphrase} ---> ${Target}
 	/declare i int local
 	/for i 1 to ${Group}
 		/delay 2
@@ -1457,53 +1459,53 @@ Sub AliasLoad
 	
 	/if (!${Defined[MyChannel]}) /declare MyChannel string outer ${Ini[MyIni,Settings,MyChannel,echo]}
 	/noparse	/squelch /alias		/aabuy				/varset AABuy ${If[${AABuy},FALSE,TRUE]}
-				/squelch /alias 	/helpme 			/echo Help guide enabled
-				/squelch /alias 	/assisttype 		/echo Change AssistType to
-				/squelch /alias     /debuglevel         /echo Set DebugLevel
-				/squelch /alias 	/toggle				/echo Toggle option
-	/noparse 	/squelch /alias 	/options 			/echo ${OptionsCheck}
-				/squelch /alias 	/LootNPCs 			/echo Toggle LootNPCs
-				/squelch /alias 	/burn 				/echo Toggle BurnMode
-				/squelch /alias 	/adduser 			/echo AddAuthorizedUser
-				/squelch /alias 	/taskg 				/echo TaskGet2
-				/squelch /alias 	/leap 				/echo LeapTarget
-				/squelch /alias 	/sumtank 			/echo SummonTankTarget
-				/squelch /alias 	/ame 				/echo AnchorMe
+				/squelch /alias 	/helpme 			/cecho Help guide enabled
+				/squelch /alias 	/assisttype 		/cecho Change AssistType to
+				/squelch /alias     /debuglevel         /cecho Set DebugLevel
+				/squelch /alias 	/toggle				/cecho Toggle option
+	/noparse 	/squelch /alias 	/options 			/cecho ${OptionsCheck}
+				/squelch /alias 	/LootNPCs 			/cecho Toggle LootNPCs
+				/squelch /alias 	/burn 				/cecho Toggle BurnMode
+				/squelch /alias 	/adduser 			/cecho AddAuthorizedUser
+				/squelch /alias 	/taskg 				/cecho TaskGet2
+				/squelch /alias 	/leap 				/cecho LeapTarget
+				/squelch /alias 	/sumtank 			/cecho SummonTankTarget
+				/squelch /alias 	/ame 				/cecho AnchorMe
 				/squelch /alias 	/campoff 			/varset UseCamp FALSE
 				/squelch /alias 	/campon 			/varset UseCamp TRUE
-				/squelch /alias 	/offtank 			/echo Toggle OffTank
-				/squelch /alias 	/addclicky 			/echo Add Clicky
-				/squelch /alias 	/removeclicky 		/echo Remove Clicky
-				/squelch /alias 	/clicky 			/echo ClickyToggle
-				/squelch /alias 	/imob 				/echo ignoremob
+				/squelch /alias 	/offtank 			/cecho Toggle OffTank
+				/squelch /alias 	/addclicky 			/cecho Add Clicky
+				/squelch /alias 	/removeclicky 		/cecho Remove Clicky
+				/squelch /alias 	/clicky 			/cecho ClickyToggle
+				/squelch /alias 	/imob 				/cecho ignoremob
 	/noparse 	/squelch /alias 	/imob1 				/alert add 1 ${Target}
-				/squelch /alias 	/cmob 				/echo coldimmunemob
-				/squelch /alias 	/dmob 				/echo diseaseimmunemob
-				/squelch /alias 	/fmob 				/echo fireimmunemob
-				/squelch /alias 	/mmob 				/echo magicimmunemob
-				/squelch /alias 	/pmob 				/echo poisonimmunemob
-				/squelch /alias 	/smob 				/echo stunmob
-				/squelch /alias 	/addcamp 			/echo addcamp
-				/squelch /alias 	/stopcamp 			/echo stopadd
-				/squelch /alias 	/listcamp 			/echo listcamp
-				/squelch /alias 	/startcamp 			/echo startcamp
-				/squelch /alias 	/petgear 			/echo PetGear
+				/squelch /alias 	/cmob 				/cecho coldimmunemob
+				/squelch /alias 	/dmob 				/cecho diseaseimmunemob
+				/squelch /alias 	/fmob 				/cecho fireimmunemob
+				/squelch /alias 	/mmob 				/cecho magicimmunemob
+				/squelch /alias 	/pmob 				/cecho poisonimmunemob
+				/squelch /alias 	/smob 				/cecho stunmob
+				/squelch /alias 	/addcamp 			/cecho addcamp
+				/squelch /alias 	/stopcamp 			/cecho stopadd
+				/squelch /alias 	/listcamp 			/cecho listcamp
+				/squelch /alias 	/startcamp 			/cecho startcamp
+				/squelch /alias 	/petgear 			/cecho PetGear
 	/noparse	/squelch /alias 	/petrequest			/docommand /${MyChannel} PetGearRequest ${Me.ID}
-				/squelch /alias 	/puller 			/echo TogglePuller
-				/squelch /alias 	/pullingmethod 		/echo TogglePullingMethod
-				/squelch /alias 	/trusted 			/echo Toggle Trusted
-				/squelch /alias 	/import 			/echo ImportSection
-				/squelch /alias 	/summon 			/echo SummonItem
-				/squelch /alias 	/aaspew 			/echo AASpewList 1
-				/squelch /alias 	/cureignore 		/echo AddCureIgnoreList
-	/noparse 	/squelch /alias 	/lootignore    		/echo LootItem Ignore ${Cursor.Name}
-	/noparse 	/squelch /alias 	/lootsell      		/echo LootItem Sell ${Cursor.Name}
-	/noparse 	/squelch /alias 	/loottradeskills	/echo LootItem Tradeskills ${Cursor.Name}        
-	/noparse 	/squelch /alias 	/lootkeep      		/echo LootItem Keep ${Cursor.Name}
-	/noparse 	/squelch /alias 	/lootdestroy   		/echo LootItem Destroy ${Cursor.Name}
-	/noparse	/squelch /alias		/lootcollectible 	/echo LootItem Collectible ${Cursor.Name}
-				/squelch /alias 	/sell           	/echo SellItems
-				/squelch /alias 	/deposit 			/echo DepositItems
+				/squelch /alias 	/puller 			/cecho TogglePuller
+				/squelch /alias 	/pullingmethod 		/cecho TogglePullingMethod
+				/squelch /alias 	/trusted 			/cecho Toggle Trusted
+				/squelch /alias 	/import 			/cecho ImportSection
+				/squelch /alias 	/summon 			/cecho SummonItem
+				/squelch /alias 	/aaspew 			/cecho AASpewList 1
+				/squelch /alias 	/cureignore 		/cecho AddCureIgnoreList
+	/noparse 	/squelch /alias 	/lootignore    		/cecho LootItem Ignore ${Cursor.Name}
+	/noparse 	/squelch /alias 	/lootsell      		/cecho LootItem Sell ${Cursor.Name}
+	/noparse 	/squelch /alias 	/loottradeskills	/cecho LootItem Tradeskills ${Cursor.Name}        
+	/noparse 	/squelch /alias 	/lootkeep      		/cecho LootItem Keep ${Cursor.Name}
+	/noparse 	/squelch /alias 	/lootdestroy   		/cecho LootItem Destroy ${Cursor.Name}
+	/noparse	/squelch /alias		/lootcollectible 	/cecho LootItem Collectible ${Cursor.Name}
+				/squelch /alias 	/sell           	/cecho SellItems
+				/squelch /alias 	/deposit 			/cecho DepositItems
 				/squelch /alias		/invis				/${MyChannel}  invison
 				/squelch /alias		/ivu				/${MyChannel}  ivuon
 				/squelch /alias		/invisoff			/${MyChannel}  invisoff
@@ -1542,11 +1544,11 @@ Sub PluginLoad
 #event AssistType "[MQ2] Change AssistType to #1#"
 Sub Event_AssistType(line, int new_type)
 	/varset AssistType ${new_type}
-	/if (!${AssistType}) /echo Set AssistType.  1 to just /assist, 2 to /target own prioritized mob, 3 to /assist with XTarget1 is kill target, 4 to use NetBots
-	/if (${AssistPC.NotEqual[load]} && ${AssistType}==1) /echo AssistType 1 = /assist ${AssistPC} at ${AssistAt}% - Check every 5s
-	/if (${AssistPC.NotEqual[load]} && ${AssistType}==2) /echo AssistType 2 = Pick own target at ${AssistAt}% 
-	/if (${AssistPC.NotEqual[load]} && ${AssistType}==3) /echo AssistType 3 = Using XTarget1 to assist ${AssistPC} at ${AssistAt}%
-	/if (${AssistPC.NotEqual[load]} && ${AssistType}==4) /echo AssistType 4 = Using NetBots to assist ${AssistPC} at ${AssistAt}%
+	/if (!${AssistType}) /cecho Set AssistType.  1 to just /assist, 2 to /target own prioritized mob, 3 to /assist with XTarget1 is kill target, 4 to use NetBots
+	/if (${AssistPC.NotEqual[load]} && ${AssistType}==1) /cecho AssistType 1 = /assist ${AssistPC} at ${AssistAt}% - Check every 5s
+	/if (${AssistPC.NotEqual[load]} && ${AssistType}==2) /cecho AssistType 2 = Pick own target at ${AssistAt}% 
+	/if (${AssistPC.NotEqual[load]} && ${AssistType}==3) /cecho AssistType 3 = Using XTarget1 to assist ${AssistPC} at ${AssistAt}%
+	/if (${AssistPC.NotEqual[load]} && ${AssistType}==4) /cecho AssistType 4 = Using NetBots to assist ${AssistPC} at ${AssistAt}%
 /return
 
 #event SetTarget "#*#|${SetTargetMessage}| #1#"
@@ -1568,7 +1570,7 @@ Sub CheckTargetLoad
 	/if (!${Defined[TarID]}) /declare TarID int outer
 	/varset ListVar AssistType|AssistPC|AssistAt|OpeningMove|AttackRange|AttackCommand|AttackConditions|AmIOffTank|UseMelee|UseArchery|ArcheryMaxDistance|ArcheryMinDistance|SetTargetMessage|
 	/varset ListVarType int|string|int|string|int|string|string|bool|bool|bool|int|int|string|
-	/varset ListDefault 3|${Group.MainAssist}|99|NULL|150|"/attack on"|NULL|FALSE|${If[${Select[${Me.Class.ShortName},BRD,BST,BER,ROG,WAR,MNK,RNG,SHD,PAL]},TRUE,FALSE]}|${If[${InvSlot[11].Item.Type.Equal[Archery]},TRUE,FALSE]}|200|35|Kill_this|
+	/varset ListDefault 3|${Group.MainAssist}|99|NULL|150|"/attack on"|TRUE|FALSE|${If[${Select[${Me.Class.ShortName},BRD,BST,BER,ROG,WAR,MNK,RNG,SHD,PAL]},TRUE,FALSE]}|${If[${InvSlot[11].Item.Type.Equal[Archery]},TRUE,FALSE]}|200|35|Kill_this|
 	/varset ListSection Assist
 	/declare ReAssist timer outer 3s
 	/declare OpeningMoveTimer timer outer 5s
@@ -1580,15 +1582,15 @@ Sub CheckTargetLoad
 		/call IniLoad "MyIni" "${ListVar.Arg[${i},|]}" "${ListVarType.Arg[${i},|]}" "Assist" "${ListDefault.Arg[${i},|]}"
 	/next i
 	/varset assiststring ${Ini[MyIni,Assist,AssistPC]}
-	/if (${assiststring.Equal[NULL]}||!${assiststring.Length}) /mmoini "MyIni" "Assist" "AssistPC"
+	/if (${assiststring.Equal[NULL]}||!${assiststring.Length}) /mmoini "MyIni" "Assist" "AssistPC" "NULL"
 	/varset assiststring ${Ini[MyIni,Assist,AssistAt]}
-	/if (${assiststring.Equal[NULL]}||!${assiststring.Length}) /mmoini "MyIni" "Assist" "AssistAt"
+	/if (${assiststring.Equal[NULL]}||!${assiststring.Length}) /mmoini "MyIni" "Assist" "AssistAt" "99"
 	/if (${AssistPC.Equal[${Me.Name}]}||${AssistPC.Equal[self]}) /varset AssistType 2
 	/cechob \arAvailable AssistTypes:  1 to just /assist, 2 to /target own prioritized mob, 3 to /assist with XTarget1 is kill target, 4 to use NetBots
-	/if (${AssistPC.NotEqual[load]} && ${AssistType}==1) /echo AssistType 1 = /assist ${AssistPC} at ${AssistAt}% - Check every 5s
-	/if (${AssistPC.NotEqual[load]} && ${AssistType}==2) /echo AssistType 2 = Pick own target at ${AssistAt}% 
-	/if (${AssistPC.NotEqual[load]} && ${AssistType}==3) /echo AssistType 3 = Using XTarget1 to assist ${AssistPC} at ${AssistAt}%
-	/if (${AssistPC.NotEqual[load]} && ${AssistType}==4) /echo AssistType 4 = Using NetBots to assist ${AssistPC} at ${AssistAt}%
+	/if (${AssistPC.NotEqual[load]} && ${AssistType}==1) /cecho AssistType 1 = /assist ${AssistPC} at ${AssistAt}% - Check every 5s
+	/if (${AssistPC.NotEqual[load]} && ${AssistType}==2) /cecho AssistType 2 = Pick own target at ${AssistAt}% 
+	/if (${AssistPC.NotEqual[load]} && ${AssistType}==3) /cecho AssistType 3 = Using XTarget1 to assist ${AssistPC} at ${AssistAt}%
+	/if (${AssistPC.NotEqual[load]} && ${AssistType}==4) /cecho AssistType 4 = Using NetBots to assist ${AssistPC} at ${AssistAt}%
 
 	/noparse /declare XTargetList string outer ${Me.XTarget[1].ID}|${Me.XTarget[2].ID}|${Me.XTarget[3].ID}|${Me.XTarget[4].ID}|${Me.XTarget[5].ID}|${Me.XTarget[6].ID}|${Me.XTarget[7].ID}|${Me.XTarget[8].ID}|${Me.XTarget[9].ID}|${Me.XTarget[10].ID}
 	/declare XTargetList1 		string outer PH1
@@ -1868,7 +1870,7 @@ Sub CheckTarget3
 Sub CheckTarget4
 	/if (${Me.Hovering}) /return
 	/if (!${Plugin[MQ2NetBots].Name.Equal[MQ2NetBots]}) {
-		/echo Need to use netbots for this option. Enabling.
+		/cecho Need to use netbots for this option. Enabling.
 		/plugin mq2netbots load
 		/netbots on send on grab on
 	}
@@ -1940,7 +1942,7 @@ Sub Attacking2
 
 	:newtarget
 	/if (${AssistType}==2 && (${Spawn[${Me.XTarget[1].ID}].Type.Equal[npc]}||${Spawn[${Me.XTarget[1].ID}].Master.Type.Equal[npc]}||${Spawn[${Me.XTarget[1].ID}].Master.Type.Equal[corpse]}) && ${Target.ID} && (${Target.Master.Type.Equal[npc]}||${Target.Type.Equal[npc]}||${Target.Master.Type.Equal[corpse]})) /goto :assisttype5
-	/echo Somehow got new target. Re-assisting ${AssistPC}.
+	/cecho Somehow got new target. Re-assisting ${AssistPC}.
 	/squelch /target clear
 
 	/call ClearTarget
@@ -1953,7 +1955,7 @@ Sub Event_ToggleOffTank
 	/if (${AmIOffTank}) /mmoini "MyIni" "Settings" "AmIOffTank" "FALSE"
 	/if (!${AmIOffTank}) /mmoini "MyIni" "Settings" "AmIOffTank" "TRUE"
 	/varset AmIOffTank ${Ini[MyIni,Settings,AmIOffTank,FALSE]}
-	/echo AmIOffTank set to ${AmIOffTank}
+	/cecho AmIOffTank set to ${AmIOffTank}
 /return
 
 Sub OffTank
@@ -2071,7 +2073,7 @@ Sub CombatLoad
 	/if (!${CombatRoutines.Length}||${CombatRoutines.Equal[|]}) /varset CombatRoutines Bard|XHeal|Heal|Disc|MainTankBuff|FightBuff|Lifetap|Stun|AA|Dot|Nuke|Snare|ClickyNuke|Jolt|Rez|ModRod|Mana|Merc|
 	|/mmoini "MyIni" "Combat" "CombatRoutines" "${CombatRoutines}"
 	/if (${CombatFrequency5.Equal[Bard|XHeal|HealSingle|HealGroup|HealBalance|HealSelf|HealPet|Disc|MainTankBuff|FightBuff|Lifetap|Stun|AA|Dot|Nuke|Snare|ClickyNuke|Jolt|Rez|ModRod|Mana|Merc]}) {
-		/echo Protip: Consider editing [Combat] CombatFrequency5= to boost macro speed
+		/cecho Protip: Consider editing [Combat] CombatFrequency5= to boost macro speed
 		/mqlog ${Me.Class} -  Protip: Consider editing [Combat] CombatFrequency5= to boost macro speed
 	}
 	/if (!${Defined[AmIPuller]}) /declare AmIPuller bool outer ${Ini[MyIni,Pulling,AmIPuller,FALSE]}
@@ -2147,7 +2149,7 @@ Sub Event_TogglePuller
 	} else {
 		/varset AmIPuller TRUE
 	}
-	/echo AmIPuller Toggled to ${AmIPuller}
+	/cecho AmIPuller Toggled to ${AmIPuller}
 /return
 
 #event TogglePullingMethod "[MQ2] TogglePullingMethod #1#"
@@ -2155,7 +2157,7 @@ Sub Event_TogglePullingMethod(line,newmethod)
 	/if (!${Defined[PullingLoaded]}) /call PullingLoad
 	/mmoini "MyIni" "Pulling" "PullingMethod" "${newmethod}"
 	/varset PullingMethod ${Ini[MyIni,Pulling,PullingMethod]}
-	/echo PullingMethod Toggled to ${PullingMethod}
+	/cecho PullingMethod Toggled to ${PullingMethod}
 /return
 
 Sub PullingLoad
@@ -2193,19 +2195,19 @@ Sub PullingLoad
 	/next pt
 	/if (${NeedLoad} && ${AmIPuller}==NULL) {
 		/mmoini "MyIni" "Pulling" "AmIPuller" "FALSE"
-		/squelch /alias /puller /echo TogglePuller
+		/squelch /alias /puller /cecho TogglePuller
 		/mmoini "MyIni" "Pulling" "PullRadius" "600"
 		/mmoini "MyIni" "Pulling" "PullZRadius" "20"
 		/mmoini "MyIni" "Pulling" "PullCastRange" "150"
 		/mmoini "MyIni" "Pulling" "MQ2NavPullRadius" "10"
 		/mmoini "MyIni" "Pulling" "MQ2NavPullZRadius" "10"
 		/mmoini "MyIni" "Pulling" "ReturnActionTotal" "0"
-		/mmoini "MyIni" "Pulling" "ReturnAction1"
-		/mmoini "MyIni" "Pulling" "PullCondition"
+		/mmoini "MyIni" "Pulling" "ReturnAction1" ""
+		/mmoini "MyIni" "Pulling" "PullCondition" "TRUE"
 	}
 	/noparse /declare PullConditions string outer ${Ini[MyIni,Pulling,PullConditions,1]}
 	/declare PullConColor string outer ${Ini[MyIni,Pulling,PullConColor]}
-	/if (${PullConditions.Equal[1]}) /mmoini "MyIni" "Pulling" "PullConditions"
+	/if (${PullConditions.Equal[1]}) /mmoini "MyIni" "Pulling" "PullConditions" "TRUE"
 	/if (!${PullConColor.Length}||${PullConColor.Equal[NULL]}) /mmoini "MyIni" "Pulling" "PullConColor" "LIGHT BLUE,BLUE,WHITE,YELLOW"
 
 	/call MobCampLoad
@@ -2224,18 +2226,18 @@ Sub PullingLoad
 	/if (${PullingMethod.Find[nav]}||${PullingMethod.Find[hunt]}) {
 		/if (${Plugin[MQ2Nav].Name.NotEqual[MQ2Nav]}) {
 			/plugin MQ2Nav
-			/echo Loaded MQ2Nav because your [Pulling] PullingMethod=${PullingMethod}
+			/cecho Loaded MQ2Nav because your [Pulling] PullingMethod=${PullingMethod}
 		}
 		/delay 2s ${Plugin[MQ2Nav].Name.Length}
 		/if (${Plugin[MQ2Nav].Name.Length}) {
 			/if (!${Navigation.MeshLoaded} && ${AmIPuller}) {
 				/if (${Plugin[MQ2Nav].Name.Equal[MQ2Nav]} && !${Navigation.MeshLoaded}) /cechob \arMesh not created for this zone, MQ2Nav pulling cannot function.
-				/echo [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
+				/cecho [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
 				/mqlog ${Me.Class} -  [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
 				/varset PullingMethod standard
 			}
 		} else {
-			/echo [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
+			/cecho [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
 			/mqlog ${Me.Class} -  [Pulling] PullingMethod=${PullingMethod} cannot be used.  MQ2Nav must be loaded, and a mesh must be created.
 			/varset PullingMethod standard
 		}
@@ -2244,7 +2246,7 @@ Sub PullingLoad
 	/if (${CourseCorrectionTimer.Equal[5]}) /mmoini "MyIni" "Pulling" "CourseCorrectionTimer" "4"
 	/declare UseLeap string outer ${Ini[MyIni,Pulling,UseLeap,FALSE]}
 	/declare LeapName string outer ${Ini[MyIni,Pulling,LeapName,NULL]}
-	/if (${LeapName.Equal[NULL]}) /mmoini "MyIni" "Pulling" "LeapName" "12345"
+	/if (${LeapName.Equal[NULL]}) /mmoini "MyIni" "Pulling" "LeapName" "123456"
 	/declare PullingAnnounceCMD string outer ${Ini[MyIni,Pulling,PullingAnnounceCMD,NULL]}
 	/declare PullingTotal int outer ${Ini[MyIni,Pulling,PullingTotal,0]}
 	/declare PullAtMyHPs int outer ${Ini[MyIni,Pulling,PullAtMyHPs,75]}
@@ -2287,25 +2289,25 @@ Sub PullingLoad
 		/if (${PullSkillGem${pt}.Equal[bow]}) {
 			/melee bow=${FindItem[=${PullSkillName${pt}}].ID}
 			/melee arrow=${InvSlot[22].Item.ID}
-			/echo Using ${PullSkillName${pt}} as bow and ${InvSlot[22].Item.Name} as ammo.  If this isnt correct, equip the correct items and restart macro.
+			/cecho Using ${PullSkillName${pt}} as bow and ${InvSlot[22].Item.Name} as ammo.  If this isnt correct, equip the correct items and restart macro.
 		}
 		/if (${PullSkillGem${pt}.Equal[ammo]}) {
 			/melee bow=${FindItem[=${PullSkillName${pt}}].ID}
 			/melee arrow=${FindItem[=${PullSkillName${pt}}].ID}
-			/echo Using ${PullSkillName${pt}} as throwing item.  If this isnt correct, equip the correct items and restart macro.
+			/cecho Using ${PullSkillName${pt}} as throwing item.  If this isnt correct, equip the correct items and restart macro.
 		}
 		/declare PullSkillSummon${pt} string outer ${Ini[MyIni,Pulling,PullSkillSummon${pt}]}
 	/next pt
 	/if (!${Defined[PullSkillRequiresLineOfSight1]}) /declare PullSkillRequiresLineOfSight1 string outer ${Ini[MyIni,Pulling,PullSkillRequiresLineOfSight1,TRUE]}
 	/if (!${Defined[PullSkillRequiresLineOfSight2]}) /declare PullSkillRequiresLineOfSight2 string outer ${Ini[MyIni,Pulling,PullSkillRequiresLineOfSight2,TRUE]}
 	
-	/squelch /alias /pullingmethod /echo TogglePullingMethod
+	/squelch /alias /pullingmethod /cecho TogglePullingMethod
 	/if (${AmIPuller} && !${PullingTotal}) {
-		/echo You are set to pull but have [Pulling] PullingTotal=0
+		/cecho You are set to pull but have [Pulling] PullingTotal=0
 		/mqlog ${Me.Class} -  You are set to pull but have [Pulling] PullingTotal=0
 	}
 	/if (${AmIPuller} && ${PullSkillName1.Equal[NULL]}) {
-		/echo You are set to pull but have [Pulling] PullSkillName1=  blank
+		/cecho You are set to pull but have [Pulling] PullSkillName1=  blank
 		/mqlog ${Me.Class} -  You are set to pull but have [Pulling] PullSkillName1=  blank
 	}		
 	/if (${NeedLoad} && !${PullingTotal}) {
@@ -2368,7 +2370,7 @@ Sub FindMob
 	/declare i int local
 	/if (${PullingMethod.Find[nav]}) {
 		/if (!${FindMobTimer}) {
-			/echo MQ2Nav Target Scan: ${MQ2NavPullRadius} range from your points on ${MyCamp} with ${MQ2NavPullZRadius} zradius.
+			/cecho MQ2Nav Target Scan: ${MQ2NavPullRadius} range from your points on ${MyCamp} with ${MQ2NavPullZRadius} zradius.
 			/varset FindMobTimer ${FindMobTimer.OriginalValue}
 		}
 		/declare fm int local
@@ -2392,7 +2394,7 @@ Sub FindMob
 		/next fm
 		
 		/if (!${findtimer} && !${Target.ID}) {
-			/echo No mobs up at camp, waiting.  I'm not ignoring you.
+			/cecho No mobs up at camp, waiting.  I'm not ignoring you.
 			/varset findtimer ${findtimer.OriginalValue}
 			/return
 		}
@@ -2401,7 +2403,7 @@ Sub FindMob
 	/if (${PullingMethod.Find[standard]}) {
 		/if (${Me.CombatState.Equal[COMBAT]}||${Me.XTarget}) /return
 		/if (!${FindMobTimer}) {
-			/echo Target scan: ${PullRadius} range with ${PullZRadius} zradius.
+			/cecho Target scan: ${PullRadius} range with ${PullZRadius} zradius.
 			/varset FindMobTimer ${FindMobTimer.OriginalValue}
 		}
 	
@@ -2420,13 +2422,13 @@ Sub FindMob
 						/continue
 					}
 					/if (!${findtimer} && !${Target.ID}) {
-						/echo No mobs up at camp, waiting. I'm not ignoring you.
+						/cecho No mobs up at camp, waiting. I'm not ignoring you.
 						/varset findtimer ${findtimer.OriginalValue}
 						/moveto ${XLOC} ${YLOC} loose
 						/return
 					}
 					/if (${Int[${Math.Abs[${Math.Calc[${Me.Z}-${Target.Z}]}]}]}>${PullZRadius}) { 
-						/if (${NearestSpawn[${i}, npc noalert 1 radius ${PullRadius} zradius ${PullZRadius}].NotEqual[NULL]}) /echo ${NearestSpawn[${i}, npc noalert 1 radius ${PullRadius} zradius ${PullZRadius}]} is beyond PullZRadius allowances, picking another...
+						/if (${NearestSpawn[${i}, npc noalert 1 radius ${PullRadius} zradius ${PullZRadius}].NotEqual[NULL]}) /cecho ${NearestSpawn[${i}, npc noalert 1 radius ${PullRadius} zradius ${PullZRadius}]} is beyond PullZRadius allowances, picking another...
 						/squelch /tar clear
 						/continue
 					}
@@ -2438,7 +2440,7 @@ Sub FindMob
 		/next i
 		
 		/if (!${findtimer}) {
-			/echo ${If[${PullConditions},No mobs up within specifications.,PullConditions not met.]}
+			/cecho ${If[${PullConditions},No mobs up within specifications.,PullConditions not met.]}
 			/varset findtimer ${findtimer.OriginalValue}
 		}
 	}
@@ -2456,7 +2458,7 @@ Sub Pull(int spawnid)
 	/call Debug 4 "Entered Sub Pull"
 	/if (!${spawnid}) /return
 	/varset CurrentSub Pulling
-	|/echo Attempting to pull ${Spawn[ id ${spawnid}]}
+	|/cecho Attempting to pull ${Spawn[ id ${spawnid}]}
 	/if (${Me.Feigning}||${Me.Hovering}||${Me.Casting.ID} && !${Me.Class.ShortName.Equal[BRD]}||${Me.XTarget}||${Me.CombatState.Equal[COMBAT]}) /return
 	/if (!${Defined[Pulling]}) /declare Pulling bool outer
 	/varset Pulling TRUE
@@ -2482,12 +2484,12 @@ Sub Pull(int spawnid)
 		/return
 	}
 	/if (${Target.SecondaryAggroPlayer.ID} && !${SpawnCount[group ${Target.SecondaryAggroPlayer}]} && !${Me.Pet.CleanName.Find[${Target.SecondaryAggroPlayer}]}) {
-		/echo Someone else has already aggrod ${Target}, returning to camp and picking something else.
+		/cecho Someone else has already aggrod ${Target}, returning to camp and picking something else.
 		/squelch /tar clear
 		/call ReturnCamp
 	}
 	/if (!${PullingTimer}) {
-		/echo It's been ${Math.Calc[${PullingTimer.OriginalValue}/10]} seconds and this isn't working. Let's try again and ignore this mob from now on.
+		/cecho It's been ${Math.Calc[${PullingTimer.OriginalValue}/10]} seconds and this isn't working. Let's try again and ignore this mob from now on.
 		/if (${MoveUtils.Command.Equal[MOVETO]}) {
 			/moveto off
 			/keypress back
@@ -2500,9 +2502,9 @@ Sub Pull(int spawnid)
 		/if (${Pulling}) /call ReturnCamp
 		/return
 	}
-	|/echo Moving...
+	|/cecho Moving...
 	/if ((${Me.XTarget}||${Me.CombatState.Equal[COMBAT]}) && ${Pulling}) {
-		/echo Seems we got some aggro. Returning to base.
+		/cecho Seems we got some aggro. Returning to base.
 		/call ReturnCamp
 		/return
 	}
@@ -2549,7 +2551,7 @@ Sub Pull(int spawnid)
 		/if (${Plugin[MQ2Nav].Name.Length}) {
 			/if (!${Navigation.Active}) {
 				/nav id ${spawnid}
-				/echo Nav to ${Spawn[${spawnid}]}
+				/cecho Nav to ${Spawn[${spawnid}]}
 				/if (${Plugin[MQ2Twist].Name.Length}) {
 					/if (${Twist.Twisting}) {
 						/varset twisting TRUE
@@ -2578,7 +2580,7 @@ Sub PullCheck
 		/return
 	}
 	/if ((${Me.CombatState.Equal[COMBAT]}||${Me.XTarget}) && ${Pulling}) /call ReturnCamp
-	|/echo is MoveUtils Sutck: ${MoveUtils.Stuck}
+	|/cecho is MoveUtils Sutck: ${MoveUtils.Stuck}
 	/if (${MoveUtils.Stuck}) /call MoveCheck
   /if (${Me.Casting.ID}||${Int[${Target.Distance}]}>${PullCastRange}||!${Target.LineOfSight} && ${PullSkillRequiresLineOfSight1}||!${Target.LineOfSight} && ${PullSkillRequiresLineOfSight1} && ${PullSkillRequiresLineOfSight2} && ${PullingTotal}==2) /return
 	/if (${Plugin[MQ2Nav].Name.Length}) {
@@ -2593,7 +2595,7 @@ Sub PullCheck
 	/if (${Target.Type.Equal[pc]}) /squelch /tar clear
 	/if (${PullSkillName1.Equal[/attack on]}) {
 		/if (!${Stick.Active}) {
-			/echo Sticking to target for melee attack. 
+			/cecho Sticking to target for melee attack. 
 			/stick 6 uw
 		}
 	}
@@ -2609,7 +2611,7 @@ Sub PullCheck
 	/if (${PullSkillName1.Equal[/attack on]}) {
 		/varset CanEngage TRUE
 	}
-	|/echo ${CanEngage}
+	|/cecho ${CanEngage}
 	/if (${Me.Sitting}) /stand
 	/if (${CanEngage}) {
 		/if (${PullSkillName1.Equal[/attack on]}) {
@@ -2630,12 +2632,12 @@ Sub PullCheck
 	 	}
 
 		/if (${Select[${PullSkillGem1},bow,ammo]}) /face
-		/echo ${PullSkillName1} --> ${Target}
+		/cecho ${PullSkillName1} --> ${Target}
 		/if (${PullSkillGem1.Equal[bow]}) /ranged
 		/if (${PullSkillGem1.Equal[ammo]}) /throwit
 		/if (${Me.Class.ShortName.Equal[BRD]} && ${Me.Gem[${PullSkillName1}]} && ${Plugin[MQ2Twist].Name.Length}) {
 			/twist once ${Me.Gem[${PullSkillName1}]}
-			/echo Twisting once ${PullSkillName1}
+			/cecho Twisting once ${PullSkillName1}
 		}
 		/if (!${Spell[${PullSkillName1}].Slot[1].Find[Summon ]} && !${Select[${PullSkillGem1},bow,ammo]} && (!${Me.Class.ShortName.Equal[BRD]}||!${Me.Gem[${PullSkillName1}]})) {
 			/call Debug 3 "Attempting to pull with castable Pull Skill 1 (${PullSkillName1} - ${PullSkillGem1})"
@@ -2659,7 +2661,7 @@ Sub PullCheck
 					/varset PrePullDelay ${PrePullSkillDelay}
 				}
 			}
-			/echo ${PullSkillName2} --> ${Target}
+			/cecho ${PullSkillName2} --> ${Target}
 			/if (${Select[${PullSkillGem2},bow,ammo]}) /face
 			/if (${PullSkillGem2.Equal[bow]}) /ranged
 			/if (${PullSkillGem2.Equal[ammo]}) /throwit
@@ -2801,7 +2803,7 @@ Sub ReturnCamp
 	/if (${Math.Distance[${Me.X},${Me.Y}:${XLOC},${YLOC}]}>16) {
 		/if (!${MoveTo.Moving}) {
 			/moveto loc ${YLOC} ${XLOC} loose
-			/echo I wasn't moving for some unknown reason, but I am now.
+			/cecho I wasn't moving for some unknown reason, but I am now.
 		}
 		/goto :wait
 	}
@@ -2974,10 +2976,10 @@ Sub MobCampLoad
 		/mmoini "MobIni" "${Zone.ShortName}" "CampList" "|"
 		/varset CampList |
 	}
-	/squelch /alias /addcamp /echo addcamp
-	/squelch /alias /stopcamp /echo stopadd
-	/squelch /alias /listcamp /echo listcamp
-	/squelch /alias /startcamp /echo startcamp
+	/squelch /alias /addcamp /cecho addcamp
+	/squelch /alias /stopcamp /cecho stopadd
+	/squelch /alias /listcamp /cecho listcamp
+	/squelch /alias /startcamp /cecho startcamp
 /return
 
 Sub Event_StopAdd
@@ -2988,7 +2990,7 @@ Sub Event_StopAdd
 Sub Event_StartCamp(string line, string cn)
 	/if (!${Defined[MobCampLoaded]}) /call MobCampLoad
 	/varset MyCamp ${Zone.ShortName}_${cn}
-	/echo ${MyCamp}
+	/cecho ${MyCamp}
 	/call MobCampMake
 /return
 
@@ -3003,13 +3005,13 @@ Sub Event_AddCamp(string line, string newcamp)
 	}
 	
 	:campdone
-	/echo CampList=${CampList}
+	/cecho CampList=${CampList}
 	/call AddMob
 /return
 
 Sub Event_ListCamp
 	/if (!${Defined[MobCampLoaded]}) /call MobCampLoad
-	/echo ${CampList}
+	/cecho ${CampList}
 /return
 
 Sub MobCampMake
@@ -3031,7 +3033,7 @@ Sub MobCampMake
 		/varset YLOC${i} ${Ini[MobIni,${MyCamp},YLOC${i}]}
 		/varset ZLOC${i} ${Ini[MobIni,${MyCamp},ZLOC${i}]}
 	/next i
-	/echo Camp: ${MyCamp} - ${${MyCamp}Total} Total spawn points added
+	/cecho Camp: ${MyCamp} - ${${MyCamp}Total} Total spawn points added
 /return
 
 Sub AddMob
@@ -3048,7 +3050,7 @@ Sub AddMob
   	/mmoini "MobIni" "${MyCamp}" "YLOC${${MyCamp}Total}" "${Target.Y}"
   	/mmoini "MobIni" "${MyCamp}" "ZLOC${${MyCamp}Total}" "${Target.Z}" 
   	/varset MyCampList ${MyCampList}${Target.ID}|
-  	/echo Point ${${MyCamp}Total} added successfully in MobIni
+  	/cecho Point ${${MyCamp}Total} added successfully in MobIni
   	
 	:next
 	/doevents
@@ -3092,7 +3094,7 @@ Sub SpellLoad2(SubName,SubOptions)
 			/if (!${Defined[${SubName}Use${x}]}) /declare ${SubName}Use${x} bool outer FALSE
 			/if (!${${SubName}Use${x}}||${SubName.Equal[GoM]}||${SpellLoad2Cats.Arg[${SubOptions.Arg[${i},|]},|].Equal[Conditions]}) /break
 			/if (${spellload2.Equal[NULL]} && ${SpellLoad2Cats.Arg[${SubOptions.Arg[${i},|]},|].NotEqual[Conditions]}) {
-				/mmoini "MyIni" "${SubName}" "${SubName}${SpellLoad2Cats.Arg[${SubOptions.Arg[${i},|]},|]}${x}"
+				/mmoini "MyIni" "${SubName}" "${SubName}${SpellLoad2Cats.Arg[${SubOptions.Arg[${i},|]},|]}${x}" "----"
 				/if (!${Defined[AuraSpellName${x}]}) /declare AuraSpellName${x} string outer
 				/if (${SubName.Equal[Aura]} && ${SpellLoad2Cats.Arg[${SubOptions.Arg[${i},|]},|].Equal[SpellIcon]} && (!${AuraSpellName${x}.Find[ the ]}||${Select[${Me.Class.ShortName},NEC,MAG]})) /continue
 				/if (!${ErrorFound}) {
@@ -3198,7 +3200,7 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 	/if (!${Defined[SpellLoadCats]}) /declare SpellLoadCats string outer |Total|TotalIfNamed|Use|SpellName|SpellIcon|SpellGem|UseAtMobPctHP|StopAtMobPctHP|Recast|Value|UseAtMyHP|UseAtMyMana|MaxTries|MaxNPCLevel|Name|ForAggro|NamedOnly|After|IfNearby|IfNearbyAmt|UseAt|StopAt|AvgHP|Classes|Alias|IconAlt|ActNumber|DuringCombat|Trusted|Conditions|AtAggroPct|
 	|--------------------------------------------------------------------  1   2   3      4      5      6    7   8   9     10  11  12  13  14    15    16   17  18   19     20     21 22  23   24     25     26     27  28    29     30   31  
 	/if (!${Defined[SpellLoadVars]}) /declare SpellLoadVars string outer |int|int|bool|string|string|string|int|int|timer|int|int|int|int|int|string|bool|bool|int|string|string|int|int|int|string|string|string|int|bool|string|string|int|
-	/if (!${Defined[ForceMemList]}) /declare ForceMemList string outer |Nuke|Dot|Lifetap|Debuff|Jolt|Snare|Stun|FightBuff|Mez|Rez|
+	/if (!${Defined[ForceMemList]}) /declare ForceMemList string outer |Nuke|DoT|Lifetap|Debuff|Jolt|Snare|Stun|FightBuff|MainTankBuff|Mez|AEMez|PBAEMez|Rez|Aura|Buff|Fade|Root|SelfBuff|Aggro|HealSingle|HealGroup|HealSelf|HealPet|HealSpash|HealBalance|XHeal|Pet|
 	/if (${slIniLoad}) {
 		/varset SpellLoadPH ${Ini[MyIni,${slType},${slType}${SpellLoadCats.Arg[1,|]},123456]}
 		/if (${SpellLoadPH.NotEqual[123456]}) /goto :skipini
@@ -3217,9 +3219,9 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 		}
 		/for i 1 to ${slIniLoad}
 			/for a 1 to ${Math.Calc[${slIniTraits.Count[|]}-1]}
-				|/echo Finding ${CurrentSub}${i} information. 
+				|/cecho Finding ${CurrentSub}${i} information. 
 				/if (${Select[${slIniTraits.Arg[${a},|]},1,2]}) /goto :nexttrait
-				/if (${slType.Equal[Buff]}) /mmoini "MyIni" "${slType}" "${slType}${SpellLoadCats.Arg[${slIniTraits.Arg[${a},|]},|]}${i}"
+				/if (${slType.Equal[Buff]}) /mmoini "MyIni" "${slType}" "${slType}${SpellLoadCats.Arg[${slIniTraits.Arg[${a},|]},|]}${i}" "----"
 				/if (${slIniValue.Arg[${a},|].NotEqual[PH]} && !${spellgemdetect.Find[gem]}) /mmoini "MyIni" "${slType}" "${slType}${SpellLoadCats.Arg[${slIniTraits.Arg[${a},|]},|]}${i}" "${slIniValue.Arg[${a},|]}"
 				/if (!${Defined[AA${CurrentSub}]}) /declare AA${CurrentSub} string inner
 				/if (${slIniValue.Arg[${a},|].Equal[PH]} && (!${Select[${slIniTraits.Arg[${a},|]},5]}||!${Select[${CurrentSub},FightBuff,Buff,SelfBuff]}) && (!${Defined[${CurrentSub}SpellGem${i}]} && !${Defined[${AA${CurrentSub}.Arg[${c},|].Replace[ ,]}]}||!${Select[${slIniTraits.Arg[${a},|]},6]} && !${Defined[${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID}]})) /mmoini "MyIni" "${slType}" "${slType}${SpellLoadCats.Arg[${slIniTraits.Arg[${a},|]},|]}${i}"
@@ -3228,12 +3230,12 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 						/if ((${Me.AltAbility[${AA${CurrentSub}.Arg[${c},|]}]} && !${Defined[${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID}]} && !${Defined[${CurrentSub}${AA${CurrentSub}.Arg[${c},|].Replace[ ,]}]} )||${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot} && !${Defined[${CurrentSub}${AA${CurrentSub}.Arg[${c},|].Replace[ ,]}]}||(${Me.Book[${AA${CurrentSub}.Arg[${c},|]}]} && !${Defined[${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID}]} && !${Defined[${CurrentSub}${AA${CurrentSub}.Arg[${c},|].Replace[ ,]}]})||${Me.CombatAbility[${AA${CurrentSub}.Arg[${c},|]}]} && !${Defined[${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID}]}) {
 							/mmoini "MyIni" "${slType}" "${slType}${SpellLoadCats.Arg[${slIniTraits.Arg[${a},|]},|]}${i}" "${AA${CurrentSub}.Arg[${c},|]}"
 							/if (${Select[${CurrentSub},SelfBuff,Buff,Aura,FightBuff]}) /mmoini "MyIni" "${slType}" "${slType}SpellIcon${i}" "${AA${CurrentSub}.Arg[${c},|]}"
-							/mmoini "MyIni" "${slType}" "${slType}Conditions${i}"
+							/mmoini "MyIni" "${slType}" "${slType}Conditions${i}" "TRUE"
 							/if (${Me.Book[${AA${CurrentSub}.Arg[${c},|]}]} && !${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]} && !${Me.AltAbility[${AA${CurrentSub}.Arg[${c},|]}]}) /mmoini "MyIni" "${slType}" "${slType}SpellGem${i}" "gem${MyGemTotal}"
 							/if (${Me.Book[${AA${CurrentSub}.Arg[${c},|]}]} && ${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]} && !${Me.AltAbility[${AA${CurrentSub}.Arg[${c},|]}]}) /mmoini "MyIni" "${slType}" "${slType}SpellGem${i}" "gem${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]}"
 							/if (${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot})  /mmoini "MyIni" "${slType}" "${slType}SpellGem${i}" "item"
 							/if (!${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot} && ${Me.AltAbility[${AA${CurrentSub}.Arg[${c},|]}]})  /mmoini "MyIni" "${slType}" "${slType}SpellGem${i}" "alt"
-							/if (${Select[${CurrentSub},Mez,AEMez,PBAEMez]}) /mmoini "MyIni" "${slType}" "${slType}MaxNPCLevel${i}" ${Spell[${Me.AltAbility[${AA${CurrentSub}.Arg[${c},|]}].Spell.ID}].Slot[1].Arg[2,/].Replace[),]}
+							/if (${Select[${CurrentSub},Mez,AEMez,PBAEMez]}) /mmoini "MyIni" "${slType}" "${slType}MaxNPCLevel${i}" "${Spell[${Me.AltAbility[${AA${CurrentSub}.Arg[${c},|]}].Spell.ID}].Slot[1].Arg[2,/].Replace[),]}"
 							/if (!${Defined[${slType}SpellGem${i}]}) /declare ${slType}SpellGem${i} string outer 
 							/varset ${slType}SpellGem${i} ${Ini[MyIni,${slType},${slType}SpellGem${i}]}
 							/if (${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot}) /declare ${CurrentSub}${AA${CurrentSub}.Arg[${c},|].Replace[ ,]} string outer item
@@ -3242,7 +3244,7 @@ Sub SpellLoad(string slType, int slIniLoad, string slIniTraits, string slIniValu
 							/if (!${FindItem[${AA${CurrentSub}.Arg[${c},|]}].ItemSlot} && ${Me.Book[${AA${CurrentSub}.Arg[${c},|]}]} && ${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]}) {
 								/if (!${Defined[${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID}]}) /declare ${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID} string outer gem${Me.Gem[${AA${CurrentSub}.Arg[${c},|]}]}
 							}
-							/if (${CurrentSub.Equal[aura]}) /mmoini "MyIni" "${slType}" "${slType}Name${i}"
+							/if (${CurrentSub.Equal[aura]}) /mmoini "MyIni" "${slType}" "${slType}Name${i}" "----"
 							/if (${Me.CombatAbility[${AA${CurrentSub}.Arg[${c},|]}]})  {
 								/mmoini "MyIni" "${slType}" "${slType}SpellGem${i}" "disc"
 								/declare ${CurrentSub}${Spell[${AA${CurrentSub}.Arg[${c},|]}].ID} string outer disc
@@ -3606,14 +3608,14 @@ Sub Event_Forage
 		/if (!${Defined[ReportLoot]}) /declare ReportLoot bool outer FALSE
 		/if (!${Select[${Ini[Loot.ini,"${Cursor.Name.Left[1]}","${Cursor.Name}"]},Ignore,Keep,Destroy,Sell,Tradeskills,Collectible]}) {
 			/if (${Cursor.ID}) /mmoini "loot.ini" "${Cursor.Name.Left[1]}" "${Cursor.Name}" "Keep"
-			/if (${ReportLoot}) /echo New foraged item >> ${Cursor.Name} << added to Loot.ini
+			/if (${ReportLoot}) /cecho New foraged item >> ${Cursor.Name} << added to Loot.ini
 		}
 		/if (${Ini[Loot.ini,"${Cursor.Name.Left[1]}","${Cursor.Name}"].Equal[Destroy]} || ${Ini[Loot.ini,"${Cursor.Name.Left[1]}","${Cursor.Name}"].Equal[Ignore]}) {
 			/if (${Cursor.Name.Equal[${ForagedItem}]})     /destroy
 			/delay 5
-			/if (${ReportLoot}) /echo Destroyed foraged ${ForagedItem}.
+			/if (${ReportLoot}) /cecho Destroyed foraged ${ForagedItem}.
 		} else /if ((${Ini[Loot.ini,"${Cursor.Name.Left[1]}","${Cursor.Name}"].Equal[Keep]} || ${Ini[Loot.ini,"${Cursor.Name.Left[1]}","${Cursor.Name}"].Equal[Sell]}) && (!${Cursor.Lore} || !${FindItem[${Cursor.Name}].ID}) && (${Me.FreeInventory} || (${FindItemCount[=${Cursor.Name}]} && ${Cursor.Stackable} && ${Cursor.FreeStack}))) {
-			/if (${ReportLoot}) /echo Kept foraged ${ForagedItem}.
+			/if (${ReportLoot}) /cecho Kept foraged ${ForagedItem}.
 			/autoinventory
 			/delay 5
 		}
@@ -3628,7 +3630,7 @@ Sub DoLootStuff(LootAction)
     /declare k int local
     /declare LootItem string
     /if (${OpenAllBags}) {
-        /echo Opening all bags
+        /cecho Opening all bags
         /keypress OPEN_INV_BAGS
 	}
    	/call NPC "${Target.CleanName}"
@@ -3671,17 +3673,17 @@ Sub DoLootStuff(LootAction)
     /next i
 
     /if (${OpenAllBags}) {
-        /echo Closing all bags
+        /cecho Closing all bags
         /keypress CLOSE_INV_BAGS
     }
 	| Prevent spam from Sell event after selling items in Sub SellStuff
     /doevents flush Sell
     /if (${Window[MerchantWnd].Open}) {
-        /echo Closing merchant window
+        /cecho Closing merchant window
         /nomodkey /notify MerchantWnd MW_Done_Button LeftMouseUp
     }
     /if (${Window[GuildBankWnd].Open}||${Window[BigBankWnd].Open}) {
-        /echo Closing bank/guildbank window
+        /cecho Closing bank/guildbank window
         /keypress esc
     }
 /return
@@ -3690,10 +3692,10 @@ Sub NPC(NPCName)
     /target npc ${NPCName}
     /delay 1s
     /if (!${Select[${Target.Type},npc,pet]} || !${Target.ID} || ${Target.Type.Equal[pet]} && !${Target.CleanName.Find[familiar]}) {
-        /echo Please target a vendor or guildbanker
+        /cecho Please target a vendor or guildbanker
         /return
     }
-    /echo Doing business with ${NPCName}
+    /cecho Doing business with ${NPCName}
     /target id ${Spawn[${NPCName}].ID}
     /delay 3s ${Target.ID}==${Spawn[${NPCName}].ID}
     /if (${Target.Distance}>15) {
@@ -3702,9 +3704,9 @@ Sub NPC(NPCName)
     }
     /face nolook
     /delay 1s
-    /echo Opening merchant/bank/guildbank window
+    /cecho Opening merchant/bank/guildbank window
     /nomodkey /click right target
-    /echo Waiting 5s for merchant, banker or guildbank window to populate
+    /cecho Waiting 5s for merchant, banker or guildbank window to populate
     /delay 5s
 /return
 
@@ -3712,7 +3714,7 @@ Sub NPC(NPCName)
 Sub Event_Sell(string soldstr, string ItemName)
     /if (!${Defined[AddNewSales]}) /declare AddNewSales bool outer FALSE
 	/if ( ${AddNewSales} ) {
-        /echo Setting ${ItemName} to sell
+        /cecho Setting ${ItemName} to sell
         /mmoini "loot.ini" "${ItemName.Left[1]}" "${ItemName}" "Sell"
     }
 /return
@@ -3720,7 +3722,7 @@ Sub Event_Sell(string soldstr, string ItemName)
 Sub SellToVendor(ItemToSell)
     /if (${Window[MerchantWnd].Open}) {
     	:sell
-        /echo Selling ${ItemToSell}
+        /cecho Selling ${ItemToSell}
         /nomodkey /itemnotify ${FindItem[=${ItemToSell}].InvSlot} leftmouseup
         /delay 5
         /nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup
@@ -3734,10 +3736,10 @@ Sub DepositToGuildBank(ItemToDeposit)
     /if (${Window[GuildBankWnd].Open}) {
         :deposit
         /if (${Window[GuildBankWnd].Child[GBANK_DepositCountLabel].Text.Arg[2,:]}==0) {
-        	/echo Guildbank Deposited Items is full.
+        	/cecho Guildbank Deposited Items is full.
             /return
         }
-        /echo Depositing ${ItemToDeposit}
+        /cecho Depositing ${ItemToDeposit}
 		/nomodkey /shiftkey /itemnotify ${FindItem[=${ItemToDeposit}].InvSlot} leftmouseup
 		/delay 5
 		/nomodkey /notify GuildBankWnd GBANK_DepositButton leftmouseup
@@ -3759,10 +3761,10 @@ Sub DepositToBank(ItemToDeposit)
         :deposit
         /doevents NoBankRoom
 		/if (${BankFull}) {
-			/echo Bank is full.  Clear room and restart macro to add items.
+			/cecho Bank is full.  Clear room and restart macro to add items.
 			/return
 		}
-		/echo Depositing ${ItemToDeposit}
+		/cecho Depositing ${ItemToDeposit}
 		/nomodkey /shiftkey /itemnotify ${FindItem[=${ItemToDeposit}].InvSlot} leftmouseup
 		/delay 5
 		/nomodkey /notify BigBankWnd BIGB_AutoButton leftmouseup
@@ -3774,10 +3776,10 @@ Sub DepositToBank(ItemToDeposit)
 | **************** Item set ini file event ********************
 Sub Event_EditIniItem(ItemString,ItemAction,ItemName)
 	/if (${Cursor.ID}) {
-		/echo -- Setting ${ItemName} to ${ItemAction}
+		/cecho -- Setting ${ItemName} to ${ItemAction}
 		/mmoini "loot.ini" "${ItemName.Left[1]}" "${ItemName}" "${ItemAction}"
 	} else {
-		/echo No item on cursor.
+		/cecho No item on cursor.
 	}
 /return
 
@@ -3794,7 +3796,7 @@ Sub Event_DepositStuff
 | **************** Broke Event ********************
 Sub Event_Broke
     /if (!${Window[MerchantWnd].Open}) /return
-    /echo You are out of money!
+    /cecho You are out of money!
     /endmacro
 /return
 
@@ -3816,30 +3818,30 @@ Sub Type(InStr)
 | **************** Buy Stuff ******************** 
 Sub Buy(string ItemToBuy, int amount)
     /declare i int local
-    | /echo Buying ${ItemToBuy}!
+    | /cecho Buying ${ItemToBuy}!
     /declare QTY int local
     /declare ListItem int local
     /varset QTY ${Math.Calc[${amount}-${FindItemCount[${ItemToBuy}]}]}
     /delay 1s
     /if (${FindItemCount[${ItemToBuy}]}>= ${amount}) {
-        /echo I have enough ${ItemToBuy}.
+        /cecho I have enough ${ItemToBuy}.
         /return
     }   
     /varset ListItem ${Window[MerchantWnd].Child[ItemList].List[=${ItemToBuy},2]}
     /if (!${ListItem}) {
-        /echo couldn't find ${ItemToBuy}
+        /cecho couldn't find ${ItemToBuy}
         /return
     } else {
         /notify MerchantWnd ItemList listselect ${ListItem}
         /delay 1s       
     }
-    /echo Buying ${ItemToBuy} Till I get ${amount}
+    /cecho Buying ${ItemToBuy} Till I get ${amount}
     :Loop
     /if (${QTY}>1) {
         /if (${QTY}>19) {
             /Shiftkey /notify merchantwnd MW_Buy_Button leftmouseup
             /delay 5s ${FindItemCount[${ItemToBuy}]}>=${amount}
-            /echo ${FindItemCount[${ItemToBuy}]} ${ItemToBuy} in inventory
+            /cecho ${FindItemCount[${ItemToBuy}]} ${ItemToBuy} in inventory
             /varset QTY ${Math.Calc[${amount}-${FindItemCount[${ItemToBuy}]}]}
             /delay 3
             /if (${QTY}<=0) /return
@@ -3848,7 +3850,7 @@ Sub Buy(string ItemToBuy, int amount)
         /if (${QTY}>0 && ${QTY}<20) {
             /for i 1 to ${QTY}
                 /ctrlkey /notify merchantwnd MW_Buy_Button leftmouseup
-                /echo Buying ${ItemToBuy} ${i} of ${QTY}
+                /cecho Buying ${ItemToBuy} ${i} of ${QTY}
                 /varcalc QTY ${amount}-${FindItemCount[${ItemToBuy}]}
                 /delay 3
                 /if (${QTY}<=0) /return
@@ -3918,11 +3920,11 @@ Sub Event_ToggleInvis(line,type)
 	/if (${type.Equal[ivu]}) {
 		/varset InvisSpell ${Ini[MyIni,${CurrentSub},InvisUndeadSpell]}
 		/varset InvisSpellGem ${Ini[MyIni,${CurrentSub},InvisUndeadSpellGem]}
-		/echo Now using ${InvisSpell} to invis vs undead
+		/cecho Now using ${InvisSpell} to invis vs undead
 	} else {
 		/varset InvisSpell ${Ini[MyIni,${CurrentSub},InvisSpell]}
 		/varset InvisSpellGem ${Ini[MyIni,${CurrentSub},InvisSpellGem]}
-		/echo Now using ${InvisSpell} to invis
+		/cecho Now using ${InvisSpell} to invis
 	}
 /return
 
@@ -4107,7 +4109,7 @@ Sub AggroLoad
 	/declare Audacity int outer
 	/declare GroupAggro int outer
 	/declare AggroSpellName string outer ${Ini[MyIni,Aggro,AggroSpellName,NULL]}
-	/if (${AggroSpellName.Equal[NULL]}) /mmoini "MyIni" "Aggro" "AggroSpellName"
+	/if (${AggroSpellName.Equal[NULL]}) /mmoini "MyIni" "Aggro" "AggroSpellName" "----"
 	/if (${Me.Book[${AggroSpellName} Rk. III]}||${Me.CombatAbility[${AggroSpellName} Rk. III]}) /varset AggroSpellName ${AggroSpellName} Rk. III
 	/if (${Me.Book[${AggroSpellName} Rk. II]}||${Me.CombatAbility[${AggroSpellName} Rk. II]}) /varset AggroSpellName ${AggroSpellName} Rk. II
 	/declare AEAggroMinMobCount int outer ${Ini[MyIni,Aggro,AEAggroMinMobCount,1]}
@@ -4115,7 +4117,7 @@ Sub AggroLoad
 	/declare AggroSpellGem string outer ${Ini[MyIni,Aggro,AggroSpellGem,NULL]}
 	/if (${AggroSpellGem.Equal[NULL]}) /mmoini "MyIni" "Aggro" "AggroSpellGem" "gem1"
 	/declare AggroConditions string outer ${Ini[MyIni,Aggro,AggroConditions,NULL]}
-	/if (${AggroConditions.Equal[NULL]}) /mmoini "MyIni" "Aggro" "AggroConditions"
+	/if (${AggroConditions.Equal[NULL]}) /mmoini "MyIni" "Aggro" "AggroConditions" "TRUE"
 	/declare AggroAtAggroPct int outer ${Ini[MyIni,Aggro,AggroAtAggroPct,65]}
 	/if (${AggroAtAggroPct}==65) /mmoini "MyIni" "Aggro" "AggroAtAggroPct" "65"
 	/if (${Me.Class.ShortName.Equal[WAR]}) {
@@ -4513,7 +4515,7 @@ Sub DoClickies
 			/if (${FindItem[${ClickyArray[${i},3]}].EffectType.Equal[Click Inventory]} && ${Me.HaveExpansion[Veil of Alaris]} && (${Me.Subscription.Equal[GOLD]}||${FindItem[=${ClickyArray[${i},3]}].InvSlot}<33) && ${Me.Level}>=${FindItem[=${ClickyArray[${i},3]}].RequiredLevel}) /squelch /useitem "${FindItem[=${ClickyArray[${i},3]}].Name}"
 			/if (${FindItem[${ClickyArray[${i},3]}].EffectType.Equal[Click Worn]}||!${Me.HaveExpansion[Veil of Alaris]}||${Me.Subscription.NotEqual[GOLD]}) /casting "${ClickyArray[${i},3]}"|item
 			/delay 1s ${Me.Casting.ID}
-			/echo ${ClickyArray[${i},3]} --> ${ClickyArray[${i},2]}
+			/cecho ${ClickyArray[${i},3]} --> ${ClickyArray[${i},2]}
 			/delay 10s !${Me.Casting.ID}
 			/if (${Plugin[MQ2Twist].Name.Length}) {
 				/if (${temptwist}) /twist start
@@ -4675,7 +4677,7 @@ Sub BardRest
 				/if ((${Select[${Group.Member[${i}].Class.ShortName},CLR,DRU,SHM,PAL,SHD,RNG,BST,WIZ,MAG,NEC,ENC]} && ${Group.Member[${i}].PctMana}<${CrescendoAtGroupMana}||${Select[${Group.Member[${i}].Class.ShortName},MNK,WAR,ROG,BER,SHD,PAL,RNG,BST]} && ${Group.Member[${i}].PctEndurance}<${CrescendoAtGroupEndurance}) && !${Me.GemTimer[${Crescendo}]} && ${Me.Gem[${Crescendo}]}) {
 					/if (${Plugin[MQ2Twist].Name.Length}) {
 						/twist once ${CrescendoGem}
-						/echo Twisting once - Crescendo
+						/cecho Twisting once - Crescendo
 						/call ${EchoSub} "${Orange} ${Crescendo} ${White} --> Group"
 						/delay 38
 					}
@@ -4752,7 +4754,7 @@ Sub Bard
 		/if (!${Me.GemTimer[${SlowName}]} && ${Me.Gem[${SlowName}]} || ${FindItem[${SlowName}].ItemSlot} && !${FindItem[${SlowName}].Timer} && ${Target.PctHPs}<=${AssistAt} && ${TarID} == ${Target.ID}) {
 			/if (${Me.Gem[${SlowName}]}) {
 				/squelch /twist once ${Me.Gem[${SlowName}]}
-				/echo Twist once - ${SlowName}
+				/cecho Twist once - ${SlowName}
 			}
 			/if (${FindItem[${SlowName}].ItemSlot}) {
 				/twist stop
@@ -4798,7 +4800,7 @@ Sub BuffLoad
 	/if (!${Defined[BuffLoaded]}) /declare BuffLoaded bool outer FALSE
 	/if (${BuffLoaded}) /return
 	/call Debug 3 "Entering ${CurrentSub}Load"
-	|/echo In ${CurrentSub}Load (BuffLoad)
+	|/cecho In ${CurrentSub}Load (BuffLoad)
 	/varset BuffLoaded TRUE
 	/declare i int local 3
 	/declare b int local
@@ -4815,7 +4817,7 @@ Sub BuffLoad
 		/varset i 1
 	}
 	
-	|/echo i is ${i}
+	|/cecho i is ${i}
 	/if (!${Defined[BuffXTargets]}) /declare BuffXTargets bool outer ${Ini[MyIni,Buff,BuffXTargets,FALSE]}
 	/if (!${BuffXTargets}) /mmoini "MyIni" "Buff" "BuffXTargets" "FALSE"
 	/if (!${Defined[BuffPets]}) /declare BuffPets bool outer ${Ini[MyIni,Buff,BuffPets,FALSE]}
@@ -4829,21 +4831,21 @@ Sub BuffLoad
 	
 	/if (${NeedLoad} && !${tempsubtotal}) {
 		/for b 1 to ${AAInvis.Count[|]} 
-			|/echo Sub ${CurrentSub} Checking ${AAInvis.Arg[${b},|]} result of aa check ${Me.AltAbility[${AAInvis.Arg[${b},|]}]} and group check ${Spell[${x}].TargetType.Find[group]}
+			|/cecho Sub ${CurrentSub} Checking ${AAInvis.Arg[${b},|]} result of aa check ${Me.AltAbility[${AAInvis.Arg[${b},|]}]} and group check ${Spell[${x}].TargetType.Find[group]}
 			/if (${Me.AltAbility[${AAInvis.Arg[${b},|]}]} && !${Spell[${x}].TargetType.Find[group]}) /varset x ${AAInvis.Arg[${b},|]}
 		/next b
 		/if (${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisSpell" "${x}"
 		/if (${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisSpellGem" "alt"
-		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisSpell"
-		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisSpellGem"
+		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisSpell" "----"
+		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisSpellGem" "----"
 		/varset x
 		/for b 1 to ${AAInvisUndead.Count[|]} 
 			/if (${Me.AltAbility[${AAInvisUndead.Arg[${b},|]}]} && !${Spell[${x}].TargetType.Find[group]}) /varset x ${AAInvisUndead.Arg[${b},|]}
 		/next b
 		/if (${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisUndeadSpell" "${x}"
 		/if (${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisUndeadSpellGem" "alt"
-		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisUndeadSpell"
-		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisUndeadSpellGem"
+		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisUndeadSpell" "----"
+		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "InvisUndeadSpellGem" "----"
 		/varset x
 		/if (${Defined[AALevitate]}) {
 			/for b 1 to ${AALevitate.Count[|]}
@@ -4852,8 +4854,8 @@ Sub BuffLoad
 		}
 		/if (${x.Length})	/mmoini "MyIni" "${CurrentSub}" "LevitateSpell" "${x}"
 		/if (${x.Length})	/mmoini "MyIni" "${CurrentSub}" "LevitateSpellGem" "alt"
-		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "LevitateSpell"
-		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "LevitateSpellGem"
+		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "LevitateSpell" "----"
+		/if (!${x.Length})	/mmoini "MyIni" "${CurrentSub}" "LevitateSpellGem" "----"
 		/call SpellLoad "Buff" ${i} "|1|3|4|5|6|25|24|30|" "|0|TRUE|----|----|----|----|BER,BRD,BST,CLR,DRU,ENC,MAG,MNK,NEC,PAL,RNG,ROG,SHD,SHM,WAR,WIZ|TRUE|"
 	}
 
@@ -4887,14 +4889,14 @@ Sub BuffLoad
 	/if (!${Defined[SpellHold]}) /declare SpellHold string outer
 	/if (!${Defined[timehold]}) /declare timehold timer outer
 	/if (!${Defined[InvisSpell]}) {
-		|/echo Reading InvisSpell for sub ${CurrentSub} from MyIni section Buff
+		|/cecho Reading InvisSpell for sub ${CurrentSub} from MyIni section Buff
 		/declare InvisSpell string outer ${Ini[MyIni,Buff,InvisSpell]}
-		|/echo InvisSpell is ${InvisSpell}
+		|/cecho InvisSpell is ${InvisSpell}
 	}
 	/if (!${Defined[InvisSpellGem]}) {
-		|/echo Reading InvisSpellGem for sub ${CurrentSub} from MyIni section Buff
+		|/cecho Reading InvisSpellGem for sub ${CurrentSub} from MyIni section Buff
 		/declare InvisSpellGem string outer ${Ini[MyIni,Buff,InvisSpellGem]}
-		|/echo InvisSpellGem is ${InvisSpellGem}
+		|/cecho InvisSpellGem is ${InvisSpellGem}
 	}
 	/if (!${Defined[InvisUndeadSpell]}) /declare InvisUndeadSpell string outer ${Ini[MyIni,${CurrentSub},InvisUndeadSpell]}
 	/if (!${Defined[InvisUndeadSpellGem]}) /declare InvisUndeadSpellGem string outer ${Ini[MyIni,${CurrentSub},InvisUndeadSpellGem]}
@@ -5202,8 +5204,8 @@ Sub Event_CastSpell(string line,string ChatSender,string SName,string TName)
 	/if (!${Defined[BuffLoaded]}) /call BuffLoad
 	/varset ChatSenderHold ${ChatSender}
  	/if (${ChatSender.Left[1].Compare[ ]} < 0) /varset ChatSenderHold ${ChatSender.Right[-2].Left[-1]}
-	/if (!${AuthorizedUsers.Find[${ChatSenderHold}]} && ${AuthorizedUsers.NotEqual[NULL]} && !${Select[${Spawn[${ChatSender}].Type},mercenary,pet]}) {
-		/echo ${ChatSender} not found on [Settings] AuthorizedUsers list. Ignoring request.
+	/if (!${AuthorizedUsers.Find[${ChatSenderHold}]} && ${AuthorizedUsers.NotEqual[NULL]} && ${AuthorizedUsers.NotEqual[----]} && !${Select[${Spawn[${ChatSender}].Type},mercenary,pet]}) {
+		/cecho ${ChatSender} not found on [Settings] AuthorizedUsers list. Ignoring request.
 		/return
 	}
 	/if (${SName.Equal[ivuon]}) {
@@ -5241,7 +5243,7 @@ Sub Event_CastSpell(string line,string ChatSender,string SName,string TName)
 
 	/declare b int local
 	/for b 1 to ${BuffTotal}
-		/if (!${Defined[BuffAlias${b}]}) /declare BuffAlias${b} ${Ini[MyIni,Buff,BuffAlias${b},12345]}
+		/if (!${Defined[BuffAlias${b}]}) /declare BuffAlias${b} ${Ini[MyIni,Buff,BuffAlias${b},123456]}
 		/if (${BuffAlias${b}.Find[|${SName}|]}) {
 			/if (${TName.Length}) {
 				/if (${SpawnCount[pc ${TName}]}) /call BuffList "${Spawn[pc ${TName}].ID}" "${b}"
@@ -5357,8 +5359,8 @@ Sub Event_Chat(string ChatType,string ChatSender,string ChatText)
   	/declare i int local
 	/varset ChatSenderHold ${ChatSender}
 	/if (${ChatSender.Left[1].Compare[ ]} < 0) /varset ChatSenderHold ${ChatSender.Right[-2].Left[-1]}
-	/if (!${AuthorizedUsers.Find[${ChatSenderHold}]} && ${AuthorizedUsers.NotEqual[NULL]} && !${Select[${Spawn[${ChatSender}].Type},mercenary,pet]}) {
-		/echo ${ChatSender} not found on [Settings] AuthorizedUsers list. Ignoring request.
+	/if (!${AuthorizedUsers.Find[${ChatSenderHold}]} && ${AuthorizedUsers.NotEqual[NULL]} && ${AuthorizedUsers.NotEqual[----]} && !${Select[${Spawn[${ChatSender}].Type},mercenary,pet]}) {
+		/cecho ${ChatSender} not found on [Settings] AuthorizedUsers list. Ignoring request.
 		/return
 	}
   	/if (${ChatText.Equal[${MoveUpCommand}]}) {
@@ -5410,7 +5412,7 @@ Sub CampLoad
 		/mmoini "MyIni" "Settings" "UseCamp" "TRUE"
 		/mmoini "MyIni" "Settings" "CampRadius" "30"
 		/mmoini "MyIni" "Settings" "CampRadiusMax" "150"
-		/echo UseCamp loaded to MyIni 
+		/cecho UseCamp loaded to MyIni 
 	}
 /return
 
@@ -5425,7 +5427,7 @@ Sub HitObstacle(int strafetime)
 			/if (${Navigation.Active}) /return
 		}
 	}
-	|/echo Obstacle hit, moving around it... 
+	|/cecho Obstacle hit, moving around it... 
 	/keypress forward 
 	/keypress back hold 
 	/delay 3 
@@ -5471,8 +5473,8 @@ Sub MoveToLoc(MoveToY, MoveToX)
    	/varset running 0 
    	/varset distanceBefore ${Math.Distance[${Me.Y},${Me.X}:${MoveToY},${MoveToX}]} 
    	/varset distanceModifier 1 
-	|   /echo Moving to Location: ${MoveToY}, ${MoveToX}. 
-	|   /echo Distance: ${distanceBefore} 
+	|   /cecho Moving to Location: ${MoveToY}, ${MoveToX}. 
+	|   /cecho Distance: ${distanceBefore} 
    	:moveToLocation  
     /face loc ${MoveToY},${MoveToX} 
     /if (${Math.Distance[${Me.Y},${Me.X}:${MoveToY},${MoveToX}]}<10) { 
@@ -5513,7 +5515,7 @@ Sub Event_AnchorMe
 	/varset YLOC ${Int[${Me.Y}]}
 	/varset ZLOC ${Int[${Me.Z}]}
 	/varset Camp_Zone ${Zone.ID}
-	/echo New Camp: X: ${XLOC}  - Y: ${YLOC} - Z: ${ZLOC}
+	/cecho New Camp: X: ${XLOC}  - Y: ${YLOC} - Z: ${ZLOC}
 	/campon
 /return
 
@@ -5528,11 +5530,11 @@ Sub CampfireLoad
 	/if (${Me.HaveExpansion[Prophecy of Ro]}) /blockspell add me 7618
 	/if (!${Defined[CampfireLoaded]}) /declare CampfireLoaded int outer 1
 	/if (!${Defined[AutoUseCampfire]}) /declare AutoUseCampfire bool outer ${Ini[MyIni,Campfire,AutoUseCampfire,FALSE]}
-	/if (!${AutoUseCampfire}) 	/mmoini "MyIni" "Campfire" "AutoUseCampfire"
+	/if (!${AutoUseCampfire}) 	/mmoini "MyIni" "Campfire" "AutoUseCampfire" "FALSE"
 	/declare SetCampfire bool outer ${Ini[MyIni,Campfire,SetCampfire,FALSE]}
-	/if (!${SetCampfire}) 	/mmoini "MyIni" "Campfire" "SetCampfire"
+	/if (!${SetCampfire}) 	/mmoini "MyIni" "Campfire" "SetCampfire" "FALSE"
 	/declare CampfireName string outer ${Ini[MyIni,Campfire,CampfireName,NULL]}
-	/if (${CampfireName.Equal[NULL]}) 	/mmoini "MyIni" "Campfire" "CampfireName"
+	/if (${CampfireName.Equal[NULL]}) 	/mmoini "MyIni" "Campfire" "CampfireName" "----"
 	/declare CF_Item1 string outer ${Ini[MyIni,Campfire,CF_Item1,Fellowship Kit:]}
 	/if (${CF_Item1.Equal[Fellowship Kit:]})		/mmoini "MyIni" "Campfire" "CF_Item1" "Fellowship Kit: "
 	/declare CF_Item2 string outer ${Ini[MyIni,Campfire,CF_Item2,Fellowship Lumber Bundle:]}
@@ -5670,7 +5672,7 @@ Sub CheckStuff
 Sub Event_InDoors
 	/if (!${Defined[Outside]}) /declare Outside bool outer
    	/varset Outside FALSE
-   	/echo Inside. No mounts allowed.
+   	/cecho Inside. No mounts allowed.
 /return
 
 Sub ClickyMaintenanceLoad
@@ -5758,7 +5760,7 @@ Sub Event_additem(string itemtoadd)
     /mmoini "MyIni" "ClickyMaintenance" "clickies" "${clickies}"
 	/if (!${Defined[click${clickies}]}) /declare click${clickies} string outer
 	/varset click${clickies} ${itemtoadd}
-    /echo Item Added ${itemtoadd}.
+    /cecho Item Added ${itemtoadd}.
 /return
 
 Sub Event_removeitem(string itemtoremove)
@@ -5771,7 +5773,7 @@ Sub Event_removeitem(string itemtoremove)
     /for temp 1 to ${clickies}
     	/if (${click${temp}.Equal[${itemtoremove}]}) /goto :found
     /next temp
-	/echo ${itemtoremove} not found.
+	/cecho ${itemtoremove} not found.
 	/return
 
 	|TODO: This looks like dead code, but isn't because goto's suck
@@ -5788,7 +5790,7 @@ Sub Event_removeitem(string itemtoremove)
     /mmoini "MyIni" "ClickyMaintenance" "click${clickies}" "NULL"
 	/varcalc clickies ${clickies}-1
 	/mmoini "MyIni" "ClickyMaintenance" "clickies" "${clickies}"
-	/echo Item Removed ${itemtoremove}
+	/cecho Item Removed ${itemtoremove}
 /return
 
 Sub Event_ClickyToggle
@@ -5796,12 +5798,12 @@ Sub Event_ClickyToggle
 	/if (${doclickies}) {
 		/varset doclickies 0
 		/mmoini "MyIni" "ClickyMaintenance" "doclickies" "${doclickies}"
-		/echo Clicky Maintenance is off
+		/cecho Clicky Maintenance is off
 	} else {
 		/if (!${doclickies}) {
 			/varset doclickies 1
 			/mmoini "MyIni" "ClickyMaintenance" "doclickies" "${doclickies}"
-			/echo Clicky Maintenance is on
+			/cecho Clicky Maintenance is on
 		}
 	}
 /return
@@ -5884,7 +5886,7 @@ Sub ClickyNuke
 |cure start
 #event AddCureIgnoreList "#*#AddCureIgnoreList #1#"
 Sub Event_AddCureIgnoreList(line,addcureignore)
-	/mmoini "MyIni" "Cure" "${CureIgnoreList}${addcureignore}|"
+	/mmoini "MyIni" "Cure" "${CureIgnoreList}${addcureignore}|" "----"
 	/varset CureIgnoreList ${CureIgnoreList}${addcureignore}|
 /return 
 
@@ -6221,8 +6223,8 @@ Sub DiscLoad
 	/if (${NeedLoad} && !${tempsubtotal}) {
 		/if (!${Defined[DiscList]}) /declare DiscList string outer |Thousand Blades|Fortitude Discipline|Whirlwind Discipline|Deftdance Discipline|Weapon Shield Discipline|Deflection Discipline|Speed Focus Discipline|Nimble Discipline|
 		/mmoini "MyIni" "Disc" "DiscTotal" "0"
-		|/if (${Select[${Me.Class.ShortName},WAR,SHD,PAL,RNG]}) /mmoini "MyIni" "Disc" "NormalBandolier"
-		|/if (${Select[${Me.Class.ShortName},WAR,SHD,PAL,RNG]}) /mmoini "MyIni" "Disc" "DiscBandolier"
+		|/if (${Select[${Me.Class.ShortName},WAR,SHD,PAL,RNG]}) /mmoini "MyIni" "Disc" "NormalBandolier" "----"
+		|/if (${Select[${Me.Class.ShortName},WAR,SHD,PAL,RNG]}) /mmoini "MyIni" "Disc" "DiscBandolier" "----"
 		/declare cLoop int local 1
 		| ------------------- Combat Disciplines -------------------
 		:openCombatSkills
@@ -6236,7 +6238,7 @@ Sub DiscLoad
 				/mmoini "MyIni" "Disc" "DiscName${cLoop}" "${Window[CombatSkillSelectWnd].Child[CSSW_SkillSelectorList].List[${cLoop},1]}"
 				/mmoini "MyIni" "Disc" "DiscNamedOnly${cLoop}" "TRUE"		
 				/mmoini "MyIni" "Disc" "DiscRecast${cLoop}" "1s"
-				/mmoini "MyIni" "Disc" "DiscConditions${cLoop}"
+				/mmoini "MyIni" "Disc" "DiscConditions${cLoop}" "TRUE"
 				/varcalc cLoop ${cLoop}+1
 			}
 		/next i
@@ -6575,7 +6577,7 @@ Sub DPS
   	/varcalc FightRemainingTime (100/((100-${Target.PctHPs})/(${FightTotalTime}+.0001))-${FightTotalTime})
   	/varset FightTimer ${Math.Calc[${FightRemainingTime}].Int}s
   	/if (${AnnounceTimeRemaining} && !${AnnouncedTimer} && ${FightRemainingTime}>1) {
-		/echo ~ ${FightRemainingTime} Seconds remaining
+		/cecho ~ ${FightRemainingTime} Seconds remaining
 		/varset AnnouncedTimer ${AnnouncedTimer.OriginalValue}
 	}
 /return
@@ -6591,10 +6593,10 @@ Sub EnduranceLoad
 	/declare SitToFull bool outer ${Ini[MyIni,Endurance,SitToFull,FALSE]}
 	/declare EnduranceConditions string outer ${Ini[MyIni,Endurance,EnduranceConditions,123456]}
 	/if (${NeedLoad} && !${SitAt}) {
-		/echo Loading ini for Endurance section.
+		/cecho Loading ini for Endurance section.
 		/mmoini "MyIni" "Endurance" "SitAt" "25"
 		/mmoini "MyIni" "Endurance" "SitToFull" "FALSE"
-		/mmoini "MyIni" "Endurance" "EnduranceConditions"
+		/mmoini "MyIni" "Endurance" "EnduranceConditions" "TRUE"
 	}
 /return
 
@@ -6602,7 +6604,9 @@ Sub Endurance
 	/if (${Me.Hovering}) /return
 	/varset CurrentSub Endurance
 	/if (!${Defined[EnduranceLoaded]}) /call EnduranceLoad
+	/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions]}]}) /moini "MyIni" "${CurrentSub}" "${CurrentSub}Conditions" "TRUE"
 	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
+	/if (!${${CurrentSub}Conditions}) /return
 	/if (!${${CurrentSub}Conditions}) /return
 
 	/if (${Me.PctEndurance}<${SitAt} && !${SitTimer} && !${sitTimer} && !${Me.Mount.ID} && ${Me.State.Equal[STAND]} && (${Me.CombatState.Equal[ACTIVE]}||${Me.CombatState.Equal[DEBUFFED]} && !${Debuff.Count}) && !${Me.Class.ShortName.NotEqual[BRD]}) {
@@ -6636,6 +6640,7 @@ Sub Fade
 	/if (${Me.Hovering}) /return
 	/varset CurrentSub Fade
 	/if (!${FadeLoaded}) /call FadeLoad
+	/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}Conditions" "TRUE"
 	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
 	/if (!${${CurrentSub}Conditions}) /return
 	/if (!${FadeTotal}||${ImNotReady}) /return
@@ -6645,7 +6650,7 @@ Sub Fade
 			/varset FadeUseAtMyHP${i} ${Ini[MyIni,Fade,FadeAtMyHps${i},1]}
 		}
 		/if (!${FadeUse${i}}) /continue
-		/if (!${Ini[MyIni,Fade,FadeConditions${i}]}) /mmoini "MyIni" "${CurrentSub}" "FadeConditions${i}" "12345"
+		/if (!${Ini[MyIni,Fade,FadeConditions${i}]}) /mmoini "MyIni" "${CurrentSub}" "FadeConditions${i}" "123456"
 		/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset FadeConditions${i} ${Ini[MyIni,Fade,FadeConditions${i},123456]}
 		/if (${Range.Between[0,${FadeUseAtMyHP${i}}:${Me.PctHPs}]} && ${FadeConditions${i}} && ${Me.AltAbilityReady[${FadeSpellName${i}}]}) {
 			/if (${Plugin[MQ2Twist].Name.Length}) {
@@ -6684,6 +6689,7 @@ Sub FeignDeath
 	/if (${Me.Hovering}) /return
 	/varset CurrentSub FeignDeath
 	/if (!${Defined[${CurrentSub}Loaded]}) /call ${CurrentSub}Load
+	/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}Conditions" "TRUE"
 	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
 	/if (!${${CurrentSub}Conditions}) /return
 	/if (${Me.Moving}||${Me.Invis}||!${${CurrentSub}Total}||${NeedLoad}) /return
@@ -6737,6 +6743,7 @@ Sub FightBuff
 	/if (${Me.Hovering}) /return
 	/varset CurrentSub FightBuff
 	/if (!${Defined[${CurrentSub}Loaded]}) /call ${CurrentSub}Load
+	/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}Conditions" "TRUE"
 	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
 	/if (!${${CurrentSub}Conditions}) /return
   	/if (${ImNotReady}||!${${CurrentSub}Total}||${NeedLoad}) /return
@@ -6769,7 +6776,7 @@ Sub FollowLoad
 	/declare FollowMethod string outer ${Ini[MyIni,Follow,FollowMethod]}
 	/if (!${FollowMethod.Length}||${FollowMethod.Equal[NULL]}) /mmoini "MyIni" "Follow" "FollowMethod" "stick|30 healer"
 	/declare DistanceToFollow int outer ${Ini[MyIni,Follow,DistanceToFollow,30]}
-	/if (!${DistanceToFollow}) /mmoini "MyIni" "Follow" "DistanceToFollow"
+	/if (!${DistanceToFollow}) /mmoini "MyIni" "Follow" "DistanceToFollow" 30
 	/declare FollowCommand string outer ${Ini[MyIni,Follow,FollowCommand]}
 	/if (!${FollowCommand.Length}||${FollowCommand.Equal[NULL]}) /mmoini "MyIni" "Follow" "FollowCommand" "FollowCommand"
 	/declare StopFollowCommand string outer ${Ini[MyIni,Follow,StopFollowCommand]}
@@ -6815,7 +6822,7 @@ Sub FollowCheck
 			
 		/varset MoveID ${Spawn[pc ${NameToFollow}].ID}
 		
-		/echo Following ${NameToFollow} - ID: ${MoveID}
+		/cecho Following ${NameToFollow} - ID: ${MoveID}
 		/if (${Me.Casting.ID} && !${Me.Class.ShortName.Equal[BRD]}) /delay 5s !${Me.Casting.ID}
 		/if (${Plugin[MQ2Nav].Name.Length}) {
 			/if (${Navigation}) {
@@ -7286,7 +7293,7 @@ Sub HealSingle
 							/if (!${Defined[HealSingleRecast${i}${Group.Member[${gmember}].ID}]}) /declare HealSingleRecast${i}${Group.Member[${gmember}].ID} timer outer
 							/varset HealSingleRecast${i}${Group.Member[${gmember}].ID} ${Ini[MyIni,HealSingle,HealSingleRecast${i}]}
 							/if (${debug}==3) /mqlog ${Me.Class} -  2645 /varset ${CurrentSub}Recast${i}${Group.Member[${gmember}].ID} ${${CurrentSub}Recast${i}.OriginalValue}
-							/if (${debug}==3 && ${i}==1) /echo Debugging HealSingle Routine to mq2\logs\ThisMac.log   To end, type: /varset debug 0
+							/if (${debug}==3 && ${i}==1) /cecho Debugging HealSingle Routine to mq2\logs\ThisMac.log   To end, type: /varset debug 0
 						}
 						/if (${gmember}==0) {
 							/if (!${Defined[HealSingleRecast${i}${Me.ID}]}) /declare HealSingleRecast${i}${Me.ID} timer outer
@@ -7607,12 +7614,12 @@ Sub LifetapLoad
 	/declare i int local 0
 	/for i 1 to ${tempsubtotal}
 		/if (!${Defined[${CurrentSub}SpellName${i}]}) {
-			/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}SpellName${i}]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}SpellName${i}" "12345"
-			/declare ${CurrentSub}SpellName${i} string outer ${Ini[MyIni,${CurrentSub},${CurrentSub}SpellName${i},12345]}
+			/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}SpellName${i}]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}SpellName${i}" "123456"
+			/declare ${CurrentSub}SpellName${i} string outer ${Ini[MyIni,${CurrentSub},${CurrentSub}SpellName${i},123456]}
 		}
 		/if (!${Defined[${CurrentSub}SpellGem${i}]}) {
-			/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}SpellGem${i}]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}SpellGem${i}" "12345"
-			/declare ${CurrentSub}SpellGem${i} string outer ${Ini[MyIni,${CurrentSub},${CurrentSub}SpellGem${i},12345]}
+			/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}SpellGem${i}]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}SpellGem${i}" "123456"
+			/declare ${CurrentSub}SpellGem${i} string outer ${Ini[MyIni,${CurrentSub},${CurrentSub}SpellGem${i},123456]}
 		}
 		/if (!${Defined[${CurrentSub}IgnoreRecast${i}]}) {
 			/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}IgnoreRecast${i}]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}IgnoreRecast${i}" "TRUE"
@@ -7713,7 +7720,7 @@ Sub MainTankBuff
 	/for i 1 to ${${CurrentSub}Total}
 		/if (!${${CurrentSub}Use${i}}) /continue
 		/if (!${Defined[${CurrentSub}IgnoreRecast${i}]}) /declare ${CurrentSub}IgnoreRecast${i} int outer 1
-		|/echo 	/if (!${${CurrentSub}Use${i}}||${${CurrentSub}Recast${i}} && !${${CurrentSub}IgnoreRecast${i}}||${Me.AltAbility[${${CurrentSub}SpellName${i}}]} && !${Me.AltAbilityReady[${${CurrentSub}SpellName${i}}]}) /continue
+		|/cecho 	/if (!${${CurrentSub}Use${i}}||${${CurrentSub}Recast${i}} && !${${CurrentSub}IgnoreRecast${i}}||${Me.AltAbility[${${CurrentSub}SpellName${i}}]} && !${Me.AltAbilityReady[${${CurrentSub}SpellName${i}}]}) /continue
 		/if (!${${CurrentSub}Use${i}}||${${CurrentSub}Recast${i}} && !${${CurrentSub}IgnoreRecast${i}}||${Me.AltAbility[${${CurrentSub}SpellName${i}}]} && !${Me.AltAbilityReady[${${CurrentSub}SpellName${i}}]}) /continue
 		/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset ${CurrentSub}Conditions${i} ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions${i},123456]}
 		/if (${DesignatedTank.Equal[NULL]}||!${SpawnCount[${DesignatedTank}]}) /goto :maintank
@@ -7782,7 +7789,7 @@ Sub ModRod
 		/if (${iItemEffects}>=2) {
 			/if (${FindItem[${ModRodList.Arg[${i},|]}].ItemSlot} && !${FindItem[${ModRodList.Arg[${i},|]}].Timer} && ${Me.CurrentHPs}>${Math.Abs[${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[1]}]} && ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}]}>=${Spell[${FindItem[${ModRodList.Arg[${i},|]}].Spell.ID}].Base[2]}) {
 				/if (${Me.HaveExpansion[Veil of Alaris]} && ${Me.Level}>=${FindItem[=${ModRodList.Arg[${i},|]}].RequiredLevel}) {
-					/echo Level req: ${FindItem[=${ModRodList.Arg[${i},|]}].RequiredLevel}
+					/cecho Level req: ${FindItem[=${ModRodList.Arg[${i},|]}].RequiredLevel}
 					/squelch /useitem "${FindItem[=${ModRodList.Arg[${i},|]}].Name}"
 				}
 				/if (!${Me.HaveExpansion[Veil of Alaris]}) {
@@ -7798,7 +7805,7 @@ Sub ModRod
 Sub Mana
 	/if (${Me.Hovering}) /return
 	/varset CurrentSub Mana
-	/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}Conditions" "123456"
+	/if (!${Bool[${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions]}]}) /mmoini "MyIni" "${CurrentSub}" "${CurrentSub}Conditions" "TRUE"
 	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
 	/if (!${${CurrentSub}Conditions}) /return
 	/if (${Me.Invis} && !${AutoInvis} && !${AutoBreakInvis}) /return
@@ -8056,8 +8063,9 @@ Sub ManaLoad
 	/if (${ManaLoaded}) /return
 	/varset ${CurrentSub}Loaded TRUE
 	/declare i int local
-	/declare ManaConditions string outer ${Ini[MyIni,Mana,ManaConditions]}
-	/if (${ManaConditions.Equal[NULL]}) /mmoini "MyIni" "Mana" "ManaConditions"
+	/if (!${Defined[${CurrentSub}Conditions]}) /declare ${CurrentSub}Conditions string outer "TRUE"
+	/if (${${CurrentSub}Conditions.NotEqual[123456]}) /varset ${CurrentSub}Conditions ${Ini[MyIni,${CurrentSub},${CurrentSub}Conditions,123456]}
+	/if (!${${CurrentSub}Conditions}) /return
 	/declare MedTimer timer outer ${Ini[MyIni,Mana,MedTimer,10s]}
 	/declare MedAt int outer ${Ini[MyIni,Mana,MedAt,0]}
 	/declare MedToFull bool outer ${Ini[MyIni,Mana,MedToFull,FALSE]}
@@ -8067,11 +8075,12 @@ Sub ManaLoad
 	/declare DontUnlessMyManaLessThan int outer
 	/declare TheirManaLessThan int outer
 	/if (${NeedLoad} && !${MedAt}) {
-		/echo Loading ini for Mana section.
+		/cecho Loading ini for Mana section.
 		/mmoini "MyIni" "Mana" "MedAt" "75"
 		/mmoini "MyIni" "Mana" "MedToFull" "FALSE"
 		/mmoini "MyIni" "Mana" "MedEvenIfNotInOOCRegen" "FALSE"
 		/mmoini "MyIni" "Mana" "MedTimer" "10s"
+		/mmoini "MyIni" "Mana" "ManaConditions" "TRUE"
 	}
 	
 	/if (!${Defined[${CurrentSub}Boost${Me.Class.ShortName}]}) {
@@ -8083,7 +8092,7 @@ Sub ManaLoad
 
 			|Attrib 15 = Mana
 			/for effect 1 to ${numEffects}
-			  |/echo Checking effect ${effect}
+			  |/cecho Checking effect ${effect}
 				/if (${Me.Gem[${i}].Attrib[${effect}]}==15 && ((${Me.Class.ShortName.Equal[SHM]} && ${Me.Gem[${i}].Base[${effect}]}>0) || ${Me.Gem[${i}].Base[${effect}]}>150)) {
 					/if (!${Defined[${CurrentSub}Boost${Me.Class.ShortName}]}) /declare ${CurrentSub}Boost${Me.Class.ShortName} string outer ${Me.Gem[${i}]}
 					/if (!${Defined[${CurrentSub}BoostGem${Me.Class.ShortName}]}) /declare ${CurrentSub}BoostGem${Me.Class.ShortName} string outer gem${Me.Gem[${${CurrentSub}Boost${Me.Class.ShortName}}]}
@@ -8175,11 +8184,11 @@ Sub MercLoad
 	/declare i int local
 	/for i 1 to 4
 		/declare ${merclist.Arg[${i},|]}_MercStanceNormal string outer ${Ini[MyIni,Merc,${merclist.Arg[${i},|]}_MercStanceNormal]}
-		/if (${${merclist.Arg[${i},|]}_MercStanceNormal}==NULL) /mmoini "MyIni" "Merc" "${merclist.Arg[${i},|]}_MercStanceNormal"
+		/if (${${merclist.Arg[${i},|]}_MercStanceNormal.Equal[NULL]} || ${${merclist.Arg[${i},|]}_MercStanceNormal.Equal[----]}) /mmoini "MyIni" "Merc" "${merclist.Arg[${i},|]}_MercStanceNormal" "----"
 		/declare ${merclist.Arg[${i},|]}_MercStanceNamed string outer ${Ini[MyIni,Merc,${merclist.Arg[${i},|]}_MercStanceNamed]}
-		/if (${${merclist.Arg[${i},|]}_MercStanceNamed}==NULL) /mmoini "MyIni" "Merc" "${merclist.Arg[${i},|]}_MercStanceNamed"
+		/if (${${merclist.Arg[${i},|]}_MercStanceNamed.Equal[NULL]} || ${${merclist.Arg[${i},|]}_MercStanceNamed.Equal[----]}) /mmoini "MyIni" "Merc" "${merclist.Arg[${i},|]}_MercStanceNamed" "----"
 		/declare ${merclist.Arg[${i},|]}_MercStanceOOC string outer ${Ini[MyIni,Merc,${merclist.Arg[${i},|]}_MercStanceOOC]}
-		/if (${${merclist.Arg[${i},|]}_MercStanceOOC}==NULL) /mmoini "MyIni" "Merc" "${merclist.Arg[${i},|]}_MercStanceOOC"
+		/if (${${merclist.Arg[${i},|]}_MercStanceOOC.Equal[NULL]} || ${${merclist.Arg[${i},|]}_MercStanceOOC.Equal[----]}) /mmoini "MyIni" "Merc" "${merclist.Arg[${i},|]}_MercStanceOOC" "----"
 	/next i
 	/deletevar merclist
 /return
@@ -8253,7 +8262,7 @@ Sub MezLoad
 	/declare ${CurrentSub}MaxNPCLevel${x} int outer 0
 	/if (${${CurrentSub}Total}) {
 		/for x 1 to ${${CurrentSub}Total}
-			/if (!${Defined[${CurrentSub}SpellName${x}]}) /declare ${CurrentSub}SpellName${x} ${Ini[MyIni,${CurrentSub},${CurrentSub}SpellName${i},12345]}
+			/if (!${Defined[${CurrentSub}SpellName${x}]}) /declare ${CurrentSub}SpellName${x} ${Ini[MyIni,${CurrentSub},${CurrentSub}SpellName${i},123456]}
 			/varcalc numEffects ${Spell[${${CurrentSub}SpellName${x}}].NumEffects}
 			/for b 1 to ${numEffects}
 				/if (${Spell[${${CurrentSub}SpellName${x}}].Subcategory.Equal[Enthrall]}) {
@@ -8596,7 +8605,7 @@ Sub PetLoad
 	/declare UsePet bool outer ${Ini[MyIni,Pet,UsePet,FALSE]}
 	/declare PetReagent string outer ${Ini[MyIni,Pet,PetReagent]}
 	/if (!${Defined[PetGearDefaultAlias]}) /declare PetGearDefaultAlias string outer ${Ini[MyIni,Pet,PetGearDefaultAlias,NULL]}
-	/if (${PetGearDefaultAlias.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearDefaultAlias"
+	/if (${PetGearDefaultAlias.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearDefaultAlias" "----"
 	/declare ShrinkPet bool outer ${Ini[MyIni,Pet,ShrinkPet,FALSE]}
 	/declare ShrinkPetIfHeightAbove float outer ${Ini[MyIni,Pet,ShrinkPetIfHeightAbove,1.5]}
 	/declare ShrinkPetSpell string outer ${Ini[MyIni,Pet,ShrinkPetSpell]}
@@ -8646,29 +8655,29 @@ Sub PetLoad
 			}
 			/if (!${Me.Book[${PetBuffSpell${pb}}]} && !${Me.AltAbility[${PetBuffSpell${pb}}]} && !${FindItem[${PetBuffSpell${pb}}].ItemSlot}||${PetBuffSpell${pb}.Length}<3) {
 				/if (!${ErrorFound}) {
-					/echo Error(s) found in MyIni
+					/cecho Error(s) found in MyIni
 					/varset ErrorFound TRUE
 				}
-				/echo [Pet] PetBuffSpell${pb}=${PetBuffSpell${pb}} -- You dont have this spell/AA/Item
+				/cecho [Pet] PetBuffSpell${pb}=${PetBuffSpell${pb}} -- You dont have this spell/AA/Item
 				/mqlog ${Me.Class} -  [Pet] PetBuffSpell${pb}=${PetBuffSpell${pb}} -- You dont have this spell/AA/Item
 			}
 			/if (${PetBuffGem${pb}.Find[gem]} && !${Me.Book[${PetBuffSpell${pb}}]}||${PetBuffGem${pb}.Find[alt]} && !${Me.AltAbility[${PetBuffSpell${pb}}]}||${PetBuffGem${pb}.Find[disc]} && !${Me.CombatAbility[${PetBuffSpell${pb}}]} && !${Me.CombatAbility[${PetBuffGem${pb}}]}||${PetBuffGem${pb}.Find[item]} && !${FindItem[${PetBuffSpell${pb}}].ItemSlot}||${PetBuffGem${pb}.Length}<3) {
 				/if (!${ErrorFound}) {
-					/echo Error(s) found in MyIni
+					/cecho Error(s) found in MyIni
 					/varset ErrorFound TRUE
 				}
-				/echo [Pet] PetBuffGem${pb}=${PetBuffGem${pb}} -- This gem is wrong format for PetBuffGem${pb}=${PetBuffGem${pb}}
+				/cecho [Pet] PetBuffGem${pb}=${PetBuffGem${pb}} -- This gem is wrong format for PetBuffGem${pb}=${PetBuffGem${pb}}
 				/mqlog ${Me.Class} -  [Pet] PetBuffGem${pb}=${PetBuffGem${pb}} -- This gem is wrong format for PetBuffGem${pb}=${PetBuffGem${pb}}
 			}
 		/next pb
 	}
 
 	/if (${NeedLoad} && !${PetAAHealAt}) {
-		/echo Loading Ini for Pet Section
+		/cecho Loading Ini for Pet Section
 		/declare a int local
 
 		/mmoini "MyIni" "Pet" "UsePet" "FALSE"
-		/mmoini "MyIni" "Pet" "PetSpell"
+		/mmoini "MyIni" "Pet" "PetSpell" "----"
 		/mmoini "MyIni" "Pet" "PetSpellGem" "gem1"
 		/if (${Select[${Me.Class.ShortName},NEC,SHD]}) {
 			/for a ${Me.FirstBook} to ${Me.LastBook}
@@ -8697,13 +8706,13 @@ Sub PetLoad
 
 		:skip
 
-		/mmoini "MyIni" "Pet" "PetFoucusItem"
+		/mmoini "MyIni" "Pet" "PetFoucusItem" "----"
 		/mmoini "MyIni" "Pet" "UsePetFocusAA" "TRUE"
 		/mmoini "MyIni" "Pet" "PetAttackAt" "97"
 		/mmoini "MyIni" "Pet" "ShrinkPet" "FALSE"
 		/mmoini "MyIni" "Pet" "ShrinkPetIfHeightAbove" "1.5"
-		/mmoini "MyIni" "Pet" "ShrinkPetSpell"
-		/mmoini "MyIni" "Pet" "ShrinkPetSpellGem"
+		/mmoini "MyIni" "Pet" "ShrinkPetSpell" "----"
+		/mmoini "MyIni" "Pet" "ShrinkPetSpellGem" "----"
 		/if (${FindItem[Curious Companion Compactor].ItemSlot}) {
 			/mmoini "MyIni" "Pet" "ShrinkPetSpell" "Curious Companion Compactor"
 			/mmoini "MyIni" "Pet" "ShrinkPetSpellGem" "item"
@@ -8726,17 +8735,17 @@ Sub PetLoad
 		}
 		/mmoini "MyIni" "Pet" "DoPetHeals" "FALSE"
 		/mmoini "MyIni" "Pet" "PetHealAt" "50"
-		/mmoini "MyIni" "Pet" "PetHealSpell"
-		/mmoini "MyIni" "Pet" "PetHealSpellGem"
+		/mmoini "MyIni" "Pet" "PetHealSpell" "----"
+		/mmoini "MyIni" "Pet" "PetHealSpellGem" "----"
 		/mmoini "MyIni" "Pet" "UseAAPetHeal" "TRUE"
 		/mmoini "MyIni" "Pet" "PetAAHealAt" "5"
 		/mmoini "MyIni" "Pet" "DoPetBuffs" "FALSE"
 		/mmoini "MyIni" "Pet" "PetBuffRecheck" "10s"
 		/mmoini "MyIni" "Pet" "PetBuffTotal" "0"
 		/for pb 1 to 6
-			/mmoini "MyIni" "Pet" "PetBuffName${pb}"
-			/mmoini "MyIni" "Pet" "PetBuffSpell${pb}"
-			/mmoini "MyIni" "Pet" "PetBuffGem${pb}"
+			/mmoini "MyIni" "Pet" "PetBuffName${pb}" "----"
+			/mmoini "MyIni" "Pet" "PetBuffSpell${pb}" "----"
+			/mmoini "MyIni" "Pet" "PetBuffGem${pb}" "----"
 			/mmoini "MyIni" "Pet" "PetBuffRecast${pb}" "1s"	
 		/next pb
 		/declare i int local 1
@@ -8759,7 +8768,7 @@ Sub PetLoad
 		/next i
 	}
 	/if (!${Defined[PetGearDefaultAlias]}) /declare PetGearDefaultAlias string outer ${Ini[MyIni,Pet,PetGearDefaultAlias,NULL]}
-	/if (${PetGearDefaultAlias.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearDefaultAlias"
+	/if (${PetGearDefaultAlias.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearDefaultAlias" "----"
 /return
 
 Sub PetAttack
@@ -8797,7 +8806,7 @@ Sub PetBuffs
 			/declare OriginalEar string local NULL
 			/declare OriginalInvSlot string local NULL
 			/if ( ${FindItem[=${PetFocusItem}].Name.Equal[${PetFocusItem}]} && !${InvSlot[leftear].Item.Name.Equal[${PetFocusItem}]} && !${InvSlot[rightear].Item.Name.Equal[${PetFocusItem}]}) {
-				/echo Attempting to equip focus item ${PetFocusItem} before casting pet
+				/cecho Attempting to equip focus item ${PetFocusItem} before casting pet
 				/varset OriginalInvSlot ${FindItem[=${PetFocusItem}].InvSlot.ID}
 				/itemnotify ${FindItem[=${PetFocusItem}].InvSlot} leftmouseup
 				/delay 2s ${Cursor.ID}
@@ -8814,15 +8823,15 @@ Sub PetBuffs
 				/autoinv
 				/delay 2s !${Cursor.ID}
 			} else {
-				/echo Casting pet without explicitly equipping focus item
-				/echo PetFocusItem is ${PetFocusItem}
+				/cecho Casting pet without explicitly equipping focus item
+				/cecho PetFocusItem is ${PetFocusItem}
 				/call Cast "${PetSpell}" ${PetSpellGem} 15s CheckStuff NULL
 			}
       	}
 			
 		:petmade
         /if (${Me.Pet.ID} && ${Me.AltAbility[Pet Discipline]} && ${PetGHOLD}) /pet ghold on
-		/if (${Me.Pet.ID} && !${Spawn[id ${Me.Pet.ID}].Holding} && ${PetGearDefaultAlias.NotEqual[NULL]}) /echo PetGear ${PetGearDefaultAlias}
+		/if (${Me.Pet.ID} && !${Spawn[id ${Me.Pet.ID}].Holding} && ${PetGearDefaultAlias.NotEqual[NULL]}) /cecho PetGear ${PetGearDefaultAlias}
    	}
    
    	/if (${DoPetBuffs} && ${Me.Pet.ID} && !${PetBuffRecheck} && ${Me.Pet.Distance}<100) {
@@ -8897,14 +8906,14 @@ Sub Event_PetGear(string PetItemsString)
 			/mmoini "MyIni" "Pet" "${PetItems.Arg[2,|]}" "${x}"
 			/if (!${Defined[${PetItems.Arg[2,|]}]}) /declare ${PetItems.Arg[2,|]} string outer 
 			/varset ${PetItems.Arg[2,|]} ${Ini[MyIni,Pet,${PetItems.Arg[2,|]}]}
-			/echo ${x} added to [Pet] with alias: ${PetItems.Arg[2,|]}
+			/cecho ${x} added to [Pet] with alias: ${PetItems.Arg[2,|]}
 		}
 		/if (${PetItems.Arg[1,|].NotEqual[add]}) {
 			/for i 1 to ${Math.Calc[${PetItems.Count[|]}+1]}
 				/if (!${Defined[petgear${i}]}) /declare petgear${i} string outer
 				/varset petgear${i} ${Ini[MyIni,Pet,${PetItems.Arg[${i},|]}]}
 				/if (!${petgear${i}.Length}) {
-					/echo ${petgear${i}} not a valid option, ignoring request.
+					/cecho ${petgear${i}} not a valid option, ignoring request.
 					/break
 				}
 				/if (${Me.Class.ShortName.Equal[MAG]} && !${FindItem[${petgear${i}}].ItemSlot}) {
@@ -8927,7 +8936,7 @@ Sub Event_PetGear(string PetItemsString)
 	
 					:OpenGiveWindow
 					/if (!${Cursor.ID}) /continue
-					/echo ${Cursor.Name} --> ${Target.CleanName}
+					/cecho ${Cursor.Name} --> ${Target.CleanName}
 					/nomodkey /click left target
 					/nomodkey /click left target
 					/delay 3s ${Window[GiveWnd].Open}   	  
@@ -8962,11 +8971,11 @@ Sub SummonPetGear(int PetGearID)
 	/if (!${Defined[PetGearDefaultInvSlotForBag]}) /declare PetGearDefaultInvSlotForBag int outer ${Ini[MyIni,Pet,PetGearDefaultInvSlotForBag,10]}
 	/if (${PetGearSpellDefaultInvSlotForBag}==10) /mmoini "MyIni" "Pet" "PetGearDefaultInvSlotForBag" "10"
 	/if (!${Defined[PetGearDefaultAlias]}) /declare PetGearDefaultAlias string outer ${Ini[MyIni,Pet,PetGearDefaultAlias,NULL]}
-	/if (${PetGearSpellDefaultAlias.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearDefaultAlias"
-	/if (${PetGearSpellName.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearSpellName"
-	/if (${PetMaskSpellName.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetMaskSpellName"
-	/if (${PetArmorSpellName.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetArmorSpellName"
-	/if (${PetGearSpellGem.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearSpellGem"
+	/if (${PetGearSpellDefaultAlias.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearDefaultAlias" "----"
+	/if (${PetGearSpellName.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearSpellName" "----"
+	/if (${PetMaskSpellName.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetMaskSpellName" "----"
+	/if (${PetArmorSpellName.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetArmorSpellName" "----"
+	/if (${PetGearSpellGem.Equal[NULL]}) /mmoini "MyIni" "Pet" "PetGearSpellGem" "----"
 	/if (!${Defined[PetGearBagName]}) /declare PetGearBagName string outer
 	/if (${PetGearSpellName.Equal[NULL]}) /return
 
@@ -8978,7 +8987,7 @@ Sub SummonPetGear(int PetGearID)
 		/if (${Cursor.Name.Equal[Pouch of Quellious]}) /destroy
 	}
 	/if (${Cursor.ID}) {
-		/echo Cursor not clear yet
+		/cecho Cursor not clear yet
 		/goto :clearcursor
 	}
 	/tar id ${PetGearID}
@@ -8990,7 +8999,7 @@ Sub SummonPetGear(int PetGearID)
 	/call Cast "${PetGearSpellName}" "${PetGearSpellGem}" 30s NULL NULL
 	/if (${PetGearID}!=${Me.ID}) {
 		/delay 10s !${Me.Casting.ID}
-		/echo ${PetGearSpellName} --> ${Target.CleanName}
+		/cecho ${PetGearSpellName} --> ${Target.CleanName}
 		/return
 	}
 	/if (${PetGearSpellName.NotEqual[NULL]}) {
@@ -9009,7 +9018,7 @@ Sub SummonPetGear(int PetGearID)
 		|/if (${Cursor.ID}) /autoinventory
 		|/if (${Cursor.Name.Equal[${PetGearBagName}]} && ${PetGearBagName.Length}) /destroy
 	}
-	/if (${PetGearSpellName.Equal[NULL]}) /echo PetGearSpellName is not defined in MyIni [Pet] section, cannot summon
+	/if (${PetGearSpellName.Equal[NULL]}) /cecho PetGearSpellName is not defined in MyIni [Pet] section, cannot summon
 /return
 |petgear end
 
@@ -9019,15 +9028,15 @@ Sub RequestLoad
 	/if (${${CurrentSub}Loaded}) /return
 	/varset ${CurrentSub}Loaded TRUE
 	/declare RequestConditions string outer ${Ini[MyIni,Request,RequestConditions]}
-	/if (${RequestConditions.Equal[NULL]}) /mmoini "MyIni" "Request" "RequestConditions"
+	/if (${RequestConditions.Equal[NULL]}) /mmoini "MyIni" "Request" "RequestConditions" "TRUE"
 	/declare RequestTotal int outer ${Ini[MyIni,Request,RequestTotal]}
 	/if (!${RequestTotal}) /mmoini "MyIni" "Request" "RequestTotal" "0"
 	/declare i int local 3
 	/if (${NeedLoad} && !${RequestTotal}) {
 		/for i 1 to ${i}
 			/mmoini "MyIni" "Request" "RequestUse${i}" "FALSE"	
-			/mmoini "MyIni" "Request" "RequestCommand${i}"
-			/mmoini "MyIni" "Request" "RequestConditions${i}"
+			/mmoini "MyIni" "Request" "RequestCommand${i}" "----"
+			/mmoini "MyIni" "Request" "RequestConditions${i}" "TRUE"
 			/mmoini "MyIni" "Request" "RequestTimer${i}" "30s" 
 		/next i
 	}
@@ -9078,7 +9087,7 @@ Sub RezLoad
 		/call SpellLoad "${CurrentSub}" ${i} "|1|3|4|6|28|25|30|" "|${i}|TRUE|----|----|TRUE|----|TRUE|"
 		/mmoini "MyIni" "Rez" "RezTrustedTotal" "0"
 		/for i 1 to 5
-			/mmoini "MyIni" "Rez" "RezTrusted${i}"
+			/mmoini "MyIni" "Rez" "RezTrusted${i}" "----"
 		/next i	
 	}
 	/declare GrabCorpse bool outer ${Ini[MyIni,Rez,GrabCorpse,TRUE]}
@@ -9155,7 +9164,7 @@ Sub RezNow(int RezID)
 Sub Event_Trusted(line, trustedname)
 	/if (!${Defined[RezLoaded]}) /call RezLoad
 	/if (${Me.Name.Equal[${trustedname}]}) {
-		/echo ERROR: CANNOT DIV/0
+		/cecho ERROR: CANNOT DIV/0
 		/goto :trusteddone
 	}
 	/declare i int local
@@ -9168,9 +9177,9 @@ Sub Event_Trusted(line, trustedname)
 	
 	/for i 1 to ${RezTrustedTotal}
 		/if (${RezTrusted${i}.Equal[${trustedname}]}) {
-			/mmoini "MyIni" "Rez" "RezTrusted${i}"
+			/mmoini "MyIni" "Rez" "RezTrusted${i}"  "----"
 			/varset RezTrusted${i} ${Ini[MyIni,Rez,RezTrusted${i}]}
-			/echo Removing ${trustedname} from list
+			/cecho Removing ${trustedname} from list
 			/goto :trusteddone
 		}
 	/next i
@@ -9178,7 +9187,7 @@ Sub Event_Trusted(line, trustedname)
 	/for i 1 to ${RezTrustedTotal}
 		/if (!${RezTrusted${i}.Length}) {
 			/mmoini "MyIni" "Rez" "RezTrusted${i}" "${trustedname}"
-			/echo Adding ${trustedname} to list
+			/cecho Adding ${trustedname} to list
 			/varset RezTrusted${i} ${Ini[MyIni,Rez,RezTrusted${i}]}
 			/goto :trusteddone
 		}
@@ -9186,7 +9195,7 @@ Sub Event_Trusted(line, trustedname)
 	
 	/if (!${x}) /varcalc RezTrustedTotal ${RezTrustedTotal}+1
 	/mmoini "MyIni" "Rez" "RezTrustedTotal" "${RezTrustedTotal}"
-	/echo Adding ${trustedname} to list
+	/cecho Adding ${trustedname} to list
 	/varset RezTrustedTotal ${Ini[MyIni,Rez,RezTrustedTotal]}
 	/mmoini "MyIni" "Rez" "RezTrusted${RezTrustedTotal}" "${trustedname}"
 	/if (!${Defined[RezTrusted${RezTrustedTotal}]}) /declare RezTrusted${RezTrustedTotal} string outer
@@ -9365,7 +9374,7 @@ Sub SelfBuff
 	/for i 1 to ${${CurrentSub}Total}
 		/if (!${${CurrentSub}Use${i}}||${Me.Casting.ID}) /continue
 		/if (${${CurrentSub}Conditions${i}.NotEqual[123456]}) /varset SelfBuffConditions${i} ${Ini[MyIni,SelfBuff,SelfBuffConditions${i},123456]}
-		|/echo Calling SelfBuff for:  ${${CurrentSub}SpellName${i}}   Stacking:  ${SpellStacks}
+		|/cecho Calling SelfBuff for:  ${${CurrentSub}SpellName${i}}   Stacking:  ${SpellStacks}
 		/if (${SpellStacks} && ${SelfBuffUse${i}} && (!${Me.AltAbility[${SelfBuffSpellName${i}}]}||${Me.AltAbilityReady[${SelfBuffSpellName${i}}]}||${FindItem[${SelfBuffSpellName${i}}].ItemSlot} && !${FindItem[${SelfBuffSpellName${i}}].Timer}) && ${SelfBuffConditions${i}}) {
 			/if ((${Spell[${${CurrentSub}SpellName${i}}].TargetType.Equal[pc]}||${Spell[${${CurrentSub}SpellName${i}}].TargetType.Equal[single]}) && ${Target.ID}!=${Me.ID}) {
 				/varset tempsbid ${Target.ID}
@@ -9374,7 +9383,7 @@ Sub SelfBuff
 			}
 			/call ${EchoSub} "${White} ${${CurrentSub}SpellName${i}}"
 			|/if (${Verbose} && ${MyChannel.NotEqual[NULL]}) /docommand /${MyChannel} ${${CurrentSub}SpellName${i}}
-			/if (${${CurrentSub}Announce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${${CurrentSub}SpellName${i}} --> ${Target.CleanName}
+			/if (${${CurrentSub}Announce} && ${AnnounceChannel.NotEqual[NULL]}) /docommand /${AnnounceChannel} ${${CurrentSub}SpellName${i}} --> ${Me.CleanName}
 			/if (${Me.Class.ShortName.Equal[BRD]}) /casting "${${CurrentSub}SpellName${i}}" ${${CurrentSub}SpellGem${i}}
 			/if (${Me.Class.ShortName.NotEqual[BRD]}) /call Cast "${${CurrentSub}SpellName${i}}" ${${CurrentSub}SpellGem${i}} 0 CheckStuff NULL
 		}
@@ -9392,7 +9401,7 @@ Sub SelfBuff
 |setroles start
 Sub SetRolesLoad
 	/varset CurrentSub SetRolesLoad
-	/echo ${Red} LoadingSetRoles
+	/cecho ${Red} LoadingSetRoles
 	/if (!${Defined[${CurrentSub}Loaded]}) /declare ${CurrentSub}Loaded bool outer FALSE
 	/if (${${CurrentSub}Loaded}) /return
 	/varset ${CurrentSub}Loaded TRUE
@@ -9417,7 +9426,7 @@ Sub SetRolesLoad
 		/mmoini "MyIni" "Roles" "GroupPuller" ${Group.Puller}
 		/mmoini "MyIni" "Roles" "GroupXTarget1" "Group Assist Target"
 		/mmoini "MyIni" "Roles" "RaidXTarget1" "Raid Assist 1 Target"
-		/echo Loading Roles Info to MyIni
+		/cecho Loading Roles Info to MyIni
 	}
 
 /return
@@ -9533,20 +9542,20 @@ Sub Snare
 Sub Event_SnareImmune
 	/if (!${Defined[SnareLoaded]}) /call SnareLoad
 	/varset Snared TRUE
-	|/echo snareimmunemob ${Target.CleanName}
+	|/cecho snareimmunemob ${Target.CleanName}
 /return
 
 Sub Event_Snareon
 	/if (!${Defined[SnareLoaded]}) /call SnareLoad
 	/varset Snared TRUE
-	|/if (${SnareTotal} && ${Target.ID}) /echo ${Target.CleanName} has been snared!
+	|/if (${SnareTotal} && ${Target.ID}) /cecho ${Target.CleanName} has been snared!
 /return
 
 Sub Event_SnareResist
 	/if (!${Defined[SnareLoaded]}) /call SnareLoad
 	/if (${SnareCounter}>=${SnareMaxTries1}) {
 		/varset Snared TRUE
-		/if (${SnareTotal}) /echo Snare resisted ${SnareMaxTries1} times, giving up!
+		/if (${SnareTotal}) /cecho Snare resisted ${SnareMaxTries1} times, giving up!
 		/varset SnareCounter 0
 		/return
 	}
@@ -9633,13 +9642,13 @@ Sub Event_StunGate
     /if (!${Defined[StunCHeal]}) /declare StunCHeal bool outer FALSE
     /if (!${Defined[StunTotal]}) /declare StunTotal int outer 0
     /if (${StunCHeal} && ${Me.AltAbilityReady[Translocational Anchor]}) {
-     	/echo Translocational Anchor --> ${Target.CleanName}
+     	/cecho Translocational Anchor --> ${Target.CleanName}
      	/call Cast "Translocational Anchor" alt NULL NULL NULL
    	}
     /for i 1 to ${StunTotal}
     	/if (${StunCHeal}  && (${Me.AltAbilityReady[${StunSpellName${i}}]}||${Me.SpellReady[${StunSpellName${i}}]})) {
 			/call Cast "${StunSpellName${i}}" "${StunSpellGem${i}}" NULL NULL NULL
-			/echo ${StunSpellName${i}} --> ${Target.DisplayName}
+			/cecho ${StunSpellName${i}} --> ${Target.DisplayName}
 		}
     /next i
 /return
@@ -9652,7 +9661,7 @@ Sub Event_StunCHeal
     	/if (!${Defined[StunSpellName${i}]}) /declare StunSpellName${i} string outer
     	/if (${StunCHeal}  && (${Me.AltAbilityReady[${StunSpellName${i}}]}||${Me.SpellReady[${StunSpellName${i}}]})) {
 			/call Cast "${StunSpellName${i}}" "${StunSpellGem${i}}" NULL NULL NULL
-			/echo ${StunSpellName${i}} --> ${Target.DisplayName}
+			/cecho ${StunSpellName${i}} --> ${Target.DisplayName}
 		}
     /next i
 /return
@@ -9669,10 +9678,10 @@ Sub SummonItemLoad
 	/if (!${SummonItemTotal}) {
 		/mmoini "MyIni" "SummonItem" "SummonItemTotal" "0"
 		/for i 1 to 2
-			/mmoini "MyIni" "SummonItem" "SummonItemUse${i}"
-			/mmoini "MyIni" "SummonItem" "SummonItemName${i}"
-			/mmoini "MyIni" "SummonItem" "SummonItemSpellGem${i}"
-			/mmoini "MyIni" "SummonItem" "SummonItemConditions${i}"
+			/mmoini "MyIni" "SummonItem" "SummonItemUse${i}" "----"
+			/mmoini "MyIni" "SummonItem" "SummonItemName${i}" "----"
+			/mmoini "MyIni" "SummonItem" "SummonItemSpellGem${i}" "----"
+			/mmoini "MyIni" "SummonItem" "SummonItemConditions${i}" "TRUE"
 		/next i
 	}
 	/if (!${SummonItemTotal}) /return
@@ -9717,7 +9726,7 @@ Sub Event_SummonTankTarget(line, int SumRange)
 	/if (!${Defined[SummonTankLoaded]}) /call SummonTankLoad
 	/if (${SumRange}) /varset SumTankRange ${SumRange}
 	/varset SummonTankTarget ${Target}
-	/echo Summon Tanking ${Target} at ${SumTankRange} distance.
+	/cecho Summon Tanking ${Target} at ${SumTankRange} distance.
 /return
 
 Sub SummonTankLoad
@@ -9752,7 +9761,7 @@ Sub Event_LeapTarget(line, int LeapAtRange)
 	/if (!${Defined[LeapLoaded]}) /call LeapLoad
 	/if (${LeapAtRange}) /varset LeapRange ${LeapAtRange}
 	/varset LeapTarget ${Target}
-	/echo Leaping ${Target} at ${LeapAtRange} distance.
+	/cecho Leaping ${Target} at ${LeapAtRange} distance.
 /return
 
 Sub LeapLoad
@@ -9801,7 +9810,7 @@ Sub XHealLoad
 	/if (${Select[${Me.Class.ShortName},CLR]}) /varset i 8
 	/varset tempsubtotal ${Ini[MyIni,${CurrentSub},${CurrentSub}Total]}
 	/if (${NeedLoad} && !${tempsubtotal} && ${i}) {
-		/mmoini "MyIni" "${CurrentSub}" "XHealPullerName" "${Group.Puller}"
+		/mmoini "MyIni" "${CurrentSub}" "XHealPullerName" "${Group.Puller}" "----"
 		/mmoini "MyIni" "${CurrentSub}" "XHealPullerDist" "50"
 		/call SpellLoad "${CurrentSub}" ${i} "|1|3|4|6|21|22|" "|${i}|TRUE|----|----|50|90|"
 		/mmoini "MyIni" "Settings" "InterruptToXHealAt" "50"
@@ -9879,8 +9888,8 @@ Sub AABuyLoad
 	/declare EPH int outer
 	/declare AABuy bool outer ${Ini[MyIni,AAtoBuy,AABuy,FALSE]}
 	/if (!${AABuy}) /mmoini "MyIni" "AAtoBuy" "AABuy" "FALSE"
-	/declare AABuyChannel string outer ${Ini[MyIni,AAtoBuy,AABuyChannel,/echo]}
-	/if (${AABuyChannel.Equal[/echo]}) /mmoini "MyIni" "AAtoBuy" "AABuyChannel" "/echo"
+	/declare AABuyChannel string outer ${Ini[MyIni,AAtoBuy,AABuyChannel,/cecho]}
+	/if (${AABuyChannel.Equal[/cecho]}) /mmoini "MyIni" "AAtoBuy" "AABuyChannel" "/cecho"
 	/declare AABuyAt int outer ${Ini[MyIni,AAtoBuy,AABuyAt,0]}
 	/if (!${AABuyAt}) /mmoini "MyIni" "AAtoBuy" "AABuyAt" "25"
 	/declare AABuyMode string outer ${Ini[MyIni,AAtoBuy,AABuyMode,Classic]}
@@ -9894,13 +9903,13 @@ Sub AABuyLoad
 	/declare SetAAPctOnLevelTo int outer ${Ini[MyIni,AAtoBuy,SetAAPctOnLevelTo,0]}
 	/if (!${SetAAPctOnLevelTo}) /mmoini "MyIni" "AAtoBuy" "SetAAPctOnLevelTo" "0"	
 	/declare LimitedGeneral string outer ${Ini[MyIni,AAtoBuy,LimitedGeneral,NULL]}
-	/if (!${LimitedGeneral.Length}||${LimitedGeneral.Equal[NULL]}) /mmoini "MyIni" "AAtoBuy" "LimitedGeneral"
+	/if (!${LimitedGeneral.Length}||${LimitedGeneral.Equal[NULL]}) /mmoini "MyIni" "AAtoBuy" "LimitedGeneral" "----"
 	/declare LimitedArchetype string outer ${Ini[MyIni,AAtoBuy,LimitedArchetype,NULL]}
-	/if (!${LimitedArchetype.Length}||${LimitedArchetype.Equal[NULL]}) /mmoini "MyIni" "AAtoBuy" "LimitedArchetype"
+	/if (!${LimitedArchetype.Length}||${LimitedArchetype.Equal[NULL]}) /mmoini "MyIni" "AAtoBuy" "LimitedArchetype" "----"
 	/declare LimitedClass string outer ${Ini[MyIni,AAtoBuy,LimitedClass,NULL]}
-	/if (!${LimitedClass.Length}||${LimitedClass.Equal[NULL]}) /mmoini "MyIni" "AAtoBuy" "LimitedClass"
+	/if (!${LimitedClass.Length}||${LimitedClass.Equal[NULL]}) /mmoini "MyIni" "AAtoBuy" "LimitedClass" "----"
 	/declare LimitedSpecial string outer ${Ini[MyIni,AAtoBuy,LimitedSpecial,NULL]}
-	/if (!${LimitedSpecial.Length}||${LimitedSpecial.Equal[NULL]}) /mmoini "MyIni" "AAtoBuy" "LimitedSpecial"
+	/if (!${LimitedSpecial.Length}||${LimitedSpecial.Equal[NULL]}) /mmoini "MyIni" "AAtoBuy" "LimitedSpecial" "----"
 	/declare AACount int outer ${Ini[MyIni,AAtoBuy,AACount,0]}
 	/if (!${AACount}) /mmoini "MyIni" "AAtoBuy" "AACount" "0"
 	/declare maxPurchaseLevel int outer
@@ -9912,7 +9921,7 @@ Sub AABuyLoad
 	
 Sub Event_AASpew(line,int AASpew)
 	/if (!${Defined[AABuyPageOrder]}) /return
-	/if (${AASpew}) /echo Building AAtoBuy INI, wait to finish.
+	/if (${AASpew}) /cecho Building AAtoBuy INI, wait to finish.
 	/declare i int local
 
 	/if (!${Defined[AACount]}) /declare AACount int outer 0
@@ -9935,7 +9944,7 @@ Sub Event_AASpew(line,int AASpew)
 		/declare AA[400,4] string outer 100
 		/for i 1 to 4
 			/if (!${Defined[AABuyPage${i}]}) /declare AABuyPage${i} string outer ${AABuyPageOrder.Arg[${i},|]}
-			|/echo AABuyPage${i} ${AABuyPage${i}}
+			|/cecho AABuyPage${i} ${AABuyPage${i}}
 			/declare AABuyList${i} string outer ${AABuyPageOrder.Arg[${i},|]}
 			/declare AABuyPageNum${i}
 			/if (${AABuyPageOrder.Arg[${i},|].Equal[general]}) /varset AABuyPageNum${i} 1
@@ -9951,7 +9960,7 @@ Sub Event_AASpew(line,int AASpew)
 		/declare a int local
 		/for a 1 to 4
 	/if (!${Defined[Limited${AABuyPage${a}}]}) /declare Limited${AABuyPage${a}} string outer NULL
-			|/echo ${Window[AAWindow].Child[AAW_Subwindows].Child[AAW_${AABuyPage${a}}Page].Child[AAW_${AABuyList${a}}List].List[1,3].Length} && ${AABuyPage${a}} (${Limited${AABuyPage${a}}.Equal[NULL]}||${Limited${AABuyPage${a}}.Find[${Window[AAWindow].Child[AAW_Subwindows].Child[AAW_${AABuyPage${a}}Page].Child[AAW_${AABuyList${a}}List].List[1,1]}]})
+			|/cecho ${Window[AAWindow].Child[AAW_Subwindows].Child[AAW_${AABuyPage${a}}Page].Child[AAW_${AABuyList${a}}List].List[1,3].Length} && ${AABuyPage${a}} (${Limited${AABuyPage${a}}.Equal[NULL]}||${Limited${AABuyPage${a}}.Find[${Window[AAWindow].Child[AAW_Subwindows].Child[AAW_${AABuyPage${a}}Page].Child[AAW_${AABuyList${a}}List].List[1,1]}]})
 			/if (${AABuyPageNum${a}}==1) /varset x 50
 			/if (${AABuyPageNum${a}}==2) /varset x 100
 			/if (${AABuyPageNum${a}}==3) /varset x 200
@@ -9969,11 +9978,11 @@ Sub Event_AASpew(line,int AASpew)
 				}
 			/next i
 		/next a
-		/echo AACount for Brute: ${AACount}
+		/cecho AACount for Brute: ${AACount}
 	}
 	/if (${AASpew}) {
 		/mmoini "MyIni" "AAtoBuy" "AACount" "${AACount}"
-		/echo ${AACount} AAs dumped to MyIni [AAtoBuy] section
+		/cecho ${AACount} AAs dumped to MyIni [AAtoBuy] section
 	}
 /return
 
@@ -10046,7 +10055,7 @@ Sub AABuy
 				/continue
 			}
 			/if (${maxPurchaseLevel}<${curAALevel}  && ${AA[${x},2].Equal[E]} && ${Me.AAPoints}>=${Window[AAWindow].Child[${AA[${x},3]}].List[${Window[AAWindow].Child[${AA[${x},3]}].List[=${AA[${x},1]}]}, 3]}) {
-				/echo Skipping ${AA[${x},1]} to equalize.
+				/cecho Skipping ${AA[${x},1]} to equalize.
 				/continue
 			}
 			/if (${maxPurchaseLevel}<${curAALevel}  && ${AA[${x},2].Equal[E]} && ${Me.AAPoints}<${Window[AAWindow].Child[${AA[${x},3]}].List[${Window[AAWindow].Child[${AA[${x},3]}].List[=${AA[${x},1]}]}, 3]}) {
@@ -10118,9 +10127,9 @@ Sub AAPurchase
 Sub GroupHealthChk
 	/varset ${CurrentSub} "GroupHealthCheck"
 	/if (!${Me.Combat}) {
-		/if (${Verbose}) /echo Checking Health!
+		/if (${Verbose}) /cecho Checking Health!
 		/if (${Me.PctHPs} < ${WaitForHealth}) { 
-			/echo YOU are low on Health! 
+			/cecho YOU are low on Health! 
 			:WaitForHealth0
 			/if (!${XTarget[1].ID}) {
 				/if (${Math.Distance[${Me.Y}, ${Me.X}, ${Me.Z}: ${CampY}, ${CampX}, ${CampZ}]} > ${Me.MaxRange}) {
@@ -10139,11 +10148,11 @@ Sub GroupHealthChk
 				}
 			}
 		}
-		/if (${Verbose}) /echo GroupHealthChk finished Group Member # 0
+		/if (${Verbose}) /cecho GroupHealthChk finished Group Member # 0
 		/declare i int local
 		/for i 1 to ${Group} {
 			/if (${Group.Member[${i}].State.Equal[DEAD]} ) { 
-				/echo ${Group.Member[${i}].Name} has died. Waiting for them to get off their face. 
+				/cecho ${Group.Member[${i}].Name} has died. Waiting for them to get off their face. 
 				:WaitForRez1
 				/if (!${XTarget[1].ID}) {
 					/if ((${Me.Standing}) && (!${Me.Casting.ID}) && (!${Me.Mount.ID}) && !${sitTimer}) 
@@ -10155,7 +10164,7 @@ Sub GroupHealthChk
 			}
 			/if (${Group.Member[${i}].ID}) {
 				/if (${Group.Member[${i}].PctHPs} < ${WaitForHealth}) {
-					/echo ${Group.Member[${i}].Name} is low on Health! 
+					/cecho ${Group.Member[${i}].Name} is low on Health! 
 					/goto :WaitForHealth1
 					:WaitForHealth1
 					/if (!${XTarget[1].ID}) {
@@ -10170,7 +10179,7 @@ Sub GroupHealthChk
 				}
 			}
 		}
-		/if (${Verbose}) /echo GroupHealthChk finished Group Member # ${i}!
+		/if (${Verbose}) /cecho GroupHealthChk finished Group Member # ${i}!
 		/next i
 	}
 	/return
@@ -10178,9 +10187,9 @@ Sub GroupHealthChk
 Sub GroupManaChk
 	/varset ${CurrentSub} "Group Mana Check"
 	/if (!${Me.Combat}) {
-		/if (${Verbose}) /echo Checking Mana!
+		/if (${Verbose}) /cecho Checking Mana!
 			/if (${Me.State.Equal[DEAD]} ) {
-				/echo \arYOU~ have died! Waiting for YOU to get off your face. 
+				/cecho \arYOU~ have died! Waiting for YOU to get off your face. 
 				:WaitForRez0
 				/if (${Me.STATE.Equal[DEAD]} ) {
 					/delay 1
@@ -10188,7 +10197,7 @@ Sub GroupManaChk
 				}
 			}
 		/if ((${Me.PctMana} < ${Med}) && (${Me.Class.CanCast})) { 
-			/echo \arYOU are low on mana! 
+			/cecho \arYOU are low on mana! 
 			/goto :WaitForMana0
 			:WaitForMana0
 			/if (!${XTarget[1].ID}) {
@@ -10199,11 +10208,11 @@ Sub GroupManaChk
 				}
 			}
 		}
-		/if (${Verbose}) /echo GroupManaChk finished Group Member # 0
+		/if (${Verbose}) /cecho GroupManaChk finished Group Member # 0
 		/declare i int local
 		/for i 1 to ${Group} {
 			/if (${Group.Member[${i}].State.Equal[DEAD]} ) { 
-				/echo \ar${Group.Member[${i}].Name} has died. Waiting for them to get off their face. 
+				/cecho \ar${Group.Member[${i}].Name} has died. Waiting for them to get off their face. 
 				:WaitForRez1
 				/if (${Group.Member[${i}].State.Equal[DEAD]} ) {
 					/delay 1
@@ -10211,7 +10220,7 @@ Sub GroupManaChk
 				}
 			}
 			/if ((${Group.Member[${i}].PctMana} < ${Med}) && (${Group.Member[${i}].Class.CanCast})) { 
-				/echo \ar${Group.Member[${i}].Name} is low on mana! 
+				/cecho \ar${Group.Member[${i}].Name} is low on mana! 
 				/goto :WaitForMana1
 				:WaitForMana1
 				/if (!${XTarget[1].ID}) {
@@ -10222,7 +10231,7 @@ Sub GroupManaChk
 				}
 			}
 		}
-		/if (${Verbose}) /echo GroupManaChk finished Group Member # ${i}!
+		/if (${Verbose}) /cecho GroupManaChk finished Group Member # ${i}!
 		/next i
 	}
 	/return
