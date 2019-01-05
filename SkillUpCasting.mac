@@ -61,6 +61,7 @@
 | 
 |------------------------------------------------------------------------------------------------------ 
 | 
+#warning
 #chat group 
 #chat tell 
 #chat chat 
@@ -81,7 +82,7 @@ Sub Main
    /declare SkillsMaxed       int      outer 0 
    /declare MinPctHPs         int      outer 25 
    /declare HybridClasses     string   outer PAL|RNG|SHD|BST 
-   /declare i                 int      outer 0 
+   /declare i                 int      local 0 
    /declare MeleeLoaded       bool     outer false
    /declare WasAFK            bool     outer ${Me.AFK}
    /declare FirstSpecMet      bool     outer false
@@ -291,125 +292,129 @@ Sub Main
    /goto :MainLoop 
    /return
 
-   Sub SkillUpCasting 
-      /declare SkillName string local
-      /for i 1 to ${TotalSpells} 
-         /if ( ${UsePCCheck} ) /call CheckForPCs 
-         /if ( ${UseGMCheck} ) /call CheckForGMs 
-         :PCBusy
-         /if (${Me.Moving} || ${Me.Invis} || ${Me.State.NotEqual[STAND]} || ${Me.Casting.ID}) {
-         	 /delay 5s
-         	 /goto :PCBusy
-         }
-         /if ( ${SitWhileSpellNotReady} && !${Me.SpellReady[${SpellName${i}}]} ) { 
-            /if ( !${Me.Sitting} ) /sit 
-            /delay 10s ${Me.SpellReady[${SpellName${i}}]} 
-            /stand 
-            /delay 2s 
-         } else { 
-            /delay 10s ${Me.SpellReady[${SpellName${i}}]} 
-         } 
-         /varset SkillName ${Me.Gem[${i}].Skill}
-         /varset MaxSkill ${Me.SkillCap[${SkillName}]}
-      /if ( ${SpecializeActive} ) { 
-      		/if (${Me.Book[${Me.Book[${SpellName${i}}]}].Skill.Equal[Abjuration]}) {
-       		  /varset FirstSpecializeMax${i}  0
-       		  /varset SecondSpecializeMax${i} 0
-            /if ( ${FirstSpecialize${i}} ) {
-         		  /varset FirstSpecializeMax${i}  ${Me.SkillCap[Specialize Abjure]}
-              /varset FirstSpecNumber ${i}
-              /if (${Me.Skill[Abjuration]} > 51) /varset FirstSpecMet true
-              /varset SecondSpecializeMax${i} 0
-            }
-            /if ( ${SecondSpecialize${i}} ) {
-         		  /varset SecondSpecializeMax${i} ${Me.SkillCap[Specialize Abjure]}
-              /varset SecondSpecNumber ${i}
-              /if (${Me.Skill[Abjuration]} > 51) /varset SecondSpecMet true
-              /varset FirstSpecializeMax${i} 0
-            }
-       		} else {
-            /varset FirstSpecializeMax${i}  0
-            /varset SecondSpecializeMax${i} 0
-            /if ( ${FirstSpecialize${i}} ) {
-              /varset FirstSpecializeMax${i}  ${Me.SkillCap[Specialize ${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]}
-              /varset FirstSpecNumber ${i}
-              /if (${Me.Skill[${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]} > 51) /varset FirstSpecMet true
-              /varset SecondSpecializeMax${i} 0
-            }
-            /if ( ${SecondSpecialize${i}} ) {
-              /varset SecondSpecializeMax${i} ${Me.SkillCap[Specialize ${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]}
-              /varset SecondSpecNumber ${i}
-              /if (${Me.Skill[${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]} > 51) /varset SecondSpecMet true
-              /varset FirstSpecializeMax${i} 0
-            }
-          }
-      } else { 
-         /varset FirstSpecializeMax${i}  0 
-         /varset SecondSpecializeMax${i} 0 
-      } 
+	Sub SkillUpCasting 
+		/declare SkillName string local
+		/declare i int local
+		/for i 1 to ${TotalSpells} 
+			/if ( ${UsePCCheck} ) /call CheckForPCs 
+			/if ( ${UseGMCheck} ) /call CheckForGMs 
+			/if (${Me.Invis}) {
+				/cecho \ar${Macro.Name} \atnot processing since you are \ayInvisible\at!
+				/beep
+			}
+			:PCBusy
+			/if (${Me.Moving} || ${Me.Invis} || ${Me.State.NotEqual[STAND]} || ${Me.Casting.ID}) {
+				/delay 5s
+				/goto :PCBusy
+			}
+			/if ( ${SitWhileSpellNotReady} && !${Me.SpellReady[${SpellName${i}}]} ) { 
+				/if ( !${Me.Sitting} ) /sit 
+				/delay 10s ${Me.SpellReady[${SpellName${i}}]} 
+				/stand 
+				/delay 2s 
+			} else { 
+				/delay 10s ${Me.SpellReady[${SpellName${i}}]} 
+			} 
+			/varset SkillName ${Me.Gem[${i}].Skill}
+			/varset MaxSkill ${Me.SkillCap[${SkillName}]}
+			/if ( ${SpecializeActive} ) { 
+				/if (${Me.Book[${Me.Book[${SpellName${i}}]}].Skill.Equal[Abjuration]}) {
+					/varset FirstSpecializeMax${i}  0
+					/varset SecondSpecializeMax${i} 0
+					/if ( ${FirstSpecialize${i}} ) {
+						/varset FirstSpecializeMax${i}  ${Me.SkillCap[Specialize Abjure]}
+						/varset FirstSpecNumber ${i}
+						/if (${Me.Skill[Abjuration]} > 51) /varset FirstSpecMet true
+						/varset SecondSpecializeMax${i} 0
+					}
+					/if ( ${SecondSpecialize${i}} ) {
+						/varset SecondSpecializeMax${i} ${Me.SkillCap[Specialize Abjure]}
+						/varset SecondSpecNumber ${i}
+						/if (${Me.Skill[Abjuration]} > 51) /varset SecondSpecMet true
+						/varset FirstSpecializeMax${i} 0
+					}
+				} else {
+					/varset FirstSpecializeMax${i}  0
+					/varset SecondSpecializeMax${i} 0
+					/if ( ${FirstSpecialize${i}} ) {
+						/varset FirstSpecializeMax${i}  ${Me.SkillCap[Specialize ${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]}
+						/varset FirstSpecNumber ${i}
+						/if (${Me.Skill[${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]} > 51) /varset FirstSpecMet true
+						/varset SecondSpecializeMax${i} 0
+					}
+					/if ( ${SecondSpecialize${i}} ) {
+						/varset SecondSpecializeMax${i} ${Me.SkillCap[Specialize ${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]}
+						/varset SecondSpecNumber ${i}
+						/if (${Me.Skill[${Me.Book[${Me.Book[${SpellName${i}}]}].Skill}]} > 51) /varset SecondSpecMet true
+						/varset FirstSpecializeMax${i} 0
+					}
+				}
+			} else { 
+				/varset FirstSpecializeMax${i}  0 
+				/varset SecondSpecializeMax${i} 0 
+			} 
       /if (!${FirstSpecializeMax${i}}) /varset FirstSpecMet true
       /if (!${SecondSpecializeMax${i}}) /varset SecondSpecMet true
-         /if ( !${MaxFlag${i}} ) {
-            /if ( ${CastingDetail} ) /cechob \at${SkillName} \ag${Me.Skill[${SkillName}]}\aw/\ay${MaxSkill} \aw-- \am${SpecializeName${i}} ${If[${FirstSpecialize${i}} || ${SecondSpecialize${i}},\ag,\ao]}${Me.Skill[${SpecializeName${i}}]}\aw/\ay${FirstSpecializeMax${i}}/${SecondSpecializeMax${i}} 
-         }
-         /if (${Me.Skill[${SkillName}]}<50 || (${Me.Skill[${SkillName}]}<${MaxSkill} && ${FirstSpecMet} && ${SecondSpecMet}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${FirstSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${FirstSpecializeMax${i}}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${SecondSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${SecondSpecializeMax${i}})) {
-            /if ( ${String[${Target${i}}].Equal["CLEAR"]} ) {
-               /squelch /tar clear
-            } else {
-         		  /if ( !${String[${Target${i}}].Equal["NOCHANGE"]} ) {
-                /tar ${Target${i}} 
-                /delay 1s 
-              }
-            } 
-            /if ( ${Me.CurrentMana}<${Me.Gem[${i}].Mana} ) /call MedFullMana 
-            /if ( ${Me.PctHPs}<${MinPctHPs} ) /call MedFullHP 
-            /delay 10s ${Me.SpellReady[${i}]}
-            /cast "${SpellName${i}}" 
-            /delay 10s !${Me.Casting.ID} 
-            /doevents 
-            /next i 
-         } else { 
-            /if (!${FirstSpecMet} && ${FirstSpecNumber}==${i}) /goto :SkipThis
-            /if (!${SecondSpecMet} && ${SecondSpecNumber}==${i}) /goto :SkipThis
-            /if ( !${MaxFlag${i}} ) { 
-               /varset MaxFlag${i} TRUE 
-               /beep 
-               /cechob \ay${SkillName} Maxed @ ${MaxSkill} -- ${SpecializeName${i}} Maxed @ ${Me.Skill[${SpecializeName${i}}]} -- Skipping: ${SpellName${i}} 
-               /varcalc SkillsMaxed ${SkillsMaxed}+1 
-            } 
-            /if ( ${SkillsMaxed}==${TotalSpells} ) { 
-               /cechob \ar${Macro.Name}: \ayAll your skills are at cap:  ${MaxSkill}
-               /cechob \ar${Macro.Name}: Stopping macro.
-               /delay 10s !${Me.Casting.ID} 
-               /declare SkillMaxRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
-               :SkillMax-DelayLoop
-               /if ( ${SkillMaxRandomTimer} ) { 
-                 /doevents 
-                 /goto :SkillMax-DelayLoop
-               } 
-						   /varset WasAFK ${Me.AFK}
-               /if (!${WasAFK}) /afk
-               /if (${CampWhenDone}) {
-               	/cecho \ar${Macro.Name}: \ayCamping...
-               	/camp desktop 
-               	/delay 2s 
-               }
-				       /if (${Plugin[MQ2Melee].Name.Length}) {
-        				 /if (${MeleeLoaded}) { 
-						       /squelch /melee plugin=on
-						     }
-						   }
-               /endmac 
-            } 
-            :SkipThis
-         } 
-      /next i 
-      /if (${Plugin[MQ2Melee].Name.Length}) {
-        /if (${MeleeLoaded}) { 
-		      /squelch /melee plugin=on
-		    }
-		  }
-   /return 
+			/if ( !${MaxFlag${i}} ) {
+				/if ( ${CastingDetail} ) /cechob \at${SkillName} \ag${Me.Skill[${SkillName}]}\aw/\ay${MaxSkill} \aw-- \am${SpecializeName${i}} ${If[${FirstSpecialize${i}} || ${SecondSpecialize${i}},\ag,\ao]}${Me.Skill[${SpecializeName${i}}]}\aw/\ay${FirstSpecializeMax${i}}/${SecondSpecializeMax${i}} 
+			}
+			/if (${Me.Skill[${SkillName}]}<50 || (${Me.Skill[${SkillName}]}<${MaxSkill} && ${FirstSpecMet} && ${SecondSpecMet}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${FirstSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${FirstSpecializeMax${i}}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${SecondSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${SecondSpecializeMax${i}})) {
+				/if ( ${String[${Target${i}}].Equal["CLEAR"]} ) {
+					/squelch /tar clear
+				} else {
+					/if ( !${String[${Target${i}}].Equal["NOCHANGE"]} ) {
+						/tar ${Target${i}} 
+						/delay 1s 
+					}
+				} 
+				/if ( ${Me.CurrentMana}<${Me.Gem[${i}].Mana} ) /call MedFullMana 
+				/if ( ${Me.PctHPs}<${MinPctHPs} ) /call MedFullHP 
+				/delay 10s ${Me.SpellReady[${SpellName${i}}]}
+				/cast "${SpellName${i}}" 
+				/delay 10s !${Me.Casting.ID} 
+				/doevents 
+			} else { 
+				/if (!${FirstSpecMet} && ${FirstSpecNumber}==${i}) /goto :SkipThis
+				/if (!${SecondSpecMet} && ${SecondSpecNumber}==${i}) /goto :SkipThis
+					/if ( !${MaxFlag${i}} ) { 
+						/varset MaxFlag${i} TRUE 
+						/beep 
+						/cechob \ay${SkillName} Maxed @ ${MaxSkill} -- ${SpecializeName${i}} Maxed @ ${Me.Skill[${SpecializeName${i}}]} -- Skipping: ${SpellName${i}} 
+						/varcalc SkillsMaxed ${SkillsMaxed}+1 
+					} 
+					/if ( ${SkillsMaxed}==${TotalSpells} ) { 
+						/cechob \ar${Macro.Name}: \ayAll your skills are at cap:  ${MaxSkill}
+						/cechob \ar${Macro.Name}: Stopping macro.
+						/delay 10s !${Me.Casting.ID} 
+						/declare SkillMaxRandomTimer timer local ${Math.Calc[${Math.Rand[3]}+1]}s 
+						:SkillMax-DelayLoop
+						/if ( ${SkillMaxRandomTimer} ) { 
+							/doevents 
+							/goto :SkillMax-DelayLoop
+						} 
+						/varset WasAFK ${Me.AFK}
+						/if (!${WasAFK}) /afk
+						/if (${CampWhenDone}) {
+							/cecho \ar${Macro.Name}: \ayCamping...
+							/camp desktop 
+							/delay 2s 
+						}
+						/if (${Plugin[MQ2Melee].Name.Length}) {
+							/if (${MeleeLoaded}) { 
+								/squelch /melee plugin=on
+							}
+						}
+						/endmac 
+					} 
+				:SkipThis
+			} 
+		/next i 
+		/if (${Plugin[MQ2Melee].Name.Length}) {
+			/if (${MeleeLoaded}) { 
+				/squelch /melee plugin=on
+			}
+		}
+	/return 
 
    Sub MedFullMana 
       /declare ManaRandomTimer timer local 
