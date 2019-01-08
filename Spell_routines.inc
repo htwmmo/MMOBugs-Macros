@@ -139,6 +139,10 @@
 #Event Stunned "You *CANNOT* cast spells, you have been silenced!#*#"
 
 Sub Cast(spellName,spellType,giveUpValue,mySub,int ResistTotal)
+/if (!${Defined[spellType]}) /declare spellType string local spell
+/if (${spellType.Length}<1) /varset spellType spell
+/if (!${Defined[mySub]}) /declare mySub string local NULL
+/if (${mySub.Length}<1) /varset mySub NULL
 /if (!${Defined[noInvis]}) /declare noInvis int outer 0
 /if (!${Defined[FollowFlag]}) /declare FollowFlag int outer 0
 /if (!${Defined[PauseFlag]}) /declare PauseFlag int outer 0
@@ -166,7 +170,6 @@ Sub Cast(spellName,spellType,giveUpValue,mySub,int ResistTotal)
   /if (${FollowFlag}) /call PauseFunction
   /if (${Me.Moving}) /keypress back
 }
-/if (!${Defined[spellType]}) /declare spellType string local spell
 /if (!${Defined[spellRecastTime1]}) {
   /if (!${Defined[noInterrupt]}) /declare noInterrupt int outer 0
   /if (!${Defined[ResistCounter]}) /declare ResistCounter int outer
@@ -205,6 +208,8 @@ Sub Cast(spellName,spellType,giveUpValue,mySub,int ResistTotal)
 /if (${Me.Ducking}) /keypress duck
 /if (${spellType.Equal[item]}) /call ItemCast "${spellName}" "${mySub}"
 /if (${spellType.Equal[alt]}) /call AltCast "${spellName}" "${mySub}"
+|For testing uncomment
+|/echo spellType='${spellType}'   spellName='${spellName}'   mySub='${mySub}'   spellID='${spellID}'   giveUpValue='${giveUpValue}'
 /if (${spellType.NotEqual[item]} && ${spellType.NotEqual[alt]}) /call SpellCast "${spellType}" "${spellName}" "${mySub}" "${spellID}" "${giveUpValue}"
 /if (${Stick.Status.Equal[PAUSED]}) /squelch /stick unpause
 /if (${PauseFlag}) /call PauseFunction
