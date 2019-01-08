@@ -100,8 +100,7 @@ Sub Main(int iStacks, string sSummonType)
 		}
 	/next i
 	/if (${OldSpell1.Length}) {
-		/if (${OldSpell1.Equal[NULL]})
-		{
+		/if (${OldSpell1.Equal[NULL]}) {
 			/call EchoSub "\atForgetting/clearing \au${DrinkGem}"
 			/notify CastSpellWnd CSPW_Spell${Math.Calc[${DrinkGem.Replace[gem,]}-1]} rightmouseup
 		} else {
@@ -110,8 +109,7 @@ Sub Main(int iStacks, string sSummonType)
 		}
 	}
 	/if (${OldSpell2.Length}) {
-		/if (${OldSpell2.Equal[NULL]})
-		{
+		/if (${OldSpell2.Equal[NULL]}) {
 			/call EchoSub "\atForgetting/clearing \au${FoodGem}"
 			/notify CastSpellWnd CSPW_Spell${Math.Calc[${FoodGem.Replace[gem,]}-1]} rightmouseup
 		} else {
