@@ -133,9 +133,9 @@ Sub KeepItem
 Sub CheckPole
 	/varset CurrentSub CheckPole
 	/call OpenAllContainers
-	/if (${Me.Inventory[mainhand].Name.Find[Fishing Pole]} || ${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]}) /return
-
-	/if (!${Me.Inventory[mainhand].Name.Find[Fishing Pole]} && ${FindItemCount[=Fisherman's Companion]} == 0) {
+	/if (${Me.Inventory[mainhand].Name.Find[Fishing Pole]} || ${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]} || ${Me.Inventory[mainhand].Name.Find[The Bone Rod]}) /return
+	
+	/if (!${Me.Inventory[mainhand].Name.Find[Fishing Pole]} && ${FindItemCount[=Fisherman's Companion]} == 0 && ${FindItemCount[=The Bone Rod]} == 0) {
 		/if (${FindItemCount[=Fishing Pole]}>0) {
 			/echo \ag[Fish.mac]\aw Equiping ---> Fishing Pole <---
 			/delay ${Math.Calc[${DelayMult}*1]}s
@@ -151,37 +151,47 @@ Sub CheckPole
 		}
 	}
 
-	/if (!${Me.Inventory[mainhand].Name.Find[Fishing Pole]} && !${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]}) {
-		/if (${FindItemCount[=Brell's Fishin' Pole]}) {
-			/goto :ReEquip2
-		}
-		/if (${FindItemCount[=Fisherman's Companion]}) {
-		:ReCast
-			/if (${reportSummoning}) {
-				/echo \ag[Fish.mac]\ap Summoning \aw--->\ap Brell's Fishin' Pole \aw<---
+	/if (!${Me.Inventory[mainhand].Name.Find[Fishing Pole]} && !${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]} && !${Me.Inventory[mainhand].Name.Find[The Bone Rod]}) {
+		/if (!${FindItemCount[=The Bone Rod]}) {
+			/if (${FindItemCount[=Brell's Fishin' Pole]}) {
+				/goto :ReEquip2
 			}
-			/casting 29175|item
-			/delay 12s
-			/if (${Cursor.ID}) /autoinventory
-			/delay 2s ${FindItemCount[Brell's Fishin' Pole]}
-			/if (${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]}) {
-				/return
-			} else {
-				/echo \ag[Fish.mac]\aw Equiping ---> Brell's Fishin' Pole <---
-				/delay ${Math.Calc[${DelayMult}*1]}s
-			:ReEquip2
-				/nomodkey /ctrl /itemnotify ${FindItem[=Brell's Fishin' Pole].InvSlot} leftmouseup
-				/delay 2s ${Cursor.ID}
-				/nomodkey /itemnotify mainhand leftmouseup
-				/delay 1s
-				/autoinventory
-				/delay ${Math.Calc[${DelayMult}*2]}s
-				/if (!${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]} && ${FindItemCount[=Brell's Fishin' Pole]}) /goto :ReEquip2
-				/if (${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]}>0) /return
+			/if (${FindItemCount[=Fisherman's Companion]}) {
+			:ReCast
+				/if (${reportSummoning}) {
+					/echo \ag[Fish.mac]\ap Summoning \aw--->\ap Brell's Fishin' Pole \aw<---
+				}
+				/casting 29175|item
+				/delay 12s
+				/if (${Cursor.ID}) /autoinventory
+				/delay 2s ${FindItemCount[Brell's Fishin' Pole]}
+				/if (${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]}) {
+					/return
+				} else {
+					/echo \ag[Fish.mac]\aw Equiping ---> Brell's Fishin' Pole <---
+					/delay ${Math.Calc[${DelayMult}*1]}s
+				:ReEquip2
+					/nomodkey /ctrl /itemnotify ${FindItem[=Brell's Fishin' Pole].InvSlot} leftmouseup
+					/delay 2s ${Cursor.ID}
+					/nomodkey /itemnotify mainhand leftmouseup
+					/delay 1s
+					/autoinventory
+					/delay ${Math.Calc[${DelayMult}*2]}s
+					/if (!${Me.Inventory[mainhand].Name.Find[Brell's Fishin' Pole]} && ${FindItemCount[=Brell's Fishin' Pole]}) /goto :ReEquip2
+				}
 			}
+		} else {
+			:ReEquip3
+			/nomodkey /ctrl /itemnotify ${FindItem[=The Bone Rod].InvSlot} leftmouseup
+			/delay 2s ${Cursor.ID}
+			/nomodkey /itemnotify mainhand leftmouseup
+			/delay 1s
+			/autoinventory
+			/delay ${Math.Calc[${DelayMult}*2]}s
+			/if (!${Me.Inventory[mainhand].Name.Find[The Bone Rod]} && ${FindItemCount[=The Bone Rod]}) /goto :ReEquip3
 		}
 	}
-	/if (!${Me.Inventory[mainhand].Name.Equal[Brell's Fishin' Pole]} || !${Me.Inventory[mainhand].Name.Find[Fishing Pole]}) {
+	/if (!${Me.Inventory[mainhand].Name.Equal[Brell's Fishin' Pole]} || !${Me.Inventory[mainhand].Name.Find[Fishing Pole]} && !${Me.Inventory[mainhand].Name.Equal[The Bone Rod]}) {
 		/echo  \ag[Fish.mac]\aw You need to put your fishing pole in your primary hand.
 		/endm
 	}
