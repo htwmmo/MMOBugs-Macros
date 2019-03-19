@@ -1,4 +1,3 @@
-|Written by Chatwiththisname 2018
 #warning
 #Event Talks "Galdorin Visigothe says, '#*#'"
 
@@ -9,7 +8,7 @@ Sub Main
 /return
 
 Sub Event_Talks(Line)
-	/echo ${Line}
+
 	/if (${Line.Find[My stinky stein has rough dirty lips,]}) {
 		/say My stinky stein has rough dirty lips,
 	} else /if (${Line.Find[but she loves a deep carouse]}) {

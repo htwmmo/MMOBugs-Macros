@@ -84,21 +84,19 @@ Sub Main(int iStacks, string sSummonType)
 	}
 	/call EchoSub "\arStarting summoning!"
 	/declare i int local
-  /for i 1 to ${Stacks}
-  	/if (${SummonType.Equal[food]}) {
-			/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${FoodItem}\at."
-  		/call SummonFood
-  	}
-  	/if (${SummonType.Equal[drink]}) {
-			/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${DrinkItem}\at."
-  		/call SummonDrink
-  	}
-		/if (${SummonType.Equal[both]}) {
-			/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${FoodItem} \atand \ag${DrinkItem}\at."
-			/call SummonFood
-			/call SummonDrink
-		}
-	/next i
+ 	/if (${SummonType.Equal[food]}) {
+		/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${FoodItem}\at."
+ 		/call SummonFood
+ 	}
+ 	/if (${SummonType.Equal[drink]}) {
+		/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${DrinkItem}\at."
+ 		/call SummonDrink
+ 	}
+	/if (${SummonType.Equal[both]}) {
+		/call EchoSub "\atSummoning \ay${Stacks} \atstack(s) of \ag${FoodItem} \atand \ag${DrinkItem}\at."
+		/call SummonFood
+		/call SummonDrink
+	}
 	/if (${OldSpell1.Length}) {
 		/if (${OldSpell1.Equal[NULL]}) {
 			/call EchoSub "\atForgetting/clearing \au${DrinkGem}"
