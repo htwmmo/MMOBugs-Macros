@@ -1,12 +1,4 @@
 | MQ2Cast.inc - Version 0.2 (beta) - 12/24/17
-| Compact version of a Spell Casting routine using the MQ2Cast plugin.
-| Written by MacQ
-| 
-| Copyright 2017 by MacQ all rights reserved. 
-| 
-| This macro is only authorized for the personal use by members in good standing of the MacroQuest2 VIP forums 
-| If you did not pay for VIP access, then you're a cheap, non contributing bastard who sucks the life out of 
-| others and will die in hell. 
 | 
 | Format: /call Cast "SpellName" gem#|alt|item GiveUpTimerValue Attempts MySubroutineName
 | 
