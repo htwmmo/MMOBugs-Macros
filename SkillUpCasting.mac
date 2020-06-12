@@ -358,7 +358,7 @@ Sub Main
 			/if ( !${MaxFlag${i}} ) {
 				/if ( ${CastingDetail} ) /cechob \at${SkillName} \ag${Me.Skill[${SkillName}]}\aw/\ay${MaxSkill} \aw-- \am${SpecializeName${i}} ${If[${FirstSpecialize${i}} || ${SecondSpecialize${i}},\ag,\ao]}${Me.Skill[${SpecializeName${i}}]}\aw/\ay${FirstSpecializeMax${i}}/${SecondSpecializeMax${i}} 
 			}
-			/if (${Me.Skill[${SkillName}]}<50 || (${Me.Skill[${SkillName}]}<${MaxSkill} && ${FirstSpecMet} && ${SecondSpecMet}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${FirstSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${FirstSpecializeMax${i}}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${SecondSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${SecondSpecializeMax${i}})) {
+			/if (${Me.Skill[${SkillName}]}<${MaxSkill} && ${FirstSpecMet} && ${SecondSpecMet}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${FirstSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${FirstSpecializeMax${i}}) || (${Me.Skill[${SkillName}]}==${MaxSkill} && ${SecondSpecNumber}==${i} && ${Me.Skill[${SpecializeName${i}}]} < ${SecondSpecializeMax${i}}) {
 				/if ( ${String[${Target${i}}].Equal["CLEAR"]} ) {
 					/squelch /tar clear
 				} else {
