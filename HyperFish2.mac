@@ -1,0 +1,685 @@
+|**
+
+Based off HyperFish.mac by Fibby based & adv_fish.mac by Panther
+HyperFish.Mac written by Simkin (Version 1.5 August 16th, 2006)
+
+
+Version History
+---------------
+Version 1.6 8/17/2020   - Minor bug fixes, added User Setting for Destroy, changed Bait Despenser to slot 10  - Fizzun
+Version 1.5 8/27/2006   - Switched to using Short Zone Names - HTW
+Version 1.4 8/16/2006   - New [Destroy] section required to delete items
+Version 1.3 8/11/2006   - add Anizok's Bait Dispenser
+Version 1.2 8/10/2006   - inital re-write of HyperFish
+
+
+========================
+PURPOSE
+========================
+HyperFish is designed to be the next generation "smart" fishing automation macro.
+It will auto replace any broken poles that may have met their demise at your hands either
+by searching your inventory for one or summoning one from a Fisherman's Companion.
+
+This Macro is INI driven for its "loot" tables on a per zone basis. If there is a Zone
+definition found in the INI, the macro will only keep items listed in that section.
+
+If there are no loot items defined in the zone section of the INI file, then the macro
+will assume that you want to "keep" all things that are edible and drop all "non food"
+items. 
+
+If it happens to fish a no-drop, non-food item, and that item is not declared in
+your loot tables, you can have the macro destroy it. Due to the dangers of this, it is
+turned off by default.
+
+========================
+HOW TO USE
+========================
+The macro is best used with an accompanying INI file called HyperFish2.ini
+located in the same directory as this macro.  See below for a sample of how
+to build one.
+
+It is also recommended you use a Fisherman's Companion, obtained
+very easily. See: http://everquest.allakhazam.com/db/item.html?item=16653
+Place your Fisherman's Companion in one of your main inventory slot
+
+It will use an Anizok's Bait Dispenser if you have one and enable the macro flag.
+To use, place your Anizok's Bait Dispenser in slot 10
+
+Inventory
+ _______     ___________________
+| 1 | 6 |   | 1 | 2 | 3 | 4 | 5 |	
+|___|___|	|___|___|___|___|___|
+| 2 | 7 |   | 6 | 7 | 8 | 9 | 10|
+|___|___|	|___|___|___|___|___| 
+| 3 | 8 |
+|___|___|
+| 4 | 9 |
+|___|___|
+| 5 | 10|
+|___|___|
+
+Add a section to HyperFish2.ini called [Bait] that lists all the fish you will
+use to make bait with. e.g.
+
+[Bait]
+Loot1=Fresh Fish
+Loot2=Green Fish
+Loot3=and so on
+
+Add a section to HyperFish2.ini called [Destroy] that lists all the items you 
+will destory if found on cursor e.g.
+
+[Destroy]
+Loot1=Rusty Dagger
+Loot2=Tattered Cloth Sandal
+Loot3=and so on
+
+
+In the "USER SETTINGS" section, set various features to TRUE or FALSE
+
+set_DisplayStats     - echo fishing stats each cast to window
+set_CampOutOnFinish  - camp to select screen when macro ends gracefully (no pole/bait)
+set_DropItems        - Drop items not in INI
+set_DoInnateCammo    - remain hidden with Innate Camouflage AA
+set_DoExodus         - if attacked, use Exodus AA to flee and then camp to desktop
+set_UseBaitDispenser - use Anizok's Bait Dispenser
+set_Destroy  		 - when set to FALSE will no longer destroy items even when listed in INI
+
+
+start the macro with /mac Hyperfish2
+
+Enjoy!
+
+
+========================
+SAMPLE HyperFish2.ini
+========================
+
+[Mesa]
+-1=-1
+Loot1=Fresh Fish
+Loot2=Mountain Bass
+
+[Neriak - Commons]
+-1=-1
+Loot1=Fresh Fish
+[North Qeynos]
+Loot1=Fresh Fish
+
+[PoKnowledge]
+-1=-1
+Loot1=Fresh Fish
+
+**|
+
+#turbo 10
+
+| ---------------------------------------------------------------------------
+| Event Declarations
+| ---------------------------------------------------------------------------
+#event BrokenPole     "Your fishing pole broke!"
+#event LostBait       "You lost your bait!"
+#event NeedPole       "You can't fish without a fishing pole, go buy one."
+#event NothingCaught  "You didn't catch anything."
+#event OutOfBait      "You can't fish without fishing bait, go buy some."
+#event PrimaryHand    "You need to put your fishing pole in your primary hand."
+#event SkillUp        "You have become better at #1#! (#2#)"
+#event SpillBeer      "You spill your beer while bringing in your line."
+#event holding        "You can't fish while holding something."
+
+#event Camo           "You return to view."
+
+| Oh shit events
+#event GotHit         "#*#hits YOU for#*#"
+#event GotHit         "#*#slashes YOU for#*#"
+#event GotHit         "#*#crushes YOU for#*#"
+#event GotHit         "#*#bashes YOU for#*#"
+#event GotHit         "#*#kicks YOU for#*#"
+#event GotHit         "#*#smashes YOU for#*#"
+#event GotHit         "#*#mauls YOU for#*#"
+#event GotHit         "#*#gores YOU for#*#"
+#event GotHit         "#*#pierces YOU for#*#"
+#event GotHit         "#*#kicks YOU for#*#"
+#event GotHit         "#*#bashes YOU for#*#"
+
+| ===========================================================================
+| Main Macro Code
+| ===========================================================================
+Sub Main
+
+| ---------------------------------------------------------------------------
+| USER SETTINGS - SET THESE AS REQUIRED (TRUE / FALSE)
+| ---------------------------------------------------------------------------
+/declare set_DisplayStats     	bool outer TRUE
+/declare set_DropItems        	bool outer TRUE
+/declare set_UseBaitDispenser 	bool outer TRUE
+/declare set_Destroy  			bool outer TRUE
+/declare set_DoInnateCammo    	bool outer FALSE
+/declare set_DoExodus         	bool outer FALSE
+/declare set_CampOutOnFinish 	bool outer FALSE
+
+| ---------------------------------------------------------------------------
+| Counter data holders here - DO NOT CHANGE
+| ---------------------------------------------------------------------------
+/declare count_BrokenPole     int outer 0
+/declare count_ItemsKept      int outer 0
+/declare count_ItemsDropped   int outer 0
+/declare count_ItemsDestroyed int outer 0
+/declare count_LostBait       int outer 0
+/declare count_NothingCaught  int outer 0
+/declare count_SpillBeer      int outer 0
+/declare count_TotalCasts     int outer 0
+
+| ---------------------------------------------------------------------------
+| Operational variables     - DO NOT CHANGE
+| ---------------------------------------------------------------------------
+/declare op_GotLootArray      int outer 0
+/declare op_LoopCounter       int outer 0
+/declare op_int_SkillUps      int outer 0
+/declare op_GotDestroyArray   bool outer FALSE
+/declare op_ExitMacro         bool outer FALSE
+/declare op_GotFishComp       bool outer FALSE
+
+
+/echo Starting up ${Macro}
+/echo WELCOME TO HYPERFISH v1.6
+/echo =======================================================
+/echo \atChecking inventory for Fisherman's Companion
+  /if (${FindItemCount[=Fisherman's Companion]}) {
+    /echo \agFISHERMAN'S COMPANION FOUND!
+    /varset op_GotFishComp TRUE
+  }
+/varset op_LoopCounter 0
+
+| ---------------------------------------------------------------------------
+| Load in Loot Table.
+| ---------------------------------------------------------------------------
+/call LoadLootArray HyperFish2.ini "${Zone.ShortName}" Loot
+/if (${set_UseBaitDispenser}) /call PopulateDispenser
+/call LoadDestroyArray
+
+| ---------------------------------------------------------------------------
+| Inventory anything we may have on our cursor before starting
+| ---------------------------------------------------------------------------
+/autoinventory
+
+| ---------------------------------------------------------------------------
+| Main Fishing loop
+| ---------------------------------------------------------------------------
+/echo =======================================================
+/echo Cast Away!
+:Fish
+
+/if (${op_ExitMacro}) /goto :ExitMacro
+/if ((${set_DoInnateCammo}) && (!${Me.Buff[Camouflage].ID})) /alt activate 80
+/call GMCheck
+/delay 1s
+
+/if (${Me.AbilityReady[Fishing]}) {
+  /if (${Cursor.ID}) /call Looting
+  /delay 1s
+  /varcalc count_TotalCasts ${count_TotalCasts}+1
+  /doability Fishing
+}
+/doevents
+
+/goto :Fish
+
+| ---------------------------------------------------------------------------
+| End our Macro
+| ---------------------------------------------------------------------------
+:ExitMacro
+
+/echo -= Total stats for this fishing trip =-
+/call DisplayStats
+
+/if (${set_CampOutOnFinish}) {
+  /echo Camping to select screen
+  /sit off
+  /sit on
+  /camp
+}
+/return
+
+
+| ---------------------------------------------------------------------------
+| SUB : Read HyperFish2.ini and build zone looting information if available
+| ---------------------------------------------------------------------------
+
+Sub LoadLootArray(FileName, ZoneName, KeyRoot)
+/echo 	\atAttempting to Read \ay"${ZoneName}" \atSection from \ay${FileName}
+/delay 1s
+
+/if (${Ini[${FileName},${ZoneName},Loot1,NULL].Equal[NULL]}) {
+   /echo The zone "${ZoneName}" was not found.
+   /ini "${FileName}" "${ZoneName}" -1 -1
+|   /delay 1s
+   /varset op_GotLootArray 0
+   /return
+}
+
+| Build loot array
+/declare nValues     int local  1
+/declare nArray      int local  0
+
+:CounterLoop
+/if (${Ini[${FileName},${ZoneName},Loot${nValues},NULL].Equal[NULL]}) {
+   /varcalc nValues ${nValues}-1
+   /goto :MakeArray
+}
+/varcalc nValues ${nValues}+1
+
+/goto :CounterLoop
+
+
+:MakeArray
+
+/if (${nValues} ==0) {
+   /varset op_GotLootArray 0
+   /return
+}
+
+
+/if (${nValues} >0) {
+   /echo Creating Fishing Loot Array...
+   /declare RV_LootArray[${nValues}]  string outer
+   /declare RV_LootStats[${nValues}]  string outer
+}
+
+/for nArray 1 to ${nValues}
+
+   /varset RV_LootArray[${nArray}] ${Ini[${FileName},"${ZoneName}",${KeyRoot}${nArray}]}
+   /varset RV_LootStats[${nArray}] 0
+
+/next nArray
+
+/echo \ay"${ZoneName}" \atZone Information Read \agSuccessfully \atfrom \ay${FileName}\ag...
+/delay 1s
+/varset op_GotLootArray 1
+/return
+
+
+| ---------------------------------------------------------------------------
+| SUB: Display fishing stats.
+| ---------------------------------------------------------------------------
+Sub DisplayStats
+/declare LootCheck   int inner 0
+
+/echo \atTotal number of casts \aw= \ag${count_TotalCasts}
+   /echo \aoTotal skill ups this run \aw= \ag${op_int_SkillUps} \aw(Current=${Me.Skill[Fishing]}\aw)
+
+/if (${RV_LootArray.Size} >0) {
+
+   /echo        \atItems Kept \aw- \ay${count_ItemsKept}
+   /echo =======================================================
+   
+  /for LootCheck 1 to ${RV_LootArray.Size}
+    /echo   \ag${RV_LootArray[${LootCheck}]} -  \ay${Int[${RV_LootStats[${LootCheck}]}]}
+  /next LootCheck
+  /echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+/echo     \atItems Dropped \aw- \ay${count_ItemsDropped}
+/echo   \atItems Destroyed \aw- \ay${count_ItemsDestroyed}
+/echo         \atLost Bait \aw- \ay${count_LostBait}
+/echo      \atBroken Poles \aw- \ay${count_BrokenPole}
+/echo    \atNothing Caught \aw- \ay${count_NothingCaught}
+/echo      \atSpilled Beer \aw- \ay${count_SpillBeer}
+/echo =======================================================
+/return
+
+| ---------------------------------------------------------------------------
+| SUB: Main Looting routine
+| ---------------------------------------------------------------------------
+Sub Looting
+/declare LootCheck   int inner 0
+
+:ClearCursor
+
+| Check the [Zone.ShortName] section to see if we want to keep this item
+/for LootCheck 1 to ${RV_LootArray.Size}
+  /if (${Cursor.Name.Find[${RV_LootArray[${LootCheck}]}]}) {
+    /echo \agKeeping \ay${Cursor.Name}.
+    /varcalc count_ItemsKept ${count_ItemsKept}+1
+    /varcalc RV_LootStats[${LootCheck}] ${RV_LootStats[${LootCheck}]}+1
+    /autoinventory
+    /delay 5
+    /goto :FinishLooting
+  }
+/next LootCheck
+
+
+| Check the [bait] section to see if we want to keep this fish
+/if (${set_UseBaitDispenser} && ${Cursor.ID}) {
+  /for LootCheck 1 to ${Bait_LootArray.Size}
+    /if (${Cursor.Name.Find[${Bait_LootArray[${LootCheck}]}]}) {
+      /varcalc count_ItemsKept ${count_ItemsKept}+1
+      /echo Keeping ${Cursor.Name} for bait.
+      /autoinventory
+      /delay 5
+      /goto :FinishLooting
+    }
+  /next LootCheck
+}
+
+| Check the [Destroy] section to see if we want to destroy this item
+
+/if (${set_Destroy}) {
+	/if (${op_GotDestroyArray}) {
+	/for LootCheck 1 to ${Destroy_LootArray.Size}
+		/if (${Cursor.Name.Find[${Destroy_LootArray[${LootCheck}]}]}) {
+		/echo \arDestroying \at${Cursor.Name}.
+		/varcalc count_ItemsDestroyed ${count_ItemsDestroyed}+1
+		/destroy
+		/delay 5
+		/goto :FinishLooting
+		}
+	/next LootCheck
+	}
+}
+
+| Otherwise place it in the inventory unless set_DropItems is TRUE
+/if (${set_DropItems} && ${Cursor.ID} >0) {
+  /echo Dropping ${Cursor.Name}...
+  /drop
+  /varcalc count_ItemsDropped ${count_ItemsDropped}+1
+} else {
+   /varcalc count_ItemsKept ${count_ItemsKept}+1
+  /autoinventory
+}
+/delay 5
+
+:FinishLooting
+| Repeat this if cursor isn't empty
+/if (${Cursor.ID} >0) /goto :ClearCursor
+| /if ( ${Cursor.Name.Find[Homemade Bait]} ) /autoinventory
+
+/if (${set_DisplayStats}) /call DisplayStats
+/return
+
+| ---------------------------------------------------------------------------
+| SUB: Pole replacement logic
+| ---------------------------------------------------------------------------
+Sub FindPole
+/declare PoleCounter int local 0
+
+| We have our Fisherman's Companion, summon a fishing pole
+/if (${op_GotFishComp}) {
+  /cast item "Fisherman's Companion"
+  /delay 11s
+  /autoinventory
+  /return
+}
+
+| We don't have a Fisherman's Companion, try to find a Fishing Pole
+/echo SEARCHING FOR FISHING POLE
+/for op_LoopCounter 1 to 8
+  /if (${InvSlot[pack${op_LoopCounter}].Item.Container}) {
+    /for PoleCounter 1 to ${InvSlot[pack${op_LoopCounter}].Item.Container}
+|   /echo ${InvSlot[pack${op_LoopCounter}].Item.Name} - ${InvSlot[pack${op_LoopCounter}].Item.Item[${PoleCounter}].Name}
+    /if (${InvSlot[pack${op_LoopCounter}].Item.Item[${PoleCounter}].Type.Equal["Fishing Pole"]}) {
+      /if (!${Window[pack${op_LoopCounter}].Open}) /nomodkey /itemnotify pack${op_LoopCounter} rightmouseup
+      /delay 3s ${Window[pack${op_LoopCounter}].Open}       
+      /delay 5
+      /nomodkey /itemnotify in pack${op_LoopCounter} ${PoleCounter} leftmouseup
+      /delay 5           
+      /autoinventory
+      /nomodkey /itemnotify pack${op_LoopCounter} rightmouseup             
+      /goto :BreakoutLoop
+    }
+    /next PoleCounter
+    } else {
+      /if (${InvSlot[pack${op_LoopCounter}].Item.Type.Equal["Fishing Pole"]}) {
+        /nomodkey /itemnotify pack${op_LoopCounter} leftmouseup
+        /delay 5
+        /autoinventory
+        /goto :BreakoutLoop
+      }
+    }
+   
+/next op_LoopCounter
+/echo We're out of Fishing Poles.
+/varset op_ExitMacro TRUE
+
+:BreakoutLoop
+/return
+
+| ---------------------------------------------------------------------------
+| SUB: Check for GM's in zone (yeah, yeah, we know).
+| ---------------------------------------------------------------------------
+Sub GMCheck
+/if (${Spawn[gm].ID}) {
+  /beep
+  /beep
+  /echo GM entered the zone!
+  /echo For safety reasons the macro is ending...
+  /endmacro
+}
+/return
+
+| ---------------------------------------------------------------------------
+| SUB: Create Array of items to destory if on cursor 
+| ---------------------------------------------------------------------------
+Sub LoadDestroyArray
+
+		/echo \atAttempting to Read \ar[Destroy] \atSection from \ayHyperFish2.ini
+
+		/if (${Ini["HyperFish2.ini","Destroy",Loot1,NULL].Equal[NULL]}) {
+			/echo [Destroy] section missing from HyperFish2.ini. No items will be destroyed
+			/varset op_GotDestroyArray FALSE     
+			/return
+		}
+	
+| Build Destroy loot array
+/declare nValues     int local  1
+/declare nArray      int local  0
+
+:DestroyCount
+/if (${Ini["HyperFish2.ini","Destroy",Loot${nValues},NULL].Equal[NULL]}) {
+   /varcalc nValues ${nValues}-1
+   /goto :MakeArray
+}
+/varcalc nValues ${nValues}+1
+/goto :DestroyCount
+
+
+:MakeArray
+	/echo \atI found \ag${nValues} \atdifferent items I can destroy
+	/echo \arDestroy \atis set to \ay${set_Destroy}
+	
+		/if (!${nValues}) {
+		/echo Something is wrong with your [Destroy] section
+		/varset op_GotDestroyArray FALSE
+		/return
+		}
+	
+/declare Destroy_LootArray[${nValues}]  string outer
+
+/for nArray 1 to ${nValues}
+  /varset Destroy_LootArray[${nArray}] ${Ini["HyperFish2.ini","Destroy",Loot${nArray}]}
+/next nArray
+
+/delay 1s
+/varset op_GotDestroyArray TRUE
+/return
+
+
+| ---------------------------------------------------------------------------
+| SUB: Populate Anizok's Bait Dispenser array
+| ---------------------------------------------------------------------------
+Sub PopulateDispenser
+
+/echo \atAttempting to Read \ay[Bait] \atSection from \ayHyperFish2.ini
+
+/if (${Ini["HyperFish2.ini","Bait",Loot1,NULL].Equal[NULL]}) {
+  /echo [Bait] section missing from HyperFish2.ini. Turning off Bait Dispenser
+  /varset set_UseBaitDispenser FALSE     
+  /return
+}
+
+| Build Bait loot array
+/declare nValues     int local  1
+/declare nArray      int local  0
+
+:BaitCount
+/if (${Ini["HyperFish2.ini","Bait",Loot${nValues},NULL].Equal[NULL]}) {
+   /varcalc nValues ${nValues}-1
+   /goto :MakeArray
+}
+/varcalc nValues ${nValues}+1
+/goto :BaitCount
+
+
+:MakeArray
+/echo \atI found \ag${nValues} \atdifferent items I can make bait with
+  /if (!${nValues}) {
+  /echo Something is wrong with your [bait] section
+  /varset set_UseBaitDispenser FALSE
+  /return
+}
+
+/declare Bait_LootArray[${nValues}]  string outer
+
+/for nArray 1 to ${nValues}
+  /varset Bait_LootArray[${nArray}] ${Ini["HyperFish2.ini","Bait",Loot${nArray}]}
+/next nArray
+
+/delay 1s
+
+/return
+
+
+| ---------------------------------------------------------------------------
+| SUB: MakeBait
+| ---------------------------------------------------------------------------
+Sub MakeBait
+/declare BaitCounter int local 0
+/declare BaitCompare int local 0
+
+
+| Open Anizok's Bait Dispenser in slot 10
+/echo Opening bait Dispenser
+/if (!${Window[Pack8].Open}) /nomodkey /itemnotify pack10 rightmouseup
+/delay 3s ${Window[Pack8].Open}
+
+| Dig around and try and find a fish we can make bait out of
+/for op_LoopCounter 1 to 10
+  /if (${InvSlot[pack${op_LoopCounter}].Item.Container}) {
+    /for BaitCounter 1 to ${InvSlot[pack${op_LoopCounter}].Item.Container}
+      /for BaitCompare 1 to ${Bait_LootArray.Size}
+      /if (${InvSlot[pack${op_LoopCounter}].Item.Item[${BaitCounter}].Name.Equal[${Bait_LootArray[${BaitCompare}]}]}) {
+|        /echo WE GOT A CANDIDATE in pack${op_LoopCounter} slot ${BaitCounter}
+         /if (!${Window[pack${op_LoopCounter}].Open}) /nomodkey /itemnotify pack${op_LoopCounter} rightmouseup
+         /delay 3s ${Window[pack${op_LoopCounter}].Open}
+         /delay 5
+         /nomodkey /ctrlkey /itemnotify in pack${op_LoopCounter} ${BaitCounter} leftmouseup
+         /delay 5
+         /goto :ExitBaitLoops
+       }
+      /next BaitCompare
+    /next BaitCounter
+       
+    } else {
+      /for BaitCompare 1 to ${Bait_LootArray.Size}
+        /if (${InvSlot[pack${op_LoopCounter}].Item.Name.Equal[${Bait_LootArray[${BaitCompare}]}]}) {
+|          /echo WE GOT A CANDIDATE in slot ${op_LoopCounter}
+          /nomodkey /ctrlkey /itemnotify pack${op_LoopCounter} leftmouseup
+          /delay 5
+          /goto :ExitBaitLoops
+        }
+      /next BaitCompare 
+      }
+     
+/next op_LoopCounter
+
+/echo We're out of Fishing Bait
+/varset op_ExitMacro TRUE
+/return
+
+:ExitBaitLoops
+
+| Make the Bait
+/echo Making some bait.
+/nomodkey /itemnotify in pack10 1 leftmouseup
+/delay 5
+/combine pack10
+/delay 5
+/autoinventory
+/delay 5
+/nomodkey /itemnotify pack10 rightmouseup
+/delay 5
+/nomodkey /itemnotify pack${op_LoopCounter} rightmouseup
+/autoinventory
+/varcalc count_ItemsKept ${count_ItemsKept}-1
+/return
+
+
+| ---------------------------------------------------------------------------
+| Event Sub Routines
+| ---------------------------------------------------------------------------
+Sub Event_BrokenPole
+/varcalc count_BrokenPole ${count_BrokenPole}+1
+|/varcalc count_NothingCaught ${count_NothingCaught}-1
+/return
+
+Sub Event_LostBait
+/varcalc count_LostBait ${count_LostBait}+1
+|/varcalc count_NothingCaught ${count_NothingCaught}-1
+/return
+
+Sub Event_NeedPole
+/call FindPole
+/return
+
+Sub Event_NothingCaught
+/varcalc count_NothingCaught ${count_NothingCaught}+1
+/return
+
+Sub Event_OutOfBait
+/if (${set_UseBaitDispenser}) {
+  /call MakeBait
+} else {
+/echo We're out of bait. Ending macro.
+/varset op_ExitMacro TRUE
+}
+/return
+
+Sub Event_PrimaryHand
+/call FindPole
+/return
+
+Sub Event_SkillUp(SkillUpText,Skill,int Amount)
+	/echo Fishing increased to - ${Amount}
+	/varcalc op_int_SkillUps ${op_int_SkillUps}+1
+/return
+
+Sub Event_SpillBeer
+/varcalc count_SpillBeer ${count_SpillBeer}+1
+|/varcalc count_NothingCaught ${count_NothingCaught}-1
+/return
+
+Sub Event_holding
+/autoinventory
+/return
+		
+Sub event_Camo
+/if ((${set_DoInnateCammo}) && (!${Me.Buff[Camouflage].ID})) {
+  /echo "Camo dropped, activating AA"
+  /alt activate 80
+  /delay 5
+}
+/return
+
+Sub event_GotHit
+/beep
+/echo UNDER ATTACK! You're gonna die.
+/if (${set_DoExodus}) {
+  /echo "Activating EXODUS and camping."
+  /alt activate 43
+  /delay 10
+  /alt activate 80
+  /delay 10
+  /sit
+  /camp desktop
+  /endmacro
+}
+/return 
