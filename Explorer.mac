@@ -1,0 +1,263 @@
+|--------------------------------------------------------------------------------------
+| Explorer Ver 0.1
+| Written by Fizz
+|--------------------------------------------------------------------------------------
+| This program is designed to run all zones required for
+| evolving TBL Torn Efeeti Boots.
+| You must have plugins MQ2Nav (with meshes) and MQ2Lazytravel.
+|
+|--------------------------------------------------------------------------------------
+
+#turbo 30
+|#warning
+
+|--------------------------------------------------------------------------------------
+| EVENTS
+| -------------------------------------------------------------------------------------
+#Event ZONE_BLOCKED "You do not meet the requirements for entering#*#"
+#Event ZONE_BLOCKED "You are unable to enter Veeshan's Peak."
+#Event ZONE_BLOCKED "This door is solidly locked."
+#Event ZONE_BLOCKED "You have no right to enter here."
+#Event INSTANCE_NOT_READY "A strange magical presence prevents you from entering.#*#"
+
+|--------------------------------------------------------------------------------------
+| INCLUDES
+| -------------------------------------------------------------------------------------
+|- Load Common Subs
+#include Explorer\Incs\IniCreate.inc
+#include Explorer\Incs\Subs.inc
+#include Explorer\Incs\Clickies.inc
+#include Explorer\Incs\InvisCheck.inc
+#include Explorer\Incs\Boats.inc
+
+| -------------------------------------------------------------------------------------
+|Route files
+| -------------------------------------------------------------------------------------
+|Norrathian Explorer
+| -------------------------------------------------------------------------------------
+#include Explorer\Routes\Antonica.inc
+#include Explorer\Routes\Faydwer.inc
+#include Explorer\Routes\Odus.inc
+#include Explorer\Routes\Guilds.inc
+#include Explorer\Routes\ThePlanes.inc
+#include Explorer\Routes\SpecialEvents.inc
+#include Explorer\Routes\Housing.inc
+
+
+| -------------------------------------------------------------------------------------
+|Expansions
+| -------------------------------------------------------------------------------------
+#include Explorer\Routes\RoK.inc
+#include Explorer\Routes\SoV.inc
+#include Explorer\Routes\SoL.inc
+#include Explorer\Routes\PoP.inc
+#include Explorer\Routes\LoY.inc
+#include Explorer\Routes\GoD.inc
+#include Explorer\Routes\OoW.inc
+#include Explorer\Routes\DoN.inc
+#include Explorer\Routes\DoDH.inc
+#include Explorer\Routes\PoR.inc
+#include Explorer\Routes\TSS.inc
+#include Explorer\Routes\TBS.inc
+#include Explorer\Routes\SoF.inc
+#include Explorer\Routes\SoD.inc
+#include Explorer\Routes\Underfoot.inc
+#include Explorer\Routes\HoT.inc
+#include Explorer\Routes\VoA.inc
+#include Explorer\Routes\RoF.inc
+#include Explorer\Routes\CotF.inc
+#include Explorer\Routes\TDS.inc
+#include Explorer\Routes\TBM.inc
+#include Explorer\Routes\EoK.inc
+#include Explorer\Routes\RoS.inc
+
+#include Explorer\Routes\LDoN.inc
+
+
+| -------------------------------------------------------------------------------------
+| SUB: Main
+| -------------------------------------------------------------------------------------
+Sub Main
+
+/declare DoExpansion string outer
+
+						
+/if (!${Param0.Length})	{
+						/varset DoExpansion No
+		} else	{
+						/varset DoExpansion ${Param0}
+						}
+
+	/call Prep
+	/call loadLDoNinis
+	/call ShardPortalQuests
+	/call loadRoutes
+	
+	/docrack envirofall on
+	
+|	/if (${Zone.ID}!=202) 	{ 
+|							/echo ${Teal}You are ${Red}NOT ${Teal}in PoK.
+|							/echo ${Yellow}Attempting to move you there.
+|							/call evac
+|							/delay 25s
+|							} 	
+
+
+/if (${DoExpansion.Length}) {
+	
+	/if (${DoExpansion.Equal[ALL]})  					{
+														/call ALL
+	} else /if (${DoExpansion.Equal[No]}) 				{
+														/echo ${Teal}You have not requested a route. Type ${Green}/mac Explorer Help ${Teal}for list of routes.
+														/echo ${Teal}Running routes from ${Green}ini file.
+														/call ALL	
+	} else /if (${DoExpansion.Equal[Antonica]}) 		{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "Antonica" "0"
+														/call Antonica
+	} else /if (${DoExpansion.Equal[Faydwer]})   		{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "Faydwer" "0"
+														/call Faydwer												
+	} else /if (${DoExpansion.Equal[Odus]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "Odus" "0"
+														/call Odus												
+	} else /if (${DoExpansion.Equal[Guilds]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "Guilds" "0"
+														/call Guilds												
+	} else /if (${DoExpansion.Equal[SpecialEvents]})  	{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "SpecialEvents" "0"
+														/call SpecialEvents												
+	} else /if (${DoExpansion.Equal[ThePlanes]})   		{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "ThePlanes" "0"
+														/call ThePlanes												
+	} else /if (${DoExpansion.Equal[RoK]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "RoK" "0"
+														/call RoK												
+	} else /if (${DoExpansion.Equal[SoV]})   			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "SoV" "0"
+														/call SoV												
+	} else /if (${DoExpansion.Equal[SoL]})   			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "SoL" "0"
+														/call SoL												
+	} else /if (${DoExpansion.Equal[PoP]})   			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "PoP" "0"
+														/call PoP												
+	} else /if (${DoExpansion.Equal[LoY]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "LoY" "0"
+														/call LoY
+	} else /if (${DoExpansion.Equal[LDoN]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "LDoN" "0"
+														/call LDoN																					
+	} else /if (${DoExpansion.Equal[GoD]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "GoD" "0"
+														/call GoD												
+	} else /if (${DoExpansion.Equal[OoW]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "OoW" "0"
+														/call OoW												
+	} else /if (${DoExpansion.Equal[DoN]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "DoN" "0"
+														/call DoN																								
+	} else /if (${DoExpansion.Equal[DoDH]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "DoDH" "0"
+														/call DoDH												
+	} else /if (${DoExpansion.Equal[PoR]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "PoR" "0"
+														/call PoR		
+	} else /if (${DoExpansion.Equal[TSS]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "TSS" "0"
+														/call TSS																						
+	} else /if (${DoExpansion.Equal[TBS]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "TBS" "0"
+														/call TBS														
+	} else /if (${DoExpansion.Equal[SoF]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "SoF" "0"
+														/call SoF												
+	} else /if (${DoExpansion.Equal[SoD]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "SoD" "0"
+														/call SoD												
+	} else /if (${DoExpansion.Equal[Underfoot]})  		{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "Underfoot" "0"
+														/call Underfoot												
+	} else /if (${DoExpansion.Equal[HoT]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "HoT" "0"
+														/call HoT												
+	} else /if (${DoExpansion.Equal[VoA]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "VoA" "0"
+														/call VoA												
+	} else /if (${DoExpansion.Equal[RoF]})   			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "RoF" "0"
+														/call RoF												
+	} else /if (${DoExpansion.Equal[CotF]})   			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "CotF" "0"
+														/call CotF																							
+	} else /if (${DoExpansion.Equal[TDS]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "TDS" "0"
+														/call TDS												
+	} else /if (${DoExpansion.Equal[TBM]})   			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "TBM" "0"
+														/call TBM												
+	} else /if (${DoExpansion.Equal[EoK]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "EoK" "0"
+														/call EoK												
+	} else /if (${DoExpansion.Equal[RoS]})  			{
+														/ini "${RouteIniFileName}" "CompletedRoutes" "RoS" "0"
+														/call RoS	
+	} else  											{
+														/echo ${Red} error Invalid Command Line Parameter - Providing assistance...
+														/call Help
+														/endm
+	}	
+	/echo Valid expansion not listed, ending macro
+	/end
+	}	
+
+/return
+														
+Sub All
+					
+:explorerloop	
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,Antonica]}==0) 		/call Antonica
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,Faydwer]}==0) 		/call Faydwer
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,Odus]}==0) 			/call Odus
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,Guilds]}==0) 			/call Guilds
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,SpecialEvents]}==0) 	/call SpecialEvents
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,OldPlanes]}==0) 		/call ThePlanes
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,RoK]}==0) 			/call RoK
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,SoV]}==0) 			/call SoV
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,SoL]}==0) 			/call SoL
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,PoP]}==0) 			/call PoP
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,LoY]}==0) 			/call LoY
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,LDoN]}==0) 			/call LDoN
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,GoD]}==0) 			/call GoD
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,OoW]}==0) 			/call OoW
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,DoN]}==0) 			/call DoN
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,DoDH]}==0) 			/call DoDH
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,PoR]}==0) 			/call PoR
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,TSS]}==0) 			/call TSS
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,TBS]}==0) 			/call TBS
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,SoF]}==0) 			/call SoF
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,SoD]}==0) 			/call SoD
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,Underfoot]}==0) 		/call Underfoot
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,HoT]}==0) 			/call HoT
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,VoA]}==0) 			/call VoA	
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,RoF]}==0) 			/call RoF
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,TDS]}==0) 			/call TDS
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,TBM]}==0) 			/call TBM
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,EoK]}==0) 			/call EoK
+	/if (${Zone.ID}==202 && ${Ini[${RouteIniFileName},CompletedRoutes,RoS]}==0) 			/call RoS
+	/delay 5s
+	/goto :explorerloop
+	
+/return
+
+Sub Complete
+	/echo ${Green}Congradulations. You have completed the Explorer.mac
+	/endm
+	
+/return
+
+:OnExit
+    /if (!${blnDoCrackLoaded}) 	/call unloadPlugin MQ2DoCrack 1
+    /if (!${blnEasyfindLoaded}) /call unloadPlugin MQ2LazyFind 1
+    /if (!${blnNavLoaded}) 		/call unloadPlugin MQ2Nav 1
+    /end
+/return
